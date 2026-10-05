@@ -295,7 +295,6 @@ return {
 	ALLOW_MODE_SWITCH = true, -- the /mode command; a test convenience, to be removed before release
 	DAY_MINUTES = 20, -- real minutes for one in-game day; solar panels follow the sun
 	BENCH_RANGE = 15, -- studs from a workbench within which it can be used
-	DROP_COUNT = 8, -- loose items dropped per click from the creative palette
 	SAPLING_SECONDS = 45, -- time for a sapling to become a tree
 	CROP_SECONDS = 60, -- time for a crop to ripen
 
@@ -13937,26 +13936,37 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	end
 end
 
--- Creative mode: drops a few loose items of any kind into an empty cell.
+-- Lets go of one loose item. It lands in the cell the player aimed at if that is a free cell of
+-- their own island within reach, and otherwise just in front of them. Things can only be put down
+-- on the player's own island: left anywhere else, nobody could pick them up again.
 local function drop(player: Player, id: any, x: any, y: any, z: any)
-	local island = editable(player, x, y, z)
-	if not island or not Defs.isItem(id) then
+	local island = IslandService.get(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not island or not root or not root:IsA("BasePart") or not Defs.isItem(id) or not allowed(player) then
 		return
 	end
-	local cell = island.cells[Grid.key(x, y, z)]
-	if cell and (cell.kind == "block" or cell.machine.model:GetAttribute("Solid")) then
+	local at = (root.CFrame * CFrame.new(0, 0.5, -3.5)).Position
+	if Grid.isInt(x) and Grid.isInt(y) and Grid.isInt(z) and Grid.inBounds(x, y, z, Config.MAX_COORD) then
+		local center = IslandService.cellCenter(island, x, y, z)
+		local cell = island.cells[Grid.key(x, y, z)]
+		local solid = cell and (cell.kind == "block" or cell.machine.model:GetAttribute("Solid"))
+		if not solid and (center - root.Position).Magnitude <= Config.REACH + Config.CELL then
+			at = center
+		end
+	end
+	if not IslandService.owns(island, at) then
+		Profile.hint(player, "물건은 자기 섬에서만 내려놓을 수 있습니다")
 		return
 	end
-	-- Creative mode makes the items from nothing; otherwise they come out of the bag.
-	local count = Config.DROP_COUNT
+	-- Creative mode makes the item from nothing; otherwise it comes out of the bag.
 	if island.mode == "survival" then
-		count = math.min(count, island.bag[id] or 0)
-		if count < 1 or not Inventory.remove(island.bag, id, count) then
+		if not Inventory.remove(island.bag, id, 1) then
 			return
 		end
 		Profile.push(island)
 	end
-	ItemService.spawn(id, count, IslandService.cellCenter(island, x, y, z))
+	ItemService.spawn(id, 1, at)
 end
 
 local function breakCell(player: Player, x: any, y: any, z: any)
@@ -15140,6 +15150,7 @@ return Belt
 -- player craft that kind of thing. A workbench's tier belongs to the island, so every bench of a
 -- kind shows the same tier.
 local Kit = require(script.Parent.Parent.MachineKit)
+local MachineActs = require(script.Parent.Parent.MachineActs)
 
 local Bench = {}
 
@@ -15157,6 +15168,12 @@ end
 function Bench.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	local body = Kit.body(machine)
+	-- F opens the crafting screen at this bench. Only the owner crafts here.
+	Kit.prompt(machine, body, "조합", function(player)
+		if player == machine.island.owner then
+			MachineActs.show(player, machine, "bench", { bench = machine.def.bench })
+		end
+	end)
 	machine.label = Kit.label(body, machine.def.height)
 	machine.shown = text(machine)
 	machine.label.Text = machine.shown
@@ -17472,6 +17489,7 @@ return Vending
   <Item class="StarterPlayer" referent="274">
     <Properties>
       <string name="Name">StarterPlayer</string>
+      <bool name="EnableMouseLockOption">false</bool>
     </Properties>
     <Item class="StarterPlayerScripts" referent="275">
       <Properties>
@@ -17548,7 +17566,7 @@ end
 
 function BagUI.init(hotbarUi)
 	hotbar = hotbarUi
-	local _, body = UIKit.window("bag", "가방", 720, 470, Enum.KeyCode.B, refresh)
+	local _, body = UIKit.window("bag", "가방", 720, 470, nil, refresh) -- opened with E, see HotbarUI
 
 	summary = UIKit.label(body, "", 13)
 	summary.TextColor3 = UIKit.DIM
@@ -17586,7 +17604,8 @@ return BagUI
             <string name="Name">BuildController</string>
             <string name="Source"><![CDATA[-- Turns mouse and keyboard input into place, break, drop and pick-up requests, and draws the
 -- outline showing where the next thing will go. Left click uses whatever is in the hand: a block or
--- machine is placed, a tool breaks, anything else is dropped. Right click is left to the camera.
+-- machine is placed, a tool breaks, anything else does nothing. Q lets go of the item in the hand,
+-- R turns a machine before it is placed, F picks up, Shift runs. Right click is left to the camera.
 -- The server decides whether each request is allowed.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17610,6 +17629,9 @@ local CELL = Config.CELL
 local FREE = Color3.fromRGB(120, 220, 140)
 local BLOCKED = Color3.fromRGB(230, 90, 80)
 local MARK = Color3.fromRGB(255, 255, 255)
+local WALK_SPEED = 16
+local RUN_SPEED = 26 -- while Shift is held
+local DROP_SECONDS = 0.15 -- between items while Q is held
 
 local hotbar
 local dir = 0
@@ -17620,6 +17642,8 @@ local SWING_SECONDS = 0.2 -- how often a held left button swings again
 -- press began on, so sweeping the cursor never tears through a row of machines.
 local breaking: Target? = nil
 local sinceSwing = 0
+local dropping = false
+local sinceDrop = 0
 
 local keys = {
 	[Enum.KeyCode.One] = 1,
@@ -17756,14 +17780,39 @@ local function makeGhost()
 	arrow.Parent = Workspace
 end
 
--- What left click would do with the thing in the hand: "place", "break", "drop", or nil.
+-- What left click would do with the thing in the hand: "place", "break", or nil. Only blocks,
+-- machines and tools do anything; any other item is just carried.
 local function intent(): string?
 	local entry = hotbar.selected()
 	local item = Defs.itemOf(entry)
 	if item then
-		return if ToolLogic.parse(item) then "break" else "drop"
+		return if ToolLogic.parse(item) then "break" else nil
 	end
 	return if Defs.isPlaceable(entry) then "place" else nil
+end
+
+-- Q: lets go of one of the items in the hand. It lands on the cell the cursor points at, or
+-- failing that in front of the player. Blocks and machines are not loose things and stay put.
+local function dropHeld()
+	local item = Defs.itemOf(hotbar.selected())
+	if not item or Screens.anyOpen() then
+		return
+	end
+	HandView.swing()
+	local found = target()
+	if found then
+		Net.get("Drop"):FireServer(item, found.px, found.py, found.pz)
+	else
+		Net.get("Drop"):FireServer(item)
+	end
+end
+
+local function setRunning(running: boolean)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = if running then RUN_SPEED else WALK_SPEED
+	end
 end
 
 local function drawGhost()
@@ -17815,11 +17864,8 @@ local function use(): Target?
 	if what == "break" then
 		Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 		return found
-	elseif what == "drop" then
-		Net.get("Drop"):FireServer(Defs.itemOf(hotbar.selected()), found.px, found.py, found.pz)
-	else
-		Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
 	end
+	Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
 	return nil
 end
 
@@ -17832,6 +17878,12 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		sinceSwing = 0
 	elseif input.KeyCode == Enum.KeyCode.R then
 		dir = Grid.rotate(dir, 1)
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		dropHeld()
+		dropping = true
+		sinceDrop = 0
+	elseif input.KeyCode == Enum.KeyCode.LeftShift then
+		setRunning(true)
 	elseif input.KeyCode == Enum.KeyCode.F then
 		Net.get("Pickup"):FireServer()
 	elseif keys[input.KeyCode] then
@@ -17867,9 +17919,25 @@ local function keepBreaking(dt: number)
 	Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 end
 
+-- Holding Q keeps letting go of items, one at a time.
+local function keepDropping(dt: number)
+	if not dropping then
+		return
+	end
+	sinceDrop += dt
+	if sinceDrop >= DROP_SECONDS then
+		sinceDrop = 0
+		dropHeld()
+	end
+end
+
 local function onInputEnded(input: InputObject)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		breaking = nil
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		dropping = false
+	elseif input.KeyCode == Enum.KeyCode.LeftShift then
+		setRunning(false)
 	end
 end
 
@@ -17880,6 +17948,7 @@ function BuildController.init(hotbarUi)
 	UserInputService.InputEnded:Connect(onInputEnded)
 	RunService.RenderStepped:Connect(drawGhost)
 	RunService.RenderStepped:Connect(keepBreaking)
+	RunService.RenderStepped:Connect(keepDropping)
 end
 
 return BuildController
@@ -18392,6 +18461,26 @@ function CraftUI.init(hotbarUi)
 	rowList.Position = UDim2.fromOffset(202, 64)
 	rowList.Size = UDim2.new(1, -202, 1, -64)
 
+	-- F on a workbench or a hand station opens this screen at what that one makes.
+	Net.get("MachineInfo").OnClientEvent:Connect(function(message)
+		if type(message) ~= "table" or message.kind ~= "bench" or type(message.info) ~= "table" then
+			return
+		end
+		local kind = message.info.bench
+		local onHand = kind == "hand_furnace" or kind == "campfire"
+		Screens.open("craft")
+		benches = benchesNow()
+		showTab(if onHand then "hand" else "craft")
+		local groups = if onHand
+			then ScreenLogic.groups(Recipes.hand, "station")
+			else ScreenLogic.groups(Recipes.craft, "bench")
+		for _, entry in groups do
+			if entry.name == kind then
+				showGroup(entry.name, entry.indexes)
+			end
+		end
+	end)
+
 	-- The bag or the tiers changed: the same rows, with new numbers.
 	hotbar.onChange(function()
 		if Screens.isOpen("craft") then
@@ -18847,8 +18936,8 @@ local function showBag(bag: { [string]: number })
 	HotbarUI.bag = if type(bag) == "table" then bag else {}
 	local kinds, total = ScreenLogic.totals(HotbarUI.bag)
 	bagLabel.Text = if kinds > 0
-		then "가방 " .. kinds .. "종 · " .. UIKit.number(total) .. "개 · B로 열기"
-		else "가방 비어 있음 · B로 열기"
+		then "가방 " .. kinds .. "종 · " .. UIKit.number(total) .. "개 · E로 열기"
+		else "가방 비어 있음 · E로 열기"
 	changed()
 end
 
@@ -18922,7 +19011,7 @@ local function buildPalette()
 		"놓을 것 고르기 · 고르면 지금 선택된 칸에 들어갑니다",
 		760,
 		470,
-		Enum.KeyCode.E,
+		nil,
 		function()
 			showTab(currentTab)
 		end
@@ -19028,7 +19117,7 @@ function HotbarUI.init()
 
 	local hint = UIKit.label(
 		gui,
-		"좌클릭: 든 것 쓰기(놓기, 도구로 부수기) · R 돌리기 · F 줍기 · E 목록 · B 가방 · C 조합 · T 거래 · V 섬 구경",
+		"1~0 고르기 · 좌클릭 쓰기 · Q 떨구기 · R 돌리기 · F 줍기·상호작용 · E 가방 · Shift 달리기 · C 조합 · T 거래 · V 섬 구경",
 		14
 	)
 	hint.Name = "Hint"
@@ -19039,6 +19128,14 @@ function HotbarUI.init()
 	hint.TextStrokeTransparency = 0.5
 
 	buildPalette()
+	-- E is the inventory, as in Minecraft: what is carried in survival, everything in creative.
+	Screens.onKey(Enum.KeyCode.E, function()
+		if Screens.isOpen("bag") or Screens.isOpen("palette") then
+			Screens.closeAll()
+		else
+			Screens.open(if HotbarUI.state.mode == "creative" then "palette" else "bag")
+		end
+	end)
 	redrawSelection()
 	handChanged()
 	showBag({})
@@ -19313,6 +19410,7 @@ local Screens = {}
 type Screen = { frame: GuiObject, key: Enum.KeyCode?, onOpen: (() -> ())?, onClose: (() -> ())? }
 
 local screens: { [string]: Screen } = {}
+local keyRuns: { [Enum.KeyCode]: () -> () } = {}
 local gui: ScreenGui? = nil
 
 -- The one ScreenGui everything in this game is drawn in.
@@ -19338,6 +19436,11 @@ function Screens.register(
 )
 	frame.Visible = false
 	screens[name] = { frame = frame, key = key, onOpen = onOpen, onClose = onClose }
+end
+
+-- Runs `run` when a key is pressed outside of chat and text boxes.
+function Screens.onKey(key: Enum.KeyCode, run: () -> ())
+	keyRuns[key] = run
 end
 
 function Screens.isOpen(name: string): boolean
@@ -19404,6 +19507,11 @@ function Screens.init()
 			or input.UserInputType ~= Enum.UserInputType.Keyboard
 			or UserInputService:GetFocusedTextBox()
 		then
+			return
+		end
+		local run = keyRuns[input.KeyCode]
+		if run then
+			run()
 			return
 		end
 		for name, screen in screens do

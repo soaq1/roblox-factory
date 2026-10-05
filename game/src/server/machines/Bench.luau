@@ -2,6 +2,7 @@
 -- player craft that kind of thing. A workbench's tier belongs to the island, so every bench of a
 -- kind shows the same tier.
 local Kit = require(script.Parent.Parent.MachineKit)
+local MachineActs = require(script.Parent.Parent.MachineActs)
 
 local Bench = {}
 
@@ -19,6 +20,12 @@ end
 function Bench.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	local body = Kit.body(machine)
+	-- F opens the crafting screen at this bench. Only the owner crafts here.
+	Kit.prompt(machine, body, "조합", function(player)
+		if player == machine.island.owner then
+			MachineActs.show(player, machine, "bench", { bench = machine.def.bench })
+		end
+	end)
 	machine.label = Kit.label(body, machine.def.height)
 	machine.shown = text(machine)
 	machine.label.Text = machine.shown

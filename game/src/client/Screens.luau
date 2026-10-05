@@ -8,6 +8,7 @@ local Screens = {}
 type Screen = { frame: GuiObject, key: Enum.KeyCode?, onOpen: (() -> ())?, onClose: (() -> ())? }
 
 local screens: { [string]: Screen } = {}
+local keyRuns: { [Enum.KeyCode]: () -> () } = {}
 local gui: ScreenGui? = nil
 
 -- The one ScreenGui everything in this game is drawn in.
@@ -33,6 +34,11 @@ function Screens.register(
 )
 	frame.Visible = false
 	screens[name] = { frame = frame, key = key, onOpen = onOpen, onClose = onClose }
+end
+
+-- Runs `run` when a key is pressed outside of chat and text boxes.
+function Screens.onKey(key: Enum.KeyCode, run: () -> ())
+	keyRuns[key] = run
 end
 
 function Screens.isOpen(name: string): boolean
@@ -99,6 +105,11 @@ function Screens.init()
 			or input.UserInputType ~= Enum.UserInputType.Keyboard
 			or UserInputService:GetFocusedTextBox()
 		then
+			return
+		end
+		local run = keyRuns[input.KeyCode]
+		if run then
+			run()
 			return
 		end
 		for name, screen in screens do

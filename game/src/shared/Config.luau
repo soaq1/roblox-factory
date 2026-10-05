@@ -16,7 +16,6 @@ return {
 	ALLOW_MODE_SWITCH = true, -- the /mode command; a test convenience, to be removed before release
 	DAY_MINUTES = 20, -- real minutes for one in-game day; solar panels follow the sun
 	BENCH_RANGE = 15, -- studs from a workbench within which it can be used
-	DROP_COUNT = 8, -- loose items dropped per click from the creative palette
 	SAPLING_SECONDS = 45, -- time for a sapling to become a tree
 	CROP_SECONDS = 60, -- time for a crop to ripen
 

@@ -126,26 +126,37 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	end
 end
 
--- Creative mode: drops a few loose items of any kind into an empty cell.
+-- Lets go of one loose item. It lands in the cell the player aimed at if that is a free cell of
+-- their own island within reach, and otherwise just in front of them. Things can only be put down
+-- on the player's own island: left anywhere else, nobody could pick them up again.
 local function drop(player: Player, id: any, x: any, y: any, z: any)
-	local island = editable(player, x, y, z)
-	if not island or not Defs.isItem(id) then
+	local island = IslandService.get(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not island or not root or not root:IsA("BasePart") or not Defs.isItem(id) or not allowed(player) then
 		return
 	end
-	local cell = island.cells[Grid.key(x, y, z)]
-	if cell and (cell.kind == "block" or cell.machine.model:GetAttribute("Solid")) then
+	local at = (root.CFrame * CFrame.new(0, 0.5, -3.5)).Position
+	if Grid.isInt(x) and Grid.isInt(y) and Grid.isInt(z) and Grid.inBounds(x, y, z, Config.MAX_COORD) then
+		local center = IslandService.cellCenter(island, x, y, z)
+		local cell = island.cells[Grid.key(x, y, z)]
+		local solid = cell and (cell.kind == "block" or cell.machine.model:GetAttribute("Solid"))
+		if not solid and (center - root.Position).Magnitude <= Config.REACH + Config.CELL then
+			at = center
+		end
+	end
+	if not IslandService.owns(island, at) then
+		Profile.hint(player, "물건은 자기 섬에서만 내려놓을 수 있습니다")
 		return
 	end
-	-- Creative mode makes the items from nothing; otherwise they come out of the bag.
-	local count = Config.DROP_COUNT
+	-- Creative mode makes the item from nothing; otherwise it comes out of the bag.
 	if island.mode == "survival" then
-		count = math.min(count, island.bag[id] or 0)
-		if count < 1 or not Inventory.remove(island.bag, id, count) then
+		if not Inventory.remove(island.bag, id, 1) then
 			return
 		end
 		Profile.push(island)
 	end
-	ItemService.spawn(id, count, IslandService.cellCenter(island, x, y, z))
+	ItemService.spawn(id, 1, at)
 end
 
 local function breakCell(player: Player, x: any, y: any, z: any)

@@ -1,6 +1,7 @@
 -- Turns mouse and keyboard input into place, break, drop and pick-up requests, and draws the
 -- outline showing where the next thing will go. Left click uses whatever is in the hand: a block or
--- machine is placed, a tool breaks, anything else is dropped. Right click is left to the camera.
+-- machine is placed, a tool breaks, anything else does nothing. Q lets go of the item in the hand,
+-- R turns a machine before it is placed, F picks up, Shift runs. Right click is left to the camera.
 -- The server decides whether each request is allowed.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,6 +25,9 @@ local CELL = Config.CELL
 local FREE = Color3.fromRGB(120, 220, 140)
 local BLOCKED = Color3.fromRGB(230, 90, 80)
 local MARK = Color3.fromRGB(255, 255, 255)
+local WALK_SPEED = 16
+local RUN_SPEED = 26 -- while Shift is held
+local DROP_SECONDS = 0.15 -- between items while Q is held
 
 local hotbar
 local dir = 0
@@ -34,6 +38,8 @@ local SWING_SECONDS = 0.2 -- how often a held left button swings again
 -- press began on, so sweeping the cursor never tears through a row of machines.
 local breaking: Target? = nil
 local sinceSwing = 0
+local dropping = false
+local sinceDrop = 0
 
 local keys = {
 	[Enum.KeyCode.One] = 1,
@@ -170,14 +176,39 @@ local function makeGhost()
 	arrow.Parent = Workspace
 end
 
--- What left click would do with the thing in the hand: "place", "break", "drop", or nil.
+-- What left click would do with the thing in the hand: "place", "break", or nil. Only blocks,
+-- machines and tools do anything; any other item is just carried.
 local function intent(): string?
 	local entry = hotbar.selected()
 	local item = Defs.itemOf(entry)
 	if item then
-		return if ToolLogic.parse(item) then "break" else "drop"
+		return if ToolLogic.parse(item) then "break" else nil
 	end
 	return if Defs.isPlaceable(entry) then "place" else nil
+end
+
+-- Q: lets go of one of the items in the hand. It lands on the cell the cursor points at, or
+-- failing that in front of the player. Blocks and machines are not loose things and stay put.
+local function dropHeld()
+	local item = Defs.itemOf(hotbar.selected())
+	if not item or Screens.anyOpen() then
+		return
+	end
+	HandView.swing()
+	local found = target()
+	if found then
+		Net.get("Drop"):FireServer(item, found.px, found.py, found.pz)
+	else
+		Net.get("Drop"):FireServer(item)
+	end
+end
+
+local function setRunning(running: boolean)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = if running then RUN_SPEED else WALK_SPEED
+	end
 end
 
 local function drawGhost()
@@ -229,11 +260,8 @@ local function use(): Target?
 	if what == "break" then
 		Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 		return found
-	elseif what == "drop" then
-		Net.get("Drop"):FireServer(Defs.itemOf(hotbar.selected()), found.px, found.py, found.pz)
-	else
-		Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
 	end
+	Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
 	return nil
 end
 
@@ -246,6 +274,12 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		sinceSwing = 0
 	elseif input.KeyCode == Enum.KeyCode.R then
 		dir = Grid.rotate(dir, 1)
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		dropHeld()
+		dropping = true
+		sinceDrop = 0
+	elseif input.KeyCode == Enum.KeyCode.LeftShift then
+		setRunning(true)
 	elseif input.KeyCode == Enum.KeyCode.F then
 		Net.get("Pickup"):FireServer()
 	elseif keys[input.KeyCode] then
@@ -281,9 +315,25 @@ local function keepBreaking(dt: number)
 	Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 end
 
+-- Holding Q keeps letting go of items, one at a time.
+local function keepDropping(dt: number)
+	if not dropping then
+		return
+	end
+	sinceDrop += dt
+	if sinceDrop >= DROP_SECONDS then
+		sinceDrop = 0
+		dropHeld()
+	end
+end
+
 local function onInputEnded(input: InputObject)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		breaking = nil
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		dropping = false
+	elseif input.KeyCode == Enum.KeyCode.LeftShift then
+		setRunning(false)
 	end
 end
 
@@ -294,6 +344,7 @@ function BuildController.init(hotbarUi)
 	UserInputService.InputEnded:Connect(onInputEnded)
 	RunService.RenderStepped:Connect(drawGhost)
 	RunService.RenderStepped:Connect(keepBreaking)
+	RunService.RenderStepped:Connect(keepDropping)
 end
 
 return BuildController

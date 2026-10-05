@@ -171,8 +171,8 @@ local function showBag(bag: { [string]: number })
 	HotbarUI.bag = if type(bag) == "table" then bag else {}
 	local kinds, total = ScreenLogic.totals(HotbarUI.bag)
 	bagLabel.Text = if kinds > 0
-		then "가방 " .. kinds .. "종 · " .. UIKit.number(total) .. "개 · B로 열기"
-		else "가방 비어 있음 · B로 열기"
+		then "가방 " .. kinds .. "종 · " .. UIKit.number(total) .. "개 · E로 열기"
+		else "가방 비어 있음 · E로 열기"
 	changed()
 end
 
@@ -246,7 +246,7 @@ local function buildPalette()
 		"놓을 것 고르기 · 고르면 지금 선택된 칸에 들어갑니다",
 		760,
 		470,
-		Enum.KeyCode.E,
+		nil,
 		function()
 			showTab(currentTab)
 		end
@@ -352,7 +352,7 @@ function HotbarUI.init()
 
 	local hint = UIKit.label(
 		gui,
-		"좌클릭: 든 것 쓰기(놓기, 도구로 부수기) · R 돌리기 · F 줍기 · E 목록 · B 가방 · C 조합 · T 거래 · V 섬 구경",
+		"1~0 고르기 · 좌클릭 쓰기 · Q 떨구기 · R 돌리기 · F 줍기·상호작용 · E 가방 · Shift 달리기 · C 조합 · T 거래 · V 섬 구경",
 		14
 	)
 	hint.Name = "Hint"
@@ -363,6 +363,14 @@ function HotbarUI.init()
 	hint.TextStrokeTransparency = 0.5
 
 	buildPalette()
+	-- E is the inventory, as in Minecraft: what is carried in survival, everything in creative.
+	Screens.onKey(Enum.KeyCode.E, function()
+		if Screens.isOpen("bag") or Screens.isOpen("palette") then
+			Screens.closeAll()
+		else
+			Screens.open(if HotbarUI.state.mode == "creative" then "palette" else "bag")
+		end
+	end)
 	redrawSelection()
 	handChanged()
 	showBag({})

@@ -501,6 +501,26 @@ function CraftUI.init(hotbarUi)
 	rowList.Position = UDim2.fromOffset(202, 64)
 	rowList.Size = UDim2.new(1, -202, 1, -64)
 
+	-- F on a workbench or a hand station opens this screen at what that one makes.
+	Net.get("MachineInfo").OnClientEvent:Connect(function(message)
+		if type(message) ~= "table" or message.kind ~= "bench" or type(message.info) ~= "table" then
+			return
+		end
+		local kind = message.info.bench
+		local onHand = kind == "hand_furnace" or kind == "campfire"
+		Screens.open("craft")
+		benches = benchesNow()
+		showTab(if onHand then "hand" else "craft")
+		local groups = if onHand
+			then ScreenLogic.groups(Recipes.hand, "station")
+			else ScreenLogic.groups(Recipes.craft, "bench")
+		for _, entry in groups do
+			if entry.name == kind then
+				showGroup(entry.name, entry.indexes)
+			end
+		end
+	end)
+
 	-- The bag or the tiers changed: the same rows, with new numbers.
 	hotbar.onChange(function()
 		if Screens.isOpen("craft") then

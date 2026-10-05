@@ -62,7 +62,7 @@ end
 
 function BagUI.init(hotbarUi)
 	hotbar = hotbarUi
-	local _, body = UIKit.window("bag", "가방", 720, 470, Enum.KeyCode.B, refresh)
+	local _, body = UIKit.window("bag", "가방", 720, 470, nil, refresh) -- opened with E, see HotbarUI
 
 	summary = UIKit.label(body, "", 13)
 	summary.TextColor3 = UIKit.DIM
