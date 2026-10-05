@@ -11,6 +11,10 @@ export type Rules = {
 	fuel: { [string]: number }, -- item id -> how many jobs one unit pays for
 	cap: number, -- most of one item the input buffer holds
 	outCap: number, -- most items waiting in the output buffer before work pauses
+	-- Optional. Items whose buffer holds a different amount from `cap`; see ProcessLogic.caps.
+	caps: { [string]: number }?,
+	-- Optional. Fuel one job uses, when not 1. A machine on electricity uses less.
+	fuelPerJob: number?,
 }
 export type State = {
 	buf: { [string]: number },
@@ -21,6 +25,25 @@ export type State = {
 
 function ProcessLogic.new(): State
 	return { buf = {}, out = {}, fuel = 0, progress = 0 }
+end
+
+-- Buffer sizes for ingredients that a recipe needs more of than `cap` holds, so that every recipe
+-- can actually be filled. A recipe that takes 2000 of something gets room for 2000 of it.
+function ProcessLogic.caps(recipes: { Recipe }, cap: number): { [string]: number }
+	local caps: { [string]: number } = {}
+	for _, recipe in recipes do
+		for id, n in recipe.ins do
+			if n > cap and n > (caps[id] or 0) then
+				caps[id] = n
+			end
+		end
+	end
+	return caps
+end
+
+local function capOf(itemId: string, rules: Rules): number
+	local caps = rules.caps
+	return (caps and caps[itemId]) or rules.cap
 end
 
 local function isInput(itemId: string, rules: Rules): boolean
@@ -38,7 +61,7 @@ function ProcessLogic.room(state: State, itemId: string, rules: Rules): number
 	if not wanted then
 		return 0
 	end
-	return math.max(0, rules.cap - (state.buf[itemId] or 0))
+	return math.max(0, capOf(itemId, rules) - (state.buf[itemId] or 0))
 end
 
 function ProcessLogic.insert(state: State, itemId: string, n: number, rules: Rules): number
@@ -103,6 +126,11 @@ local function refuel(state: State, rules: Rules, recipe: Recipe)
 	end
 end
 
+-- Is there a job the machine could start or carry on with? (Fuel aside: it is lit as work begins.)
+function ProcessLogic.hasWork(state: State, rules: Rules): boolean
+	return waiting(state) < rules.outCap and ready(state, rules) ~= nil
+end
+
 function ProcessLogic.isWorking(state: State, rules: Rules): boolean
 	if waiting(state) >= rules.outCap or not ready(state, rules) then
 		return false
@@ -139,7 +167,7 @@ function ProcessLogic.step(state: State, dt: number, rules: Rules)
 			state.out[id] = (state.out[id] or 0) + n
 		end
 		if rules.usesFuel then
-			state.fuel -= 1
+			state.fuel = math.max(0, state.fuel - (rules.fuelPerJob or 1))
 		end
 	end
 end
@@ -167,12 +195,16 @@ function ProcessLogic.takeOutput(state: State): string?
 	return id
 end
 
-local function cleanBag(raw: any, cap: number, isKnown: (string) -> boolean): { [string]: number }
+local function cleanBag(
+	raw: any,
+	capFor: (string) -> number,
+	isKnown: (string) -> boolean
+): { [string]: number }
 	local bag: { [string]: number } = {}
 	if type(raw) == "table" then
 		for id, n in raw do
 			if type(id) == "string" and isKnown(id) and type(n) == "number" and n == n and n >= 1 then
-				bag[id] = math.min(math.floor(n), cap)
+				bag[id] = math.min(math.floor(n), capFor(id))
 			end
 		end
 	end
@@ -185,10 +217,15 @@ function ProcessLogic.sanitize(raw: any, rules: Rules, isKnown: (string) -> bool
 	if type(raw) ~= "table" then
 		return state
 	end
-	state.buf = cleanBag(raw.buf, rules.cap, isKnown)
-	state.out = cleanBag(raw.out, rules.outCap, isKnown)
+	state.buf = cleanBag(raw.buf, function(id)
+		return capOf(id, rules)
+	end, isKnown)
+	state.out = cleanBag(raw.out, function()
+		return rules.outCap
+	end, isKnown)
 	if type(raw.fuel) == "number" and raw.fuel == raw.fuel then
-		state.fuel = math.clamp(math.floor(raw.fuel), 0, 64)
+		-- kept to the half, since a machine on electricity uses half a unit per job
+		state.fuel = math.clamp(math.floor(raw.fuel * 2) / 2, 0, 64)
 	end
 	return state
 end

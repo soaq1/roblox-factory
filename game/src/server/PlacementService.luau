@@ -1,5 +1,6 @@
 -- Handles requests to place, break and pick up. Nothing a client sends is trusted:
 -- every request is checked for type, range, ownership and rate before anything changes.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -8,6 +9,7 @@ local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
+local ToolLogic = require(Shared.ToolLogic)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
@@ -18,6 +20,12 @@ local PlacementService = {}
 
 local Stock = Profile.Stock
 local allowed = RateLimit.allow
+
+local SWING_GAP = 0.15 -- seconds between swings that count; anything faster is ignored
+local SWING_KEEP = 2 -- a pause longer than this and the block is whole again
+
+-- Each player's run of swings at the block they are breaking.
+local swings: { [Player]: ToolLogic.Swing } = {}
 
 -- In survival mode, the bag key that will pay for placing `entry`, or nil if the bag has none.
 -- In creative mode nothing is paid, and this returns false.
@@ -150,6 +158,24 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 	if not cell then
 		return
 	end
+	-- In survival mode a block has to be worked at: how long depends on the tool in the bag.
+	-- Machines come up in one go, and in creative mode so does everything.
+	if island.mode == "survival" and cell.kind == "block" then
+		local needed = ToolLogic.blockHits(cell.id, island.bag)
+		if needed > 1 then
+			local swing, hits = ToolLogic.swing(swings[player], key, os.clock(), SWING_GAP, SWING_KEEP)
+			swings[player] = swing
+			if hits == 0 then
+				return
+			end
+			Net.get("World"):FireClient(player, { kind = "progress", fraction = math.min(1, hits / needed) })
+			if hits < needed then
+				return
+			end
+		end
+		swings[player] = nil
+	end
+
 	-- In survival mode what is broken goes back into the bag.
 	local back: string? = nil
 	if cell.kind == "machine" then
@@ -171,8 +197,10 @@ local function pickup(player: Player)
 	if not island or not position or not allowed(player) then
 		return
 	end
+	-- Only what lies on the player's own island can be picked up, so a visitor cannot walk off
+	-- with what is lying on their host's.
 	local part = ItemService.nearest(position, Config.PICKUP_RANGE)
-	if not part then
+	if not part or not IslandService.owns(island, part.Position) then
 		return
 	end
 	local id, count = ItemService.info(part)
@@ -187,6 +215,9 @@ function PlacementService.start()
 	Net.get("Break").OnServerEvent:Connect(breakCell)
 	Net.get("Drop").OnServerEvent:Connect(drop)
 	Net.get("Pickup").OnServerEvent:Connect(pickup)
+	Players.PlayerRemoving:Connect(function(player)
+		swings[player] = nil
+	end)
 end
 
 return PlacementService

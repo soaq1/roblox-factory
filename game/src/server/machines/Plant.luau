@@ -9,6 +9,8 @@ local Tuning = require(script.Parent.Parent.Tuning)
 
 local Plant = {}
 
+Plant.WET_RATE = 2 -- how many times faster a watered plant grows
+
 local function stageOf(machine): number
 	local stages = machine.def.stages
 	if not stages then
@@ -28,6 +30,7 @@ end
 
 function Plant.build(machine)
 	machine.age = 0
+	machine.wetUntil = 0
 	show(machine, 1)
 	Kit.body(machine)
 end
@@ -46,9 +49,15 @@ function Plant.save(machine)
 	return { age = math.floor(machine.age) }
 end
 
+-- Keeps the plant watered for a while. A sprinkler calls this again and again.
+function Plant.water(machine, seconds: number)
+	machine.wetUntil = os.clock() + seconds
+end
+
 -- Returning true asks the machine service to remove this plant and then call `finish`.
 function Plant.tick(machine, dt: number): boolean
-	machine.age += dt * Tuning.speed
+	local rate = if os.clock() < machine.wetUntil then Plant.WET_RATE else 1
+	machine.age += dt * Tuning.speed * rate
 	if machine.def.behavior == "sapling" then
 		return machine.age >= Config.SAPLING_SECONDS
 	end
@@ -68,12 +77,27 @@ function Plant.finish(machine)
 	end
 end
 
+function Plant.isRipe(machine): boolean
+	local stages = machine.def.stages
+	return stages ~= nil and machine.stage == #stages
+end
+
+-- Gathers a ripe crop without digging it up: the plant starts again from a seedling, and what it
+-- bore is returned. The seed it would have dropped is the one left growing.
+function Plant.harvest(machine): { [string]: number }?
+	if not Plant.isRipe(machine) then
+		return nil
+	end
+	machine.age = 0
+	show(machine, 1)
+	return { wheat = 2 }
+end
+
 function Plant.drops(machine): { [string]: number }
 	if machine.def.behavior == "sapling" then
 		return { sapling = 1 }
 	end
-	local stages = machine.def.stages
-	if stages and machine.stage == #stages then
+	if Plant.isRipe(machine) then
 		return { wheat = 2, seed = 1 }
 	end
 	return { seed = 1 }

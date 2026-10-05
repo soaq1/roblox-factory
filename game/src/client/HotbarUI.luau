@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
 local Net = require(Shared:WaitForChild("Net"))
+local ScreenLogic = require(Shared:WaitForChild("ScreenLogic"))
 local Screens = require(script.Parent.Screens)
 local UIKit = require(script.Parent.UIKit)
 
@@ -47,11 +48,31 @@ local function tagIfModelOnly(frame: Frame, entry: string)
 	end
 end
 
+-- In survival mode each slot shows how many of its thing the bag can supply, and is dimmed when
+-- there are none. In creative mode everything is free, so nothing is shown.
+local function redrawCounts()
+	local survival = HotbarUI.state.mode == "survival"
+	for i, frame in slotFrames do
+		local count = frame:FindFirstChild("Count") :: TextLabel
+		local dim = frame:FindFirstChild("Dim") :: Frame
+		if survival then
+			local held = ScreenLogic.held(Defs, UIKit.Stock, HotbarUI.bag, slots[i])
+			count.Text = UIKit.number(held)
+			count.Visible = true
+			dim.Visible = held < 1
+		else
+			count.Visible = false
+			dim.Visible = false
+		end
+	end
+end
+
 local function redrawSlot(i: number)
 	local frame = slotFrames[i]
 	UIKit.picture(frame:FindFirstChild("Picture") :: Frame, slots[i])
 	local name = frame:FindFirstChild("Name") :: TextLabel
 	name.Text = Defs.name(slots[i])
+	redrawCounts()
 end
 
 local function redrawSelection()
@@ -64,6 +85,11 @@ end
 
 function HotbarUI.selected(): string
 	return slots[selected]
+end
+
+-- Which of the nine slots is selected.
+function HotbarUI.selectedIndex(): number
+	return selected
 end
 
 function HotbarUI.select(index: number)
@@ -85,30 +111,36 @@ function HotbarUI.notify(text: string)
 	UIKit.toast(text)
 end
 
-local function showBag(bag: { [string]: number })
-	HotbarUI.bag = bag
-	local parts = {}
-	for id, count in bag do
-		table.insert(parts, UIKit.Stock.name(id) .. " " .. count)
-	end
-	table.sort(parts)
-	bagLabel.Text = if #parts > 0
-		then "가방: " .. table.concat(parts, "  ·  ")
-		else "가방: 비어 있음"
+local function changed()
+	redrawCounts()
 	for _, run in listeners do
 		task.spawn(run)
 	end
 end
 
+local function showBag(bag: { [string]: number })
+	HotbarUI.bag = if type(bag) == "table" then bag else {}
+	local kinds, total = ScreenLogic.totals(HotbarUI.bag)
+	bagLabel.Text = if kinds > 0
+		then "가방 " .. kinds .. "종 · " .. UIKit.number(total) .. "개 · B로 열기"
+		else "가방 비어 있음 · B로 열기"
+	changed()
+end
+
 local function showState(state)
-	HotbarUI.state = state
-	stateLabel.Text = (if state.mode == "survival" then "생존" else "크리에이티브")
-		.. " · "
-		.. UIKit.number(state.coins)
-		.. "코인"
-	for _, run in listeners do
-		task.spawn(run)
+	if type(state) ~= "table" then
+		return
 	end
+	HotbarUI.state = {
+		mode = if state.mode == "survival" then "survival" else "creative",
+		coins = if type(state.coins) == "number" then state.coins else 0,
+		tiers = if type(state.tiers) == "table" then state.tiers else {},
+	}
+	stateLabel.Text = (if HotbarUI.state.mode == "survival" then "생존" else "크리에이티브")
+		.. " · "
+		.. UIKit.number(HotbarUI.state.coins)
+		.. "코인"
+	changed()
 end
 
 -- Shows the entries of one group in the right-hand grid.
@@ -194,8 +226,49 @@ local function buildPalette()
 	tileGrid.Size = UDim2.new(1, -182, 1, -40)
 end
 
+local function buildSlot(bar: Frame, i: number, entry: string)
+	local frame = UIKit.tile(bar, entry, SLOT, SLOT + 14)
+	frame.LayoutOrder = i
+	local number = UIKit.label(frame, tostring(i), 11)
+	number.Size = UDim2.fromOffset(14, 14)
+	number.Position = UDim2.fromOffset(2, 0)
+	number.TextColor3 = UIKit.DIM
+
+	-- A veil over the slot when the bag has none of it. It sits above the picture and under the
+	-- count and the click cover.
+	local dim = Instance.new("Frame")
+	dim.Name = "Dim"
+	dim.Size = UDim2.fromScale(1, 1)
+	dim.BackgroundColor3 = UIKit.BACK
+	dim.BackgroundTransparency = 0.4
+	dim.BorderSizePixel = 0
+	dim.ZIndex = 3
+	dim.Visible = false
+	dim.Parent = frame
+	UIKit.round(dim, 8)
+
+	local count = UIKit.label(frame, "", 12)
+	count.Name = "Count"
+	count.AnchorPoint = Vector2.new(1, 0)
+	count.Position = UDim2.new(1, -4, 0, 2)
+	count.Size = UDim2.fromOffset(40, 14)
+	count.TextXAlignment = Enum.TextXAlignment.Right
+	count.TextWrapped = false
+	count.TextStrokeTransparency = 0.4
+	count.ZIndex = 4
+	count.Visible = false
+
+	UIKit.cover(frame, function()
+		HotbarUI.select(i)
+	end)
+	slotFrames[i] = frame
+end
+
 function HotbarUI.init()
 	local gui = Screens.gui()
+	-- Windows are made after the hotbar and must cover it where they overlap. That needs the
+	-- layering to go by parent first rather than by one number across the whole screen.
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local bar = Instance.new("Frame")
 	bar.BackgroundTransparency = 1
@@ -210,22 +283,15 @@ function HotbarUI.init()
 	layout.Parent = bar
 
 	for i, entry in slots do
-		local frame = UIKit.tile(bar, entry, SLOT, SLOT + 14)
-		frame.LayoutOrder = i
-		local number = UIKit.label(frame, tostring(i), 11)
-		number.Size = UDim2.fromOffset(14, 14)
-		number.Position = UDim2.fromOffset(2, 0)
-		number.TextColor3 = UIKit.DIM
-		UIKit.cover(frame, function()
-			HotbarUI.select(i)
-		end)
-		slotFrames[i] = frame
+		buildSlot(bar, i, entry)
 	end
 
+	-- One short line: what the bag holds in full is on the bag screen.
 	bagLabel = UIKit.label(gui, "", 14)
 	bagLabel.AnchorPoint = Vector2.new(0.5, 1)
 	bagLabel.Position = UDim2.new(0.5, 0, 1, -(SLOT + 36))
-	bagLabel.Size = UDim2.fromOffset(900, 20)
+	bagLabel.Size = UDim2.fromOffset(420, 20)
+	bagLabel.TextWrapped = false
 	bagLabel.TextStrokeTransparency = 0.5
 
 	stateLabel = UIKit.label(gui, "", 14)
@@ -237,13 +303,14 @@ function HotbarUI.init()
 
 	local hint = UIKit.label(
 		gui,
-		"좌클릭 부수기 · 우클릭 놓기 · R 돌리기 · 1~9 고르기 · E 목록 · F 줍기",
+		"좌클릭 부수기 · 우클릭 놓기 · R 돌리기 · F 줍기 · E 목록 · B 가방 · C 조합 · T 거래 · V 섬 구경",
 		14
 	)
 	hint.Name = "Hint"
 	hint.AnchorPoint = Vector2.new(0.5, 0)
 	hint.Position = UDim2.new(0.5, 0, 0, 8)
-	hint.Size = UDim2.fromOffset(700, 20)
+	hint.Size = UDim2.fromOffset(820, 20)
+	hint.TextWrapped = false
 	hint.TextStrokeTransparency = 0.5
 
 	buildPalette()

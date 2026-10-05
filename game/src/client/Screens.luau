@@ -17,6 +17,7 @@ function Screens.gui(): ScreenGui
 		made.Name = "FactoryUI"
 		made.ResetOnSpawn = false
 		made.IgnoreGuiInset = false
+		made.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- windows cover what they overlap
 		made.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 		gui = made
 	end
@@ -91,9 +92,13 @@ function Screens.toggle(name: string)
 end
 
 function Screens.init()
-	UserInputService.InputBegan:Connect(function(input)
-		-- Keys typed into a text box are text, not commands.
-		if input.UserInputType ~= Enum.UserInputType.Keyboard or UserInputService:GetFocusedTextBox() then
+	UserInputService.InputBegan:Connect(function(input, handled)
+		-- Keys typed into chat or a text box are text, not commands.
+		if
+			handled
+			or input.UserInputType ~= Enum.UserInputType.Keyboard
+			or UserInputService:GetFocusedTextBox()
+		then
 			return
 		end
 		for name, screen in screens do

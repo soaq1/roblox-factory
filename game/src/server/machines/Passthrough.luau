@@ -1,5 +1,6 @@
 -- Machines that move items on without changing them: the splitter, merger, funnel and magnet
--- separator. Each holds one item at a time.
+-- separator, and (through Sorter) the sorter. Each holds one item at a time. Those whose
+-- definition says they need electricity stand still without it.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
@@ -10,10 +11,21 @@ local Outlet = require(script.Parent.Parent.Outlet)
 
 local Passthrough = {}
 
+local function describe(machine): string
+	local lines = {}
+	if machine.title then
+		table.insert(lines, machine.title)
+	end
+	if machine.def.needsPower and not machine.powered then
+		table.insert(lines, "전기 없음")
+	end
+	return table.concat(lines, "\n")
+end
+
 function Passthrough.build(machine)
 	local def = machine.def
 	Kit.visual(machine.model, machine.base, machine.id)
-	Kit.body(machine)
+	machine.body = Kit.body(machine)
 	local ports = Kit.ports(machine)
 	machine.ins = Kit.inputs(ports)
 	machine.outs = Kit.outputs(ports)
@@ -33,6 +45,11 @@ function Passthrough.build(machine)
 	for _, id in def.filter or {} do
 		machine.filter[id] = true
 	end
+	-- `sorting` (set by Sorter) sends everything that is not picked out by the first mouth,
+	-- instead of taking the mouths in turn.
+	machine.sorting = false
+	machine.label = Kit.label(machine.body, def.height)
+	machine.shown = ""
 end
 
 function Passthrough.load(machine, saved)
@@ -75,7 +92,7 @@ end
 -- take the mouths in turn, skipping any that is blocked.
 local function push(machine, id: string): boolean
 	local outs = machine.outs
-	if #outs > 1 and next(machine.filter) then
+	if #outs > 1 and (machine.sorting or next(machine.filter)) then
 		return Outlet.emit(machine, if machine.filter[id] then outs[2] else outs[1], id)
 	end
 	for step = 0, #outs - 1 do
@@ -89,7 +106,12 @@ local function push(machine, id: string): boolean
 end
 
 function Passthrough.tick(machine, _dt: number)
-	if #machine.outs == 0 then
+	local text = describe(machine)
+	if text ~= machine.shown then
+		machine.shown = text
+		machine.label.Text = text
+	end
+	if #machine.outs == 0 or (machine.def.needsPower and not machine.powered) then
 		return
 	end
 	if not machine.held and #machine.ins > 0 then

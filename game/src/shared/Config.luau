@@ -12,8 +12,9 @@ return {
 	MACHINE_OUT = 8, -- finished items a machine holds before it pauses
 	START_ITEMS = { pick_wood = 1 }, -- what a new player holds
 	START_COINS = 10000, -- what a new player begins with (a placeholder amount)
-	START_MODE = "creative", -- "creative": everything is free; "survival": only what is in the bag
+	START_MODE = "survival", -- "creative": everything is free; "survival": only what is in the bag
 	ALLOW_MODE_SWITCH = true, -- the /mode command; a test convenience, to be removed before release
+	DAY_MINUTES = 20, -- real minutes for one in-game day; solar panels follow the sun
 	BENCH_RANGE = 15, -- studs from a workbench within which it can be used
 	DROP_COUNT = 8, -- loose items dropped per click from the creative palette
 	SAPLING_SECONDS = 45, -- time for a sapling to become a tree

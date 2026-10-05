@@ -74,6 +74,9 @@ OTHER = {
 }
 for kind in ("sensor", "gate", "counter", "switch", "logic", "beacon", "timer"):
     OTHER[kind] = ("signal", {"signal": kind})
+NOTES = {"assembler": "주인이 고른 물건을 재료 두 가지로 조립함",
+         "circuit": "주인이 고른 회로를 만듦",
+         "manufacturer": "주인이 고른 물건을 여러 재료로 조립함"}
 RENAME = {"crop_wheat_1": "밀 씨앗 (심기)", "plant_sapling": "묘목 (심기)", "extractor_cu": "추출기 (구리 광맥 핵)"}
 
 machines = {}
@@ -102,7 +105,7 @@ for key, m in models["machines"].items():
     # Cells are 3 studs tall. A machine keeps every cell it reaches into, so nothing can be built
     # through its top.
     layers = max(1, math.ceil((m["height"] - 0.2) / 3))
-    machines[key] = dict(name=RENAME.get(key, m["name"]), family=m["family"], note=m["note"],
+    machines[key] = dict(name=RENAME.get(key, m["name"]), family=m["family"], note=NOTES.get(key, m["note"]),
                          sx=m["cells"][0], sz=m["cells"][1], sy=layers, height=m["height"], icon=key,
                          ports=[dict(side=s, kind=k, off=o) for s, k, o in m["ports"]],
                          behavior=behavior, hidden=key in HIDDEN, needsPower=key in recipes["needs_power"],

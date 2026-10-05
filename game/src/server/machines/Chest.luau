@@ -1,9 +1,11 @@
--- The storage unit: collects whatever arrives at its input. The owner empties it into their bag.
+-- Storage: the storage unit collects whatever a belt brings to its input, and the hand chest
+-- whatever is dropped onto its lid. The owner empties either into their bag.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared.Defs)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
+local DeviceKit = require(script.Parent.Parent.DeviceKit)
 local Kit = require(script.Parent.Parent.MachineKit)
 local ItemService = require(script.Parent.Parent.ItemService)
 
@@ -23,17 +25,12 @@ function Chest.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	local body = Kit.body(machine)
 	machine.ins = Kit.inputs(Kit.ports(machine))
+	if machine.def.topIntake then
+		table.insert(machine.ins, DeviceKit.top(machine))
+	end
 	machine.label = Kit.label(body, machine.def.height)
 
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "꺼내기"
-	prompt.ObjectText = machine.def.name
-	prompt.KeyboardKeyCode = Enum.KeyCode.F
-	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 10
-	prompt.RequiresLineOfSight = false
-	prompt.Parent = body
-	prompt.Triggered:Connect(function(player)
+	local prompt = Kit.prompt(machine, body, "꺼내기", function(player)
 		if player ~= machine.island.owner then
 			return
 		end

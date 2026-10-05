@@ -78,7 +78,7 @@ end
 
 -- One unseen box the size of the machine. It is what players and items bump into, and what the
 -- build cursor hits.
-function MachineKit.body(machine): Part
+function MachineKit.body(machine, width: number?): Part
 	local def = machine.def
 	local height = math.max(def.height, 1)
 	local part = Instance.new("Part")
@@ -86,7 +86,7 @@ function MachineKit.body(machine): Part
 	part.Anchored = true
 	part.Transparency = 1
 	part.CanCollide = not def.walkThrough
-	part.Size = Vector3.new(def.sx * CELL - 0.1, height, def.sz * CELL - 0.1)
+	part.Size = Vector3.new(width or def.sx * CELL - 0.1, height, width or def.sz * CELL - 0.1)
 	part.CFrame = machine.base * CFrame.new(0, -CELL / 2 + height / 2, 0)
 	part.Parent = machine.model
 	machine.model:SetAttribute("Solid", true)

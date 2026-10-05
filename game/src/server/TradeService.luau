@@ -1,6 +1,11 @@
 -- Trades between two players on the same server. The rules live in shared/TradeLogic; this module
 -- pairs players up, feeds their requests in, and moves the goods when both have agreed.
 -- One player asks; the trade opens when the other asks back.
+-- What the "Trade" channel sends a client:
+--   { request = { id, name } }   someone has asked this player to trade
+--   { withdrawn = id }           that request is gone
+--   { you, a, b }                the open trade as it stands; `you` is "a" or "b"
+--   nil                          the trade has closed
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -19,30 +24,19 @@ type Open = { session: TradeLogic.Session, a: Player, b: Player }
 local asked: { [Player]: Player } = {} -- who each player has asked
 local open: { [Player]: Open } = {}
 
-local function describe(side: TradeLogic.Side): string
-	local parts = {}
-	for key, n in side.offer do
-		table.insert(parts, Stock.name(key) .. " " .. n)
-	end
-	table.sort(parts)
-	if side.coins > 0 then
-		table.insert(parts, side.coins .. "코인")
-	end
-	local text = if #parts > 0 then table.concat(parts, ", ") else "없음"
-	return text .. (if side.ready then " (준비됨)" else "")
+local function whoIn(trade: Open, player: Player): string
+	return if trade.a == player then "a" else "b"
 end
 
--- Shows both players where the trade stands.
+-- Shows both players where the trade stands. Each is also told which side they are.
 local function show(trade: Open)
 	local s = trade.session
-	local snapshot = {
-		a = { name = trade.a.Name, offer = s.a.offer, coins = s.a.coins, ready = s.a.ready },
-		b = { name = trade.b.Name, offer = s.b.offer, coins = s.b.coins, ready = s.b.ready },
-	}
-	local text = trade.a.Name .. ": " .. describe(s.a) .. "\n" .. trade.b.Name .. ": " .. describe(s.b)
 	for _, player in { trade.a, trade.b } do
-		Net.get("Trade"):FireClient(player, snapshot)
-		Profile.notify(player, text)
+		Net.get("Trade"):FireClient(player, {
+			you = whoIn(trade, player),
+			a = { name = trade.a.Name, offer = s.a.offer, coins = s.a.coins, ready = s.a.ready },
+			b = { name = trade.b.Name, offer = s.b.offer, coins = s.b.coins, ready = s.b.ready },
+		})
 	end
 end
 
@@ -58,10 +52,6 @@ local function close(trade: Open, message: string?)
 			end
 		end
 	end
-end
-
-local function whoIn(trade: Open, player: Player): string
-	return if trade.a == player then "a" else "b"
 end
 
 local function finish(trade: Open)
@@ -112,8 +102,10 @@ function TradeService.ask(player: Player, target: any)
 	Profile.notify(player, target.Name .. "님에게 거래를 청했습니다")
 	Profile.notify(
 		target,
-		player.Name .. "님이 거래를 청했습니다. 받으려면 /trade " .. player.Name
+		player.Name .. "님이 거래를 청했습니다. T를 눌러 받을 수 있습니다"
 	)
+	-- The trade screen shows this as a request waiting to be accepted.
+	Net.get("Trade"):FireClient(target, { request = { id = player.UserId, name = player.Name } })
 end
 
 function TradeService.offer(player: Player, key: any, n: any)
@@ -163,7 +155,11 @@ function TradeService.ready(player: Player, ready: any)
 end
 
 function TradeService.cancel(player: Player)
+	local target = asked[player]
 	asked[player] = nil
+	if target and target.Parent then
+		Net.get("Trade"):FireClient(target, { withdrawn = player.UserId })
+	end
 	local trade = open[player]
 	if trade then
 		close(trade, player.Name .. "님이 거래를 취소했습니다")
@@ -188,6 +184,9 @@ function TradeService.start()
 		for asker, target in asked do
 			if asker == player or target == player then
 				asked[asker] = nil
+				if asker == player and target.Parent then
+					Net.get("Trade"):FireClient(target, { withdrawn = player.UserId })
+				end
 			end
 		end
 		local trade = open[player]

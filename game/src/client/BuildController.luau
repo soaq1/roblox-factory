@@ -28,6 +28,11 @@ local ghost: Part
 local arrow: Part
 local rightDownAt: number? = nil
 local rightDragged = 0 -- pixels the mouse travelled while the right button was held
+local SWING_SECONDS = 0.2 -- how often a held left button swings again
+-- The cell being broken while the left button is held. Holding only ever works on the cell the
+-- press began on, so sweeping the cursor never tears through a row of machines.
+local breaking: Target? = nil
+local sinceSwing = 0
 
 local keys = {
 	[Enum.KeyCode.One] = 1,
@@ -200,6 +205,8 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 	end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		local found = if Screens.anyOpen() then nil else target()
+		breaking = found
+		sinceSwing = 0
 		if found then
 			Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 		end
@@ -215,7 +222,32 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 	end
 end
 
+-- While the left button stays down on the same cell, swing at it again every so often. In
+-- survival mode a block takes several swings; once it is gone the cursor finds another cell and
+-- the swinging stops.
+local function keepBreaking(dt: number)
+	local first = breaking
+	if not first then
+		return
+	end
+	sinceSwing += dt
+	if sinceSwing < SWING_SECONDS then
+		return
+	end
+	sinceSwing = 0
+	local found = if Screens.anyOpen() then nil else target()
+	if not found or found.bx ~= first.bx or found.by ~= first.by or found.bz ~= first.bz then
+		breaking = nil
+		return
+	end
+	Net.get("Break"):FireServer(found.bx, found.by, found.bz)
+end
+
 local function onInputEnded(input: InputObject)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		breaking = nil
+		return
+	end
 	if input.UserInputType ~= Enum.UserInputType.MouseButton2 or not rightDownAt then
 		return
 	end
@@ -252,6 +284,7 @@ function BuildController.init(hotbarUi)
 	UserInputService.InputEnded:Connect(onInputEnded)
 	UserInputService.InputChanged:Connect(onInputChanged)
 	RunService.RenderStepped:Connect(drawGhost)
+	RunService.RenderStepped:Connect(keepBreaking)
 end
 
 return BuildController

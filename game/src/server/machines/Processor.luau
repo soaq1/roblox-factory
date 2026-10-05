@@ -1,5 +1,9 @@
 -- Any machine that turns things into other things: smelter, crusher, press, kiln and the rest.
 -- What it accepts and makes comes from the recipe table, so adding a recipe needs no code.
+--
+-- Electricity: a machine whose definition says it needs power only works while it has it. Any
+-- other machine works without, and if it happens to stand on a powered network it works faster
+-- and gets more out of its fuel.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
@@ -12,37 +16,80 @@ local Outlet = require(script.Parent.Parent.Outlet)
 
 local Processor = {}
 
+Processor.SPEED_ON_POWER = 1.5 -- how much faster an ordinary machine works on electricity (a placeholder)
+Processor.FUEL_ON_POWER = 0.5 -- the share of its usual fuel it then uses per job (a placeholder)
+
 local function describe(machine): string
 	local state = machine.state
+	local lines = {}
+	if machine.title then
+		table.insert(lines, machine.title)
+	end
 	local parts = {}
 	for id, n in state.buf do
 		table.insert(parts, Defs.name(id) .. " " .. n)
 	end
 	table.sort(parts)
-	local text = table.concat(parts, " · ")
-	if machine.rules.usesFuel then
-		text ..= (if text == "" then "" else "\n") .. "연료 " .. state.fuel
+	if #parts > 0 then
+		table.insert(lines, table.concat(parts, " · "))
 	end
-	return text
+	if machine.rules.usesFuel then
+		table.insert(lines, "연료 " .. state.fuel)
+	end
+	if machine.def.needsPower then
+		if not machine.powered then
+			table.insert(lines, "전기 없음")
+		end
+	elseif machine.powered then
+		table.insert(lines, "전기로 가속 중")
+	end
+	return table.concat(lines, "\n")
 end
 
 function Processor.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	local body = Kit.body(machine)
 	local ports = Kit.ports(machine)
+	local recipes = Recipes.byMachine[machine.id] or {}
+	machine.body = body
 	machine.ins = Kit.inputs(ports)
 	machine.outs = Kit.outputs(ports)
 	machine.nextOut = 1
 	machine.rules = {
-		recipes = Recipes.byMachine[machine.id] or {},
+		recipes = recipes,
 		usesFuel = Recipes.usesFuel[machine.id] == true,
 		fuel = Recipes.fuel,
 		cap = Config.MACHINE_BUFFER,
 		outCap = Config.MACHINE_OUT,
+		-- room for recipes that need more of something than the usual buffer holds
+		caps = ProcessLogic.caps(recipes, Config.MACHINE_BUFFER),
 	}
 	machine.state = ProcessLogic.new()
 	machine.label = Kit.label(body, machine.def.height)
 	machine.shown = ""
+end
+
+-- Changes what the machine makes. Returns whatever was waiting inside that the new recipes have
+-- no use for, taken out of the machine.
+function Processor.setRecipes(machine, recipes): { [string]: number }
+	local rules, state = machine.rules, machine.state
+	rules.recipes = recipes
+	rules.caps = ProcessLogic.caps(recipes, rules.cap)
+	state.progress = 0
+	local unwanted = {}
+	for id, n in state.buf do
+		local keep = (rules.usesFuel and rules.fuel[id] ~= nil)
+		for _, recipe in recipes do
+			keep = keep or recipe.ins[id] ~= nil
+		end
+		if not keep then
+			unwanted[id] = n
+		end
+	end
+	for id in unwanted do
+		state.buf[id] = nil
+	end
+	return unwanted
 end
 
 function Processor.load(machine, saved)
@@ -56,6 +103,11 @@ end
 
 function Processor.tick(machine, dt: number)
 	local state, rules = machine.state, machine.rules
+	local needsPower = machine.def.needsPower == true
+	local powered = machine.powered == true
+	local boosted = powered and not needsPower
+	rules.fuelPerJob = if boosted then Processor.FUEL_ON_POWER else nil
+
 	for _, port in machine.ins do
 		for _, part in ItemService.inBox(port.box, port.size) do
 			local id, count = ItemService.info(part)
@@ -68,7 +120,11 @@ function Processor.tick(machine, dt: number)
 		end
 	end
 
-	ProcessLogic.step(state, dt, rules)
+	-- The power system reads this: a machine with nothing to do draws nothing.
+	machine.busy = ProcessLogic.hasWork(state, rules)
+	if powered or not needsPower then
+		ProcessLogic.step(state, if boosted then dt * Processor.SPEED_ON_POWER else dt, rules)
+	end
 
 	local ready = ProcessLogic.peekOutput(state)
 	if ready and #machine.outs > 0 then
