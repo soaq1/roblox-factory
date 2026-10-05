@@ -10,16 +10,20 @@
     --in: #f0b429; --out: #35b8a6; --link: #58b6e8;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 16px/1.6 -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif; }
   main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 80px; }
   h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.02em; }
-  .sub { color: var(--dim); margin: 0 0 28px; }
+  .sub { color: var(--dim); margin: 0 0 20px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  nav a { color: var(--link); text-decoration: none; font-size: 14px; padding: 5px 11px;
+          border: 1px solid var(--line); border-radius: 999px; }
+  nav a:hover { background: var(--panel); }
   h2 { font-size: 24px; margin: 56px 0 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
-  .count { color: var(--dim); font-size: 16px; font-weight: 400; margin-left: 6px; }
+  .count { color: var(--dim); font-size: 0.7em; font-weight: 400; margin-left: 6px; }
   .lede { color: var(--dim); margin: 10px 0 20px; }
-  .hero img, .items img { width: 100%; display: block; border-radius: 10px; }
-  .items { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .hero img { width: 100%; display: block; border-radius: 10px; }
   .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 18px 0 0; padding: 0; list-style: none;
             color: var(--dim); font-size: 14px; }
   .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 7px;
@@ -29,16 +33,22 @@
           overflow: hidden; }
   .shot { aspect-ratio: 1; background: #16181b; }
   .shot img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  figcaption { padding: 12px 14px 14px; }
-  h3 { margin: 0 0 4px; font-size: 17px; color: var(--link); }
+  .card figcaption { padding: 12px 14px 14px; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; color: var(--link); }
   .recipe { margin: 0 0 8px; font-size: 14.5px; }
   .meta { margin: 0; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  h3.cat { font-size: 17px; margin: 28px 0 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+  .tile { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+          overflow: hidden; }
+  .tile figcaption { padding: 7px 8px 9px; font-size: 13px; text-align: center; line-height: 1.35; }
 </style>
 </head>
 <body>
 <main>
   <h1>공장 기계 카탈로그</h1>
-  <p class="sub">기계, 장치, 작업대 75종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
+  <p class="sub">기계와 장치 77종 · 아이템 108종 · 블록 34종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
+  <nav><a href="#운반">운반</a><a href="#물리 장치">물리 장치</a><a href="#판단 장치">판단 장치</a><a href="#공급">공급</a><a href="#변환">변환</a><a href="#조합">조합</a><a href="#포장·판매">포장·판매</a><a href="#동력">동력</a><a href="#궁극의 장치">궁극의 장치</a><a href="#손 작업">손 작업</a><a href="#아이템">아이템</a><a href="#블록">블록</a></nav>
   <div class="hero"><img src="img/_line.png" alt="벨트로 연결한 공장 예시"></div>
   <ul class="legend">
     <li><i style="background:var(--in)"></i>노란 테두리는 입구</li>
@@ -48,7 +58,7 @@
     <li><i style="background:#d9483b"></i>빨강은 움직이는 부품</li>
   </ul>
   
-  <section>
+  <section id="운반">
     <h2>운반 <span class="count">8</span></h2>
     <p class="lede">아이템을 옮기고, 나누고, 합치고, 골라내는 장치</p>
     <div class="grid">
@@ -57,7 +67,7 @@
       <figcaption>
         <h3>직선 벨트</h3>
         <p class="recipe">아이템을 한 방향으로 옮김</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 152</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 152</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -65,7 +75,7 @@
       <figcaption>
         <h3>코너 벨트</h3>
         <p class="recipe">진행 방향을 90도 꺾음 (좌·우 대칭형)</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 252</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 252</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -73,7 +83,7 @@
       <figcaption>
         <h3>경사 벨트</h3>
         <p class="recipe">두 칸에 걸쳐 한 칸 높이를 올림</p>
-        <p class="meta">2×1칸 · 벨트 · 삼각형 216</p>
+        <p class="meta">2×1칸 · 출입구 없음 · 삼각형 216</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -117,7 +127,7 @@
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="물리 장치">
     <h2>물리 장치 <span class="count">6</span></h2>
     <p class="lede">떨어뜨리고, 밀고, 올리고, 쏘아 보내는 장치. 아이템이 실제로 굴러가는 게임이라 가능한 것들</p>
     <div class="grid">
@@ -134,7 +144,7 @@
       <figcaption>
         <h3>낙하 통로</h3>
         <p class="recipe">높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감</p>
-        <p class="meta">2×1칸 · 벨트 · 삼각형 144</p>
+        <p class="meta">2×1칸 · 출입구 없음 · 삼각형 144</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -142,7 +152,7 @@
       <figcaption>
         <h3>송풍기</h3>
         <p class="recipe">바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 288</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 288</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -170,7 +180,7 @@
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="판단 장치">
     <h2>판단 장치 <span class="count">7</span></h2>
     <p class="lede">신호를 만들고 조건에 따라 공장을 움직이는 장치</p>
     <div class="grid">
@@ -179,7 +189,7 @@
       <figcaption>
         <h3>감지기</h3>
         <p class="recipe">벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 360</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 360</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -187,7 +197,7 @@
       <figcaption>
         <h3>여닫이 문</h3>
         <p class="recipe">신호에 따라 벨트를 막거나 엶</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 324</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 324</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -195,7 +205,7 @@
       <figcaption>
         <h3>계수기</h3>
         <p class="recipe">지나간 아이템을 세고, 정한 수가 차면 신호를 냄</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 440</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 440</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -203,7 +213,7 @@
       <figcaption>
         <h3>스위치</h3>
         <p class="recipe">손으로 켜고 끄는 신호</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 180</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 180</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -211,7 +221,7 @@
       <figcaption>
         <h3>논리 회로함</h3>
         <p class="recipe">신호 둘을 받아 조건이 맞으면 신호를 내보냄 (그리고, 또는, 아니면)</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 280</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 280</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -219,7 +229,7 @@
       <figcaption>
         <h3>신호등</h3>
         <p class="recipe">신호를 받으면 켜짐. 공장 상태를 멀리서 확인</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 252</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 252</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -227,11 +237,11 @@
       <figcaption>
         <h3>타이머</h3>
         <p class="recipe">정해 둔 간격마다 신호를 냄</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 248</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 248</p>
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="공급">
     <h2>공급 <span class="count">9</span></h2>
     <p class="lede">아무것도 넣지 않아도 자원을 내보내거나, 밭과 나무를 돌보는 기계</p>
     <div class="grid">
@@ -296,7 +306,7 @@
       <figcaption>
         <h3>물뿌리개</h3>
         <p class="recipe">주변 밭에 물을 줘서 작물이 빨리 자람</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 284</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 284</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -308,7 +318,7 @@
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="변환">
     <h2>변환 <span class="count">19</span></h2>
     <p class="lede">재료 하나를 받아 정해진 결과물로 바꾸는 기계</p>
     <div class="grid">
@@ -465,7 +475,7 @@
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="조합">
     <h2>조합 <span class="count">7</span></h2>
     <p class="lede">재료 둘 이상을 받아 하나로 만드는 기계</p>
     <div class="grid">
@@ -526,9 +536,9 @@
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="포장·판매">
     <h2>포장·판매 <span class="count">2</span></h2>
-    <p class="lede">묶어서 물체 수를 줄이고, 팔고, 플레이어끼리 사고파는 장치</p>
+    <p class="lede">묶어서 물체 수를 줄이고, 플레이어끼리 사고파는 장치</p>
     <div class="grid">
     <figure class="card">
       <div class="shot"><img src="img/packer.png" alt="포장기" loading="lazy"></div>
@@ -543,13 +553,13 @@
       <figcaption>
         <h3>자판기</h3>
         <p class="recipe">물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 500</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 500</p>
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="동력">
     <h2>동력 <span class="count">6</span></h2>
-    <p class="lede">전력을 만들고 모아 두는 기계</p>
+    <p class="lede">전력을 만들고, 모으고, 나르는 기계</p>
     <div class="grid">
     <figure class="card">
       <div class="shot"><img src="img/generator.png" alt="석탄 발전기" loading="lazy"></div>
@@ -572,7 +582,7 @@
       <figcaption>
         <h3>풍력 터빈</h3>
         <p class="recipe">바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 180</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 180</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -580,7 +590,7 @@
       <figcaption>
         <h3>태양광 패널</h3>
         <p class="recipe">낮 동안 전력을 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 144</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 144</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -588,7 +598,7 @@
       <figcaption>
         <h3>축전지</h3>
         <p class="recipe">남는 전력을 모아 두었다가 모자랄 때 내보냄</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 272</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 272</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -596,11 +606,32 @@
       <figcaption>
         <h3>전신주</h3>
         <p class="recipe">전선을 이어 전기를 나름. 전신주 주변 몇 칸 안의 기계가 전기를 받음</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 408</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 408</p>
       </figcaption>
     </figure></div>
   </section>
-  <section>
+  <section id="궁극의 장치">
+    <h2>궁극의 장치 <span class="count">2</span></h2>
+    <p class="lede">자동화의 자동화. 이 게임의 가장 큰 목표물</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/coreforge.png" alt="핵 제련소" loading="lazy"></div>
+      <figcaption>
+        <h3>핵 제련소</h3>
+        <p class="recipe">막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지</p>
+        <p class="meta">3×3칸 · 입구 3 · 출구 1 · 삼각형 2,292</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/reactor.png" alt="무한 동력로" loading="lazy"></div>
+      <figcaption>
+        <h3>무한 동력로</h3>
+        <p class="recipe">연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림</p>
+        <p class="meta">3×3칸 · 출입구 없음 · 삼각형 2,396</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="손 작업">
     <h2>손 작업 <span class="count">11</span></h2>
     <p class="lede">공장이 없을 때 손으로 만드는 자리. 공장은 이 일을 대신해 줌</p>
     <div class="grid">
@@ -609,7 +640,7 @@
       <figcaption>
         <h3>모닥불</h3>
         <p class="recipe">가장 처음 쓰는 불. 재료와 땔감을 직접 넣고 기다림</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 280</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 280</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -617,7 +648,7 @@
       <figcaption>
         <h3>손 화덕</h3>
         <p class="recipe">돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 292</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 292</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -625,7 +656,7 @@
       <figcaption>
         <h3>기본 작업대</h3>
         <p class="recipe">건축 블록, 일반 물건, 다른 작업대를 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 236</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 236</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -633,7 +664,7 @@
       <figcaption>
         <h3>도구 작업대</h3>
         <p class="recipe">곡괭이, 무기, 갑옷을 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 312</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 312</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -641,7 +672,7 @@
       <figcaption>
         <h3>부품 작업대</h3>
         <p class="recipe">판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 756</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 756</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -649,7 +680,7 @@
       <figcaption>
         <h3>기계 작업대</h3>
         <p class="recipe">벨트, 기계, 추출기를 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 588</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 588</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -657,7 +688,7 @@
       <figcaption>
         <h3>조리대</h3>
         <p class="recipe">음식을 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 496</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 496</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -665,7 +696,7 @@
       <figcaption>
         <h3>전기 작업대</h3>
         <p class="recipe">감지기, 스위치, 논리 회로 같은 전기 부품을 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 544</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 544</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -673,7 +704,7 @@
       <figcaption>
         <h3>가구 작업대</h3>
         <p class="recipe">가구와 꾸미기 물건을 만듦</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 396</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 396</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -681,7 +712,7 @@
       <figcaption>
         <h3>통합 작업대</h3>
         <p class="recipe">모든 분류의 물건을 한곳에서 만듦. 아주 비싼 후반 설비</p>
-        <p class="meta">2×1칸 · 벨트 · 삼각형 1,024</p>
+        <p class="meta">2×1칸 · 출입구 없음 · 삼각형 1,024</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -689,14 +720,589 @@
       <figcaption>
         <h3>상자</h3>
         <p class="recipe">물건을 넣어 두는 보관함</p>
-        <p class="meta">1×1칸 · 벨트 · 삼각형 124</p>
+        <p class="meta">1×1칸 · 출입구 없음 · 삼각형 124</p>
       </figcaption>
     </figure></div>
   </section>
-  <section>
-    <h2>아이템 <span class="count">41</span></h2>
-    <p class="lede">벨트 위를 굴러다니는 물체들</p>
-    <div class="items"><img src="img/_items.png" alt="아이템 모음"></div>
+  
+  <section id="아이템">
+    <h2>아이템 <span class="count">108</span></h2>
+    <p class="lede">손에 들거나 벨트 위를 굴러다니는 물건들. 도구부터 공장을 거친 재료까지</p>
+    <h3 class="cat">도구 <span class="count">35</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_wood.png" alt="나무 곡괭이" loading="lazy"></div>
+        <figcaption>나무 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_stone.png" alt="돌 곡괭이" loading="lazy"></div>
+        <figcaption>돌 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_iron.png" alt="철 곡괭이" loading="lazy"></div>
+        <figcaption>철 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_steel.png" alt="강철 곡괭이" loading="lazy"></div>
+        <figcaption>강철 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_gold.png" alt="금 곡괭이" loading="lazy"></div>
+        <figcaption>금 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/pick_dia.png" alt="다이아 곡괭이" loading="lazy"></div>
+        <figcaption>다이아 곡괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_wood.png" alt="나무 도끼" loading="lazy"></div>
+        <figcaption>나무 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_stone.png" alt="돌 도끼" loading="lazy"></div>
+        <figcaption>돌 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_iron.png" alt="철 도끼" loading="lazy"></div>
+        <figcaption>철 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_steel.png" alt="강철 도끼" loading="lazy"></div>
+        <figcaption>강철 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_gold.png" alt="금 도끼" loading="lazy"></div>
+        <figcaption>금 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/axe_dia.png" alt="다이아 도끼" loading="lazy"></div>
+        <figcaption>다이아 도끼</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_wood.png" alt="나무 삽" loading="lazy"></div>
+        <figcaption>나무 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_stone.png" alt="돌 삽" loading="lazy"></div>
+        <figcaption>돌 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_iron.png" alt="철 삽" loading="lazy"></div>
+        <figcaption>철 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_steel.png" alt="강철 삽" loading="lazy"></div>
+        <figcaption>강철 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_gold.png" alt="금 삽" loading="lazy"></div>
+        <figcaption>금 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/shovel_dia.png" alt="다이아 삽" loading="lazy"></div>
+        <figcaption>다이아 삽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_wood.png" alt="나무 괭이" loading="lazy"></div>
+        <figcaption>나무 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_stone.png" alt="돌 괭이" loading="lazy"></div>
+        <figcaption>돌 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_iron.png" alt="철 괭이" loading="lazy"></div>
+        <figcaption>철 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_steel.png" alt="강철 괭이" loading="lazy"></div>
+        <figcaption>강철 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_gold.png" alt="금 괭이" loading="lazy"></div>
+        <figcaption>금 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hoe_dia.png" alt="다이아 괭이" loading="lazy"></div>
+        <figcaption>다이아 괭이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_wood.png" alt="나무 검" loading="lazy"></div>
+        <figcaption>나무 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_stone.png" alt="돌 검" loading="lazy"></div>
+        <figcaption>돌 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_iron.png" alt="철 검" loading="lazy"></div>
+        <figcaption>철 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_steel.png" alt="강철 검" loading="lazy"></div>
+        <figcaption>강철 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_gold.png" alt="금 검" loading="lazy"></div>
+        <figcaption>금 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sword_dia.png" alt="다이아 검" loading="lazy"></div>
+        <figcaption>다이아 검</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/hammer.png" alt="망치" loading="lazy"></div>
+        <figcaption>망치</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/wrench.png" alt="렌치" loading="lazy"></div>
+        <figcaption>렌치</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/fishing_rod.png" alt="낚싯대" loading="lazy"></div>
+        <figcaption>낚싯대</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/bucket.png" alt="양동이" loading="lazy"></div>
+        <figcaption>양동이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/watering_can.png" alt="물뿌리개" loading="lazy"></div>
+        <figcaption>물뿌리개</figcaption>
+      </figure></div><h3 class="cat">원석과 광물 <span class="count">11</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/stone.png" alt="돌" loading="lazy"></div>
+        <figcaption>돌</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/coal.png" alt="석탄" loading="lazy"></div>
+        <figcaption>석탄</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ore_cu.png" alt="구리 광석" loading="lazy"></div>
+        <figcaption>구리 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ore_fe.png" alt="철 광석" loading="lazy"></div>
+        <figcaption>철 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ore_au.png" alt="금 광석" loading="lazy"></div>
+        <figcaption>금 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ore_dia.png" alt="다이아 원석" loading="lazy"></div>
+        <figcaption>다이아 원석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/diamond.png" alt="다이아" loading="lazy"></div>
+        <figcaption>다이아</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sand.png" alt="모래" loading="lazy"></div>
+        <figcaption>모래</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/gravel.png" alt="자갈" loading="lazy"></div>
+        <figcaption>자갈</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/clay.png" alt="점토" loading="lazy"></div>
+        <figcaption>점토</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/dirt_clod.png" alt="흙" loading="lazy"></div>
+        <figcaption>흙</figcaption>
+      </figure></div><h3 class="cat">광석 가공 <span class="count">7</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/crushed.png" alt="분쇄 구리광" loading="lazy"></div>
+        <figcaption>분쇄 구리광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/crushed_fe.png" alt="분쇄 철광" loading="lazy"></div>
+        <figcaption>분쇄 철광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/crushed_au.png" alt="분쇄 금광" loading="lazy"></div>
+        <figcaption>분쇄 금광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/clean.png" alt="정제 구리광" loading="lazy"></div>
+        <figcaption>정제 구리광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/clean_fe.png" alt="정제 철광" loading="lazy"></div>
+        <figcaption>정제 철광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/clean_au.png" alt="정제 금광" loading="lazy"></div>
+        <figcaption>정제 금광</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/slag.png" alt="찌꺼기" loading="lazy"></div>
+        <figcaption>찌꺼기</figcaption>
+      </figure></div><h3 class="cat">주괴 <span class="count">5</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ingot_cu.png" alt="구리 주괴" loading="lazy"></div>
+        <figcaption>구리 주괴</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ingot_fe.png" alt="철 주괴" loading="lazy"></div>
+        <figcaption>철 주괴</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ingot_steel.png" alt="강철 주괴" loading="lazy"></div>
+        <figcaption>강철 주괴</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ingot_au.png" alt="금 주괴" loading="lazy"></div>
+        <figcaption>금 주괴</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/ingot_alloy.png" alt="합금 주괴" loading="lazy"></div>
+        <figcaption>합금 주괴</figcaption>
+      </figure></div><h3 class="cat">금속 부품 <span class="count">13</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/plate_cu.png" alt="구리판" loading="lazy"></div>
+        <figcaption>구리판</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/rod_cu.png" alt="구리 막대" loading="lazy"></div>
+        <figcaption>구리 막대</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/plate_fe.png" alt="철판" loading="lazy"></div>
+        <figcaption>철판</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/rod_fe.png" alt="철 막대" loading="lazy"></div>
+        <figcaption>철 막대</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/plate_steel.png" alt="강철판" loading="lazy"></div>
+        <figcaption>강철판</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/rod_steel.png" alt="강철 막대" loading="lazy"></div>
+        <figcaption>강철 막대</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/coil.png" alt="구리선" loading="lazy"></div>
+        <figcaption>구리선</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/wire_au.png" alt="금선" loading="lazy"></div>
+        <figcaption>금선</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/bolt.png" alt="볼트" loading="lazy"></div>
+        <figcaption>볼트</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/gear.png" alt="기어" loading="lazy"></div>
+        <figcaption>기어</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/frame.png" alt="기계 틀" loading="lazy"></div>
+        <figcaption>기계 틀</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/beam.png" alt="강철 기둥" loading="lazy"></div>
+        <figcaption>강철 기둥</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/blade.png" alt="절삭 날" loading="lazy"></div>
+        <figcaption>절삭 날</figcaption>
+      </figure></div><h3 class="cat">조립품 <span class="count">5</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/motor.png" alt="모터" loading="lazy"></div>
+        <figcaption>모터</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/board.png" alt="회로 기판" loading="lazy"></div>
+        <figcaption>회로 기판</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/board_adv.png" alt="고급 회로" loading="lazy"></div>
+        <figcaption>고급 회로</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/cell.png" alt="전지" loading="lazy"></div>
+        <figcaption>전지</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/monster_part.png" alt="핵심 부품" loading="lazy"></div>
+        <figcaption>핵심 부품</figcaption>
+      </figure></div><h3 class="cat">건축 재료 <span class="count">7</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/plank.png" alt="판자" loading="lazy"></div>
+        <figcaption>판자</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/stone_block.png" alt="석재" loading="lazy"></div>
+        <figcaption>석재</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/brick.png" alt="벽돌" loading="lazy"></div>
+        <figcaption>벽돌</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/glass.png" alt="유리" loading="lazy"></div>
+        <figcaption>유리</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/concrete.png" alt="콘크리트" loading="lazy"></div>
+        <figcaption>콘크리트</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/asphalt.png" alt="포장재" loading="lazy"></div>
+        <figcaption>포장재</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/cloth.png" alt="천" loading="lazy"></div>
+        <figcaption>천</figcaption>
+      </figure></div><h3 class="cat">나무와 연료 <span class="count">10</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/log.png" alt="통나무" loading="lazy"></div>
+        <figcaption>통나무</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sawdust.png" alt="톱밥" loading="lazy"></div>
+        <figcaption>톱밥</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/charcoal.png" alt="숯" loading="lazy"></div>
+        <figcaption>숯</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/briquette.png" alt="연료 덩이" loading="lazy"></div>
+        <figcaption>연료 덩이</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/barrel_water.png" alt="물통" loading="lazy"></div>
+        <figcaption>물통</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/barrel_oil.png" alt="원유통" loading="lazy"></div>
+        <figcaption>원유통</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/barrel_fuel.png" alt="연료통" loading="lazy"></div>
+        <figcaption>연료통</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/oilcan.png" alt="식물 기름통" loading="lazy"></div>
+        <figcaption>식물 기름통</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/tar.png" alt="타르" loading="lazy"></div>
+        <figcaption>타르</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/plastic.png" alt="플라스틱" loading="lazy"></div>
+        <figcaption>플라스틱</figcaption>
+      </figure></div><h3 class="cat">농산물과 음식 <span class="count">8</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/wheat.png" alt="밀" loading="lazy"></div>
+        <figcaption>밀</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/seed.png" alt="씨앗" loading="lazy"></div>
+        <figcaption>씨앗</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/flour.png" alt="밀가루" loading="lazy"></div>
+        <figcaption>밀가루</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/dough.png" alt="반죽" loading="lazy"></div>
+        <figcaption>반죽</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/bread.png" alt="빵" loading="lazy"></div>
+        <figcaption>빵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/cotton.png" alt="목화" loading="lazy"></div>
+        <figcaption>목화</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/oilseed.png" alt="기름 작물" loading="lazy"></div>
+        <figcaption>기름 작물</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/sapling.png" alt="묘목" loading="lazy"></div>
+        <figcaption>묘목</figcaption>
+      </figure></div><h3 class="cat">광맥 핵 <span class="count">6</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_stone.png" alt="돌 광맥 핵" loading="lazy"></div>
+        <figcaption>돌 광맥 핵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_coal.png" alt="석탄 광맥 핵" loading="lazy"></div>
+        <figcaption>석탄 광맥 핵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_cu.png" alt="구리 광맥 핵" loading="lazy"></div>
+        <figcaption>구리 광맥 핵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_fe.png" alt="철 광맥 핵" loading="lazy"></div>
+        <figcaption>철 광맥 핵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_au.png" alt="금 광맥 핵" loading="lazy"></div>
+        <figcaption>금 광맥 핵</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/items/core_dia.png" alt="다이아 광맥 핵" loading="lazy"></div>
+        <figcaption>다이아 광맥 핵</figcaption>
+      </figure></div><h3 class="cat">포장 <span class="count">1</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/items/crate.png" alt="상자 (포장)" loading="lazy"></div>
+        <figcaption>상자 (포장)</figcaption>
+      </figure></div>
+  </section>
+  
+  <section id="블록">
+    <h2>블록 <span class="count">34</span></h2>
+    <p class="lede">섬을 이루는 정육면체 블록. 스타일은 아직 확정하지 않은 시험 제작본</p>
+    <h3 class="cat">자연 <span class="count">9</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/grass.png" alt="잔디" loading="lazy"></div>
+        <figcaption>잔디</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/dirt.png" alt="흙" loading="lazy"></div>
+        <figcaption>흙</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/farmland.png" alt="경작지" loading="lazy"></div>
+        <figcaption>경작지</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/stone.png" alt="돌" loading="lazy"></div>
+        <figcaption>돌</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/sand.png" alt="모래" loading="lazy"></div>
+        <figcaption>모래</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/gravel.png" alt="자갈" loading="lazy"></div>
+        <figcaption>자갈</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/clay.png" alt="점토" loading="lazy"></div>
+        <figcaption>점토</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/log.png" alt="통나무" loading="lazy"></div>
+        <figcaption>통나무</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/leaves.png" alt="나뭇잎" loading="lazy"></div>
+        <figcaption>나뭇잎</figcaption>
+      </figure></div><h3 class="cat">광석 <span class="count">5</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/ore_coal.png" alt="석탄 광석" loading="lazy"></div>
+        <figcaption>석탄 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/ore_cu.png" alt="구리 광석" loading="lazy"></div>
+        <figcaption>구리 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/ore_fe.png" alt="철 광석" loading="lazy"></div>
+        <figcaption>철 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/ore_au.png" alt="금 광석" loading="lazy"></div>
+        <figcaption>금 광석</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/ore_dia.png" alt="다이아 광석" loading="lazy"></div>
+        <figcaption>다이아 광석</figcaption>
+      </figure></div><h3 class="cat">건축 <span class="count">7</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/planks.png" alt="판자" loading="lazy"></div>
+        <figcaption>판자</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/stone_bricks.png" alt="석재 벽돌" loading="lazy"></div>
+        <figcaption>석재 벽돌</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/bricks.png" alt="벽돌" loading="lazy"></div>
+        <figcaption>벽돌</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/glass.png" alt="유리" loading="lazy"></div>
+        <figcaption>유리</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/concrete.png" alt="콘크리트" loading="lazy"></div>
+        <figcaption>콘크리트</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/asphalt.png" alt="포장재" loading="lazy"></div>
+        <figcaption>포장재</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/quartz.png" alt="석영" loading="lazy"></div>
+        <figcaption>석영</figcaption>
+      </figure></div><h3 class="cat">금속 <span class="count">8</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_fe.png" alt="철 블록" loading="lazy"></div>
+        <figcaption>철 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_cu.png" alt="구리 블록" loading="lazy"></div>
+        <figcaption>구리 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_steel.png" alt="강철 블록" loading="lazy"></div>
+        <figcaption>강철 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_au.png" alt="금 블록" loading="lazy"></div>
+        <figcaption>금 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_dia.png" alt="다이아 블록" loading="lazy"></div>
+        <figcaption>다이아 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/block_coal.png" alt="석탄 블록" loading="lazy"></div>
+        <figcaption>석탄 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/tread.png" alt="금속 바닥" loading="lazy"></div>
+        <figcaption>금속 바닥</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/grating.png" alt="격자 바닥" loading="lazy"></div>
+        <figcaption>격자 바닥</figcaption>
+      </figure></div><h3 class="cat">색 블록 <span class="count">5</span></h3><div class="tiles">
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/cloth_white.png" alt="흰 천 블록" loading="lazy"></div>
+        <figcaption>흰 천 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/cloth_red.png" alt="빨간 천 블록" loading="lazy"></div>
+        <figcaption>빨간 천 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/cloth_yellow.png" alt="노란 천 블록" loading="lazy"></div>
+        <figcaption>노란 천 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/cloth_green.png" alt="초록 천 블록" loading="lazy"></div>
+        <figcaption>초록 천 블록</figcaption>
+      </figure>
+      <figure class="tile">
+        <div class="shot"><img src="img/blocks/cloth_blue.png" alt="파란 천 블록" loading="lazy"></div>
+        <figcaption>파란 천 블록</figcaption>
+      </figure></div>
   </section>
 </main>
 </body>

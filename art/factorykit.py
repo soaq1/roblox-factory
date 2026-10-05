@@ -32,9 +32,12 @@ PAL = {
     "wood": "#c99c61", "wood_dark": "#a87d47", "wood_light": "#e3c58f",
     "brick": "#b5553c", "brick_dark": "#9c4631", "mortar": "#d6d0c6",
     "wheat": "#cdb850", "wheat_head": "#ecd465", "cream": "#efe2c8", "bread": "#d39a55",
-    "pcb": "#2f9e5b", "solar": "#2c4a78", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
+    "pcb": "#2f9e5b", "diamond": "#86e3ea", "clay": "#b9a79a", "charcoal": "#3b3632", "tar": "#1e1b22",
+    "slag": "#6e6a70", "cotton": "#f4f2ee", "dough": "#ead9b0", "asphalt": "#4b4b50", "dirt": "#9a6a44",
+    "leaf": "#4f9f4d", "leaf_light": "#7cc468", "copper_light": "#f2a878",
+    "core_stone": "#c9cdd2", "core_gold": "#ffd24a", "core_dia": "#8ff0f5", "monster": "#9a62e0", "solar": "#2c4a78", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
 }
-EMIT = {"glow": 3.0, "spark": 1.5, "core_fe": 0.9, "core_cu": 0.9, "core_coal": 0.15}
+EMIT = {"glow": 3.0, "spark": 1.5, "core_fe": 0.9, "core_cu": 0.9, "core_coal": 0.15, "core_gold": 0.9, "core_dia": 1.1, "core_stone": 0.4, "monster": 0.9}
 _mats = {}
 
 
@@ -1699,88 +1702,361 @@ def _pole(m, T):
     m.prism([(x, 1.45 + z) for x, z in bolt], -0.262, -0.25, "Y", "spark")
 
 
+# ============================ ULTIMATE DEVICES ============================
+def tilted_ring(m, center, radius, tube, euler, mk, seg=14):
+    rot = Euler(euler, "XYZ").to_matrix()
+    c = Vector(center)
+    pts = [c + rot @ Vector((radius * math.cos(i * 2 * math.pi / seg), radius * math.sin(i * 2 * math.pi / seg), 0))
+           for i in range(seg + 1)]
+    m.pipe(pts, tube, mk, seg=6)
+
+
+@machine("coreforge", "핵 제련소", "궁극의 장치",
+         "막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지",
+         ports=(("W", "in", -1), ("W", "in", 1), ("S", "in", 0), ("E", "out", 0)), size=(3, 3),
+         ins=("core_fe", "ingot_steel", "ingot_au"), outs=("core_dia",), ortho=12.4, tz=2.1)
+def _coreforge(m, T):
+    m.box((2.5, 2.5, 0.16), (0, 0, T + 0.08), "mid", bevel=0.03)
+    m.cyl(1.0, 0.14, (0, 0, T + 0.23), "dark", seg=12)
+    m.cyl(0.62, 0.10, (0, 0, T + 0.35), "light", seg=12)
+    m.cyl(0.40, 0.02, (0, 0, T + 0.41), "core_dia", seg=12)
+    for k in range(4):
+        a = k * math.pi / 2 + math.pi / 4
+        with m.at((math.cos(a) * 0.95, math.sin(a) * 0.95, T + 0.16), a):
+            m.box((0.28, 0.32, 1.20), (0, 0, 0.60), "body", bevel=0.05)
+            m.box((0.30, 0.34, 0.10), (0, 0, 0.30), "dark")
+            m.box((0.30, 0.34, 0.10), (0, 0, 0.90), "dark")
+            m.box((0.22, 0.24, 1.00), (-0.265, 0, 1.62), "light", rot=(0, rad(-32), 0), bevel=0.03)
+            m.cyl(0.11, 0.38, (0, 0, 1.20), "dark", seg=8, axis="Y")
+    crystal(m, (0, 0, T + 2.05), 0.42, "core_dia")
+    for k, mk in enumerate(("core_fe", "core_coal", "core_cu", "core_gold")):
+        a = k * math.pi / 2
+        x, y = math.cos(a) * 1.15, math.sin(a) * 1.15
+        m.cyl(0.16, 0.50, (x, y, T + 0.41), "mid", seg=8)
+        m.cyl(0.20, 0.06, (x, y, T + 0.69), "dark", seg=8)
+        crystal(m, (x, y, T + 0.86), 0.11, mk)
+        m.pipe([(x, y, T + 1.08), (x * 0.25, y * 0.25, T + 1.85)], 0.016, mk, seg=4)
+    stack(m, -1.2, 1.2, T, h=1.8, r=0.12, glow=True)
+    stack(m, 1.2, 1.2, T, h=1.4, r=0.10)
+    for x in (-1, 1):
+        y = window(m, "glow", x=x, sy=3)
+        for dx in (-0.10, 0.0, 0.10):
+            m.box((0.03, 0.02, 0.26), (x + dx, y, 0.50), "dark")
+    for x in (-1.36, 1.36):
+        for z in (0.20, 0.82):
+            m.cyl(0.022, 0.03, (x, -1.445, z), "mid", seg=6, axis="Y")
+
+
+@machine("reactor", "무한 동력로", "궁극의 장치",
+         "연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림",
+         size=(3, 3), ortho=12.0, tz=1.9)
+def _reactor(m, T):
+    m.box((2.5, 2.5, 0.16), (0, 0, T + 0.08), "mid", bevel=0.03)
+    m.cyl(0.95, 0.30, (0, 0, T + 0.31), "dark", seg=12, r2=0.72)
+    m.cyl(0.50, 0.46, (0, 0, T + 0.69), "body", seg=12, r2=0.34)
+    m.ring(0.98, 0.06, T + 0.42, "copper", seg=14)
+    m.ring(0.80, 0.05, T + 0.56, "copper", seg=14)
+    cz = T + 1.80
+    m.ico(0.40, (0, 0, cz), "spark")
+    m.cyl(0.10, 0.36, (0, 0, T + 1.10), "light", seg=8, r2=0.05)
+    for e in ((0, 0, 0), (rad(90), 0, 0), (rad(90), 0, rad(90))):
+        tilted_ring(m, (0, 0, cz), 0.74, 0.05, e, "light")
+    tilted_ring(m, (0, 0, cz), 0.92, 0.035, (rad(55), 0, rad(35)), "mid")
+    for sx_ in (-1, 1):
+        for sy_ in (-1, 1):
+            x, y = sx_ * 1.02, sy_ * 1.02
+            m.box((0.34, 0.34, 1.70), (x, y, T + 1.01), "body", taper=0.5, bevel=0.03)
+            m.box((0.36, 0.36, 0.10), (x, y, T + 0.50), "dark")
+            for i in range(2):
+                m.cyl(0.07, 0.10, (x, y, T + 1.92 + i * 0.12), "white", seg=8)
+            m.cyl(0.035, 0.08, (x, y, T + 2.18), "copper", seg=6)
+            m.pipe([(x, y, T + 2.20), (x * 0.36, y * 0.36, cz + 0.16)], 0.014, "spark", seg=4)
+    for i in range(5):
+        m.box((0.03, 0.70, 0.40), (-0.24 + i * 0.12, 1.10, T + 0.36), "light")
+    y = window(m, "spark", x=0, sy=3, w=0.50, h=0.30)
+    bolt = [(0.03, 0.11), (-0.07, -0.01), (-0.01, -0.01), (-0.045, -0.11), (0.07, 0.025), (0.01, 0.025)]
+    m.prism([(x_, 0.50 + z_) for x_, z_ in bolt], y - 0.012, y, "Y", "dark")
+    for x in (-1, 1):
+        vent(m, x=x, sy=3)
+    for x in (-0.5, 0.5):
+        m.cyl(0.06, 0.16, (x, -1.20, T + 0.24), "white", seg=8)
+        m.cyl(0.035, 0.06, (x, -1.20, T + 0.35), "copper", seg=6)
+
+
 # ============================ ITEMS ============================
+ITEM_SPECS = []
+TOOL_RZ = math.pi / 4   # tools are built flat in the XZ plane and turned to face the camera
+
+
+def reg(key, ko, cat, fn, ortho=0.80, tz=0.10, rz=0.0):
+    ITEM_SPECS.append(dict(key=key, ko=ko, cat=cat, fn=fn, ortho=ortho, tz=tz, rz=rz))
+
+
+# ---- shape helpers ----
+def f_ore(nug):
+    def f(m):
+        m.ico(0.13, (0, 0, 0.10), "stone", squash=0.8, jitter=0.18)
+        m.ico(0.05, (0.07, -0.04, 0.15), nug, jitter=0.2)
+        m.ico(0.04, (-0.06, 0.05, 0.14), nug, jitter=0.2)
+        m.ico(0.035, (0.0, -0.09, 0.09), nug, jitter=0.2)
+    return f
+
+
+def f_chunk(mk, r=0.13):
+    return lambda m: m.ico(r, (0, 0, r * 0.75), mk, squash=0.8, jitter=0.18)
+
+
+def f_pile(mk):
+    def f(m):
+        for (x, y, r) in ((0, 0, 0.07), (0.09, 0.03, 0.055), (-0.07, 0.06, 0.05), (0.01, -0.08, 0.05)):
+            m.ico(r, (x, y, r * 0.8), mk, squash=0.85, jitter=0.2)
+    return f
+
+
+def f_heap(mk):
+    return lambda m: m.cyl(0.14, 0.12, (0, 0, 0.06), mk, seg=8, r2=0.03)
+
+
+def f_ingot(mk):
+    return lambda m: m.box((0.28, 0.14, 0.09), (0, 0, 0.045), mk, bevel=0.012, taper=0.78)
+
+
+def f_plate(mk):
+    return lambda m: m.box((0.26, 0.22, 0.035), (0, 0, 0.018), mk, bevel=0.008)
+
+
+def f_rods(mk):
+    def f(m):
+        for (x, z) in ((-0.035, 0.03), (0.035, 0.03), (0.0, 0.085)):
+            m.cyl(0.03, 0.34, (x, 0, z), mk, seg=6, axis="Y")
+    return f
+
+
+def f_coil(mk):
+    def f(m):
+        m.cyl(0.11, 0.10, (0, 0, 0.05), mk, seg=10)
+        m.cyl(0.05, 0.11, (0, 0, 0.05), "hole", seg=8)
+    return f
+
+
+def f_barrel(mk, band):
+    return lambda m: barrel(m, (0, 0, 0), mk, r=0.10, h=0.26, band=band)
+
+
+def f_core(mk):
+    return lambda m: crystal(m, (0, 0, 0.14), 0.11, mk)
+
+
+def f_block(mk, s=0.20, bevel=0.02):
+    return lambda m: m.box((s, s, s), (0, 0, s / 2), mk, bevel=bevel)
+
+
+def tool_handle(m, h=0.56):
+    m.box((0.045, 0.045, h), (0, 0, h / 2), "wood_dark")
+
+
+def f_pick(mk):
+    def f(m):
+        tool_handle(m)
+        m.prism([(-0.30, 0.46), (-0.16, 0.56), (0, 0.60), (0.16, 0.56), (0.30, 0.46),
+                 (0.16, 0.51), (0, 0.54), (-0.16, 0.51)], -0.03, 0.03, "Y", mk)
+    return f
+
+
+def f_axe(mk):
+    def f(m):
+        tool_handle(m)
+        m.prism([(0.0, 0.43), (0.19, 0.38), (0.24, 0.50), (0.19, 0.62), (0.0, 0.57)], -0.03, 0.03, "Y", mk)
+        m.box((0.08, 0.06, 0.10), (-0.04, 0, 0.50), mk)
+    return f
+
+
+def f_shovel(mk):
+    def f(m):
+        tool_handle(m, 0.50)
+        m.prism([(-0.09, 0.46), (0.09, 0.46), (0.10, 0.62), (0.0, 0.72), (-0.10, 0.62)], -0.02, 0.02, "Y", mk)
+        m.box((0.14, 0.05, 0.035), (0, 0, 0.02), "wood_dark")
+    return f
+
+
+def f_hoe(mk):
+    def f(m):
+        tool_handle(m)
+        m.prism([(-0.02, 0.60), (0.22, 0.60), (0.24, 0.47), (0.17, 0.47), (0.15, 0.54), (-0.02, 0.54)],
+                -0.03, 0.03, "Y", mk)
+    return f
+
+
+def f_sword(mk):
+    def f(m):
+        m.prism([(-0.045, 0.20), (0.045, 0.20), (0.045, 0.60), (0, 0.70), (-0.045, 0.60)], -0.015, 0.015, "Y", mk)
+        m.box((0.22, 0.06, 0.04), (0, 0, 0.19), "dark")
+        m.box((0.04, 0.04, 0.14), (0, 0, 0.10), "wood_dark")
+        m.box((0.07, 0.06, 0.04), (0, 0, 0.02), "dark")
+    return f
+
+
 def build_items():
+    T_ = dict(ortho=1.15, tz=0.36, rz=TOOL_RZ)
+    tiers = (("wood", "나무", "wood"), ("stone", "돌", "stone"), ("iron", "철", "iron"),
+             ("steel", "강철", "steel"), ("gold", "금", "gold"), ("dia", "다이아", "diamond"))
+    for shape, ko, fn in (("pick", "곡괭이", f_pick), ("axe", "도끼", f_axe), ("shovel", "삽", f_shovel),
+                          ("hoe", "괭이", f_hoe), ("sword", "검", f_sword)):
+        for tk, tko, mk in tiers:
+            reg(f"{shape}_{tk}", f"{tko} {ko}", "도구", fn(mk), **T_)
+
+    def hammer(m):
+        tool_handle(m, 0.50)
+        m.box((0.26, 0.10, 0.12), (0, 0, 0.52), "mid", bevel=0.015)
+
+    def wrench(m):
+        m.box((0.05, 0.03, 0.44), (0, 0, 0.24), "light")
+        m.prism([(-0.09, 0.44), (-0.09, 0.60), (-0.04, 0.60), (-0.04, 0.50), (0.04, 0.50), (0.04, 0.60),
+                 (0.09, 0.60), (0.09, 0.44)], -0.018, 0.018, "Y", "light")
+        m.box((0.07, 0.035, 0.05), (0, 0, 0.03), "red")
+
+    def rod(m):
+        m.box((0.03, 0.03, 0.72), (0.10, 0, 0.36), "wood_dark", rot=(0, rad(18), 0))
+        m.cyl(0.05, 0.05, (0.02, 0, 0.16), "red", seg=8, axis="Y")
+        m.box((0.008, 0.008, 0.40), (0.21, 0, 0.48), "white")
+        m.ico(0.03, (0.21, 0, 0.27), "red")
+
+    def bucket(m):
+        m.cyl(0.10, 0.20, (0, 0, 0.10), "light", seg=10, r2=0.14)
+        m.cyl(0.125, 0.012, (0, 0, 0.19), "water", seg=10)
+        m.ring(0.13, 0.012, 0.21, "mid")
+
+    def can(m):
+        m.cyl(0.12, 0.20, (0, 0, 0.10), "out", seg=10)
+        m.pipe([(0.10, 0, 0.06), (0.22, 0, 0.16), (0.28, 0, 0.26)], 0.022, "out", seg=6)
+        m.cyl(0.04, 0.03, (0.29, 0, 0.27), "mid", seg=6, rot=(0, rad(50), 0))
+        m.box((0.03, 0.03, 0.16), (-0.16, 0, 0.12), "mid")
+        m.box((0.08, 0.03, 0.03), (-0.13, 0, 0.19), "mid")
+
+    reg("hammer", "망치", "도구", hammer, **T_)
+    reg("wrench", "렌치", "도구", wrench, **T_)
+    reg("fishing_rod", "낚싯대", "도구", rod, ortho=1.3, tz=0.38, rz=TOOL_RZ)
+    reg("bucket", "양동이", "도구", bucket, ortho=0.8, tz=0.12)
+    reg("watering_can", "물뿌리개", "도구", can, ortho=0.9, tz=0.14, rz=TOOL_RZ)
+
+    # ---- raw ----
+    reg("stone", "돌", "원석과 광물", f_chunk("stone"))
+    reg("coal", "석탄", "원석과 광물", f_chunk("coal", 0.12))
+    reg("ore_cu", "구리 광석", "원석과 광물", f_ore("copper"))
+    reg("ore_fe", "철 광석", "원석과 광물", f_ore("iron"))
+    reg("ore_au", "금 광석", "원석과 광물", f_ore("gold"))
+    reg("ore_dia", "다이아 원석", "원석과 광물", f_ore("diamond"))
+    reg("diamond", "다이아", "원석과 광물", lambda m: crystal(m, (0, 0, 0.12), 0.09, "diamond"))
+    reg("sand", "모래", "원석과 광물", f_heap("sand"))
+    reg("gravel", "자갈", "원석과 광물", f_pile("stone_dark"))
+    reg("clay", "점토", "원석과 광물", f_chunk("clay", 0.12))
+    reg("dirt_clod", "흙", "원석과 광물", f_chunk("dirt", 0.12))
+
+    # ---- ore processing ----
+    for k, ko, mk in (("cu", "구리", "copper"), ("fe", "철", "iron"), ("au", "금", "gold")):
+        reg("crushed" if k == "cu" else f"crushed_{k}", f"분쇄 {ko}광", "광석 가공", f_pile(mk))
+    for k, ko, mk in (("cu", "구리", "copper_light"), ("fe", "철", "white"), ("au", "금", "spark")):
+        reg("clean" if k == "cu" else f"clean_{k}", f"정제 {ko}광", "광석 가공",
+            lambda m, mk=mk: (f_pile(mk)(m), m.box((0.24, 0.24, 0.02), (0, 0, 0.01), "water_light")))
+    reg("slag", "찌꺼기", "광석 가공", f_pile("slag"))
+
+    # ---- ingots ----
+    for k, ko, mk in (("cu", "구리", "copper"), ("fe", "철", "iron"), ("steel", "강철", "steel"),
+                      ("au", "금", "gold"), ("alloy", "합금", "gold_dark")):
+        reg(f"ingot_{k}", f"{ko} 주괴", "주괴", f_ingot(mk))
+
+    # ---- metal parts ----
+    for k, ko, mk in (("cu", "구리", "copper"), ("fe", "철", "iron"), ("steel", "강철", "steel")):
+        reg(f"plate_{k}", f"{ko}판", "금속 부품", f_plate(mk))
+        reg(f"rod_{k}", f"{ko} 막대", "금속 부품", f_rods(mk))
+    reg("coil", "구리선", "금속 부품", f_coil("copper"))
+    reg("wire_au", "금선", "금속 부품", f_coil("gold"))
+    reg("bolt", "볼트", "금속 부품", lambda m: [
+        (m.cyl(0.03, 0.14, (x, y, 0.07), "iron", seg=6), m.cyl(0.05, 0.04, (x, y, 0.15), "iron", seg=6))
+        for x, y in ((-0.06, -0.03), (0.06, 0.0), (0.0, 0.07))])
+    reg("gear", "기어", "금속 부품", lambda m: m.gear(0.13, 0.06, (0, 0, 0.03), "iron", teeth=8, axis="Z"))
+    reg("frame", "기계 틀", "금속 부품", lambda m: (
+        m.box((0.26, 0.26, 0.05), (0, 0, 0.025), "iron"), m.box((0.26, 0.26, 0.05), (0, 0, 0.215), "iron"),
+        [m.box((0.05, 0.05, 0.24), (x, y, 0.12), "iron") for x in (-0.105, 0.105) for y in (-0.105, 0.105)]))
+    reg("beam", "강철 기둥", "금속 부품", lambda m: (
+        m.box((0.16, 0.36, 0.03), (0, 0, 0.015), "steel"), m.box((0.16, 0.36, 0.03), (0, 0, 0.165), "steel"),
+        m.box((0.03, 0.36, 0.14), (0, 0, 0.09), "steel")))
+    reg("blade", "절삭 날", "금속 부품", lambda m: (
+        m.gear(0.12, 0.02, (0, 0, 0.01), "diamond", teeth=10, axis="Z"), m.cyl(0.04, 0.03, (0, 0, 0.015), "mid", seg=6)))
+
+    # ---- assemblies ----
+    reg("motor", "모터", "조립품", lambda m: (
+        m.cyl(0.10, 0.24, (0, 0, 0.11), "steel", seg=8, axis="X"), m.cyl(0.11, 0.06, (0, 0, 0.11), "copper", seg=8, axis="X"),
+        m.cyl(0.03, 0.34, (0, 0, 0.11), "light", seg=6, axis="X"), m.box((0.16, 0.16, 0.03), (0, 0, 0.015), "dark")))
+    reg("board", "회로 기판", "조립품", lambda m: (
+        m.box((0.24, 0.20, 0.025), (0, 0, 0.013), "pcb"), m.box((0.08, 0.08, 0.03), (0.03, 0.02, 0.035), "hole"),
+        m.box((0.14, 0.02, 0.012), (-0.03, -0.06, 0.03), "gold")))
+    reg("board_adv", "고급 회로", "조립품", lambda m: (
+        m.box((0.26, 0.22, 0.025), (0, 0, 0.013), "steel"), m.box((0.10, 0.10, 0.035), (0, 0, 0.04), "hole"),
+        [m.box((0.02, 0.07, 0.012), (x, y, 0.03), "gold") for x in (-0.09, -0.05, 0.05, 0.09) for y in (-0.06, 0.06)],
+        m.box((0.05, 0.05, 0.02), (0, 0, 0.067), "spark")))
+    reg("cell", "전지", "조립품", lambda m: (
+        m.cyl(0.08, 0.22, (0, 0, 0.11), "body", seg=8), m.cyl(0.082, 0.08, (0, 0, 0.11), "out", seg=8),
+        m.cyl(0.035, 0.03, (0, 0, 0.235), "copper", seg=6)))
+    reg("monster_part", "핵심 부품", "조립품", lambda m: (
+        m.cyl(0.12, 0.04, (0, 0, 0.02), "dark", seg=8), crystal(m, (0, 0, 0.14), 0.07, "monster"),
+        [m.box((0.03, 0.03, 0.14), (math.cos(a) * 0.09, math.sin(a) * 0.09, 0.09), "mid") for a in (0.5, 2.6, 4.7)]))
+
+    # ---- building materials ----
+    reg("plank", "판자", "건축 재료", lambda m: m.box((0.14, 0.34, 0.045), (0, 0, 0.023), "wood"))
+    reg("stone_block", "석재", "건축 재료", f_block("stone"))
+    reg("brick", "벽돌", "건축 재료", lambda m: m.box((0.24, 0.12, 0.09), (0, 0, 0.045), "brick", bevel=0.01))
+    reg("glass", "유리", "건축 재료", lambda m: m.box((0.24, 0.03, 0.22), (0, 0, 0.11), "glass", rot=(rad(12), 0, 0)))
+    reg("concrete", "콘크리트", "건축 재료", lambda m: m.box((0.22, 0.22, 0.16), (0, 0, 0.08), "slurry", bevel=0.02))
+    reg("asphalt", "포장재", "건축 재료", lambda m: m.box((0.24, 0.24, 0.08), (0, 0, 0.04), "asphalt", bevel=0.01))
+    reg("cloth", "천", "건축 재료", lambda m: (
+        m.box((0.26, 0.20, 0.05), (0, 0, 0.025), "cream", bevel=0.015), m.box((0.27, 0.05, 0.052), (0, 0, 0.026), "red")))
+
+    # ---- wood and fuel ----
+    reg("log", "통나무", "나무와 연료", lambda m: (
+        m.cyl(0.09, 0.34, (0, 0, 0.09), "wood_dark", seg=8, axis="Y"), m.cyl(0.07, 0.35, (0, 0, 0.09), "wood_light", seg=8, axis="Y")))
+    reg("sawdust", "톱밥", "나무와 연료", f_pile("wood_light"))
+    reg("charcoal", "숯", "나무와 연료", lambda m: (
+        m.box((0.10, 0.22, 0.08), (0, 0, 0.04), "charcoal", rot=0.3), m.box((0.08, 0.18, 0.07), (0.06, 0.02, 0.10), "charcoal", rot=-0.5)))
+    reg("briquette", "연료 덩이", "나무와 연료", lambda m: m.box((0.20, 0.14, 0.10), (0, 0, 0.05), "coal", bevel=0.02))
+    reg("barrel_water", "물통", "나무와 연료", f_barrel("water", "mid"))
+    reg("barrel_oil", "원유통", "나무와 연료", f_barrel("oil", "red"))
+    reg("barrel_fuel", "연료통", "나무와 연료", f_barrel("red", "dark"))
+    reg("oilcan", "식물 기름통", "나무와 연료", f_barrel("wheat", "mid"))
+    reg("tar", "타르", "나무와 연료", f_barrel("tar", "mid"))
+    reg("plastic", "플라스틱", "나무와 연료", f_block("white", 0.20, 0.03))
+
+    # ---- farm ----
+    reg("wheat", "밀", "농산물과 음식", lambda m: [
+        m.box((0.035, 0.035, 0.26), (x, y, 0.13), "wheat_head", taper=0.5) for x, y in ((0, 0), (0.05, 0.03), (-0.04, 0.04), (0.02, -0.05))])
+    reg("seed", "씨앗", "농산물과 음식", f_pile("wheat"))
+    reg("flour", "밀가루", "농산물과 음식", lambda m: (
+        m.box((0.18, 0.14, 0.20), (0, 0, 0.10), "cream", bevel=0.04, taper=0.8), m.box((0.10, 0.08, 0.04), (0, 0, 0.21), "wood")))
+    reg("dough", "반죽", "농산물과 음식", lambda m: m.ico(0.11, (0, 0, 0.07), "dough", squash=0.65))
+    reg("bread", "빵", "농산물과 음식", lambda m: m.box((0.24, 0.13, 0.11), (0, 0, 0.055), "bread", bevel=0.04))
+    reg("cotton", "목화", "농산물과 음식", lambda m: (
+        m.box((0.02, 0.02, 0.16), (0, 0, 0.08), "leaf"), m.ico(0.07, (0, 0, 0.20), "cotton", jitter=0.1),
+        m.ico(0.05, (0.06, 0.02, 0.15), "cotton", jitter=0.1), m.ico(0.05, (-0.05, -0.03, 0.16), "cotton", jitter=0.1)))
+    reg("oilseed", "기름 작물", "농산물과 음식", lambda m: (
+        m.box((0.025, 0.025, 0.20), (0, 0, 0.10), "leaf"), m.cyl(0.10, 0.03, (0, -0.01, 0.24), "gold", seg=10, axis="Y"),
+        m.cyl(0.055, 0.035, (0, -0.012, 0.24), "wood_dark", seg=8, axis="Y")), rz=TOOL_RZ)
+    reg("sapling", "묘목", "농산물과 음식", lambda m: (
+        m.ico(0.09, (0, 0, 0.05), "dirt", squash=0.7), m.box((0.025, 0.025, 0.18), (0, 0, 0.16), "wood_dark"),
+        m.ico(0.08, (0, 0, 0.29), "leaf", jitter=0.1), m.ico(0.05, (0.05, 0.02, 0.35), "leaf_light", jitter=0.1)), ortho=0.9, tz=0.18)
+
+    # ---- cores ----
+    for k, ko, mk in (("stone", "돌", "core_stone"), ("coal", "석탄", "core_coal"), ("cu", "구리", "core_cu"),
+                      ("fe", "철", "core_fe"), ("au", "금", "core_gold"), ("dia", "다이아", "core_dia")):
+        reg(f"core_{k}", f"{ko} 광맥 핵", "광맥 핵", f_core(mk))
+
+    reg("crate", "상자 (포장)", "포장", lambda m: crate(m, (0, 0, 0), s=0.26))
+
     items = {}
-
-    def it(name, fn):
-        m = Model("item_" + name)
-        fn(m)
-        items[name] = m.done()
-
-    def ore(nug):
-        def f(m):
-            m.ico(0.13, (0, 0, 0.10), "stone", squash=0.8, jitter=0.18)
-            m.ico(0.05, (0.07, -0.04, 0.15), nug, jitter=0.2)
-            m.ico(0.04, (-0.06, 0.05, 0.14), nug, jitter=0.2)
-        return f
-
-    def ingot(mk):
-        return lambda m: m.box((0.28, 0.14, 0.09), (0, 0, 0.045), mk, bevel=0.012, taper=0.78)
-
-    def bar(mk, band):
-        return lambda m: barrel(m, (0, 0, 0), mk, r=0.10, h=0.26, band=band)
-
-    def pile(mk):
-        def f(m):
-            for (x, y, r) in ((0, 0, 0.07), (0.09, 0.03, 0.055), (-0.07, 0.06, 0.05), (0.01, -0.08, 0.05)):
-                m.ico(r, (x, y, r * 0.8), mk, squash=0.85, jitter=0.2)
-        return f
-
-    it("ore_cu", ore("copper"))
-    it("ore_fe", ore("iron"))
-    it("coal", lambda m: m.ico(0.12, (0, 0, 0.09), "coal", squash=0.8, jitter=0.2))
-    it("stone", lambda m: m.ico(0.13, (0, 0, 0.10), "stone", squash=0.8, jitter=0.18))
-    it("crushed", pile("copper"))
-    it("clean", pile("gold"))
-    it("sand", lambda m: m.cyl(0.14, 0.12, (0, 0, 0.06), "sand", seg=8, r2=0.03))
-    it("ingot_cu", ingot("copper"))
-    it("ingot_fe", ingot("iron"))
-    it("ingot_steel", ingot("steel"))
-    it("plate_cu", lambda m: m.box((0.26, 0.22, 0.035), (0, 0, 0.018), "copper", bevel=0.008))
-    it("coil", lambda m: (m.cyl(0.11, 0.10, (0, 0, 0.05), "copper", seg=10),
-                          m.cyl(0.05, 0.11, (0, 0, 0.05), "hole", seg=8)))
-    it("gear", lambda m: m.gear(0.13, 0.06, (0, 0, 0.03), "iron", teeth=8, axis="Z"))
-    it("board", lambda m: (m.box((0.24, 0.20, 0.025), (0, 0, 0.013), "pcb"),
-                           m.box((0.08, 0.08, 0.03), (0.03, 0.02, 0.035), "hole"),
-                           m.box((0.14, 0.02, 0.012), (-0.03, -0.06, 0.03), "gold")))
-    it("plastic", lambda m: m.box((0.20, 0.20, 0.10), (0, 0, 0.05), "white", bevel=0.03))
-    it("glass", lambda m: m.box((0.24, 0.03, 0.22), (0, 0, 0.11), "glass", rot=(rad(12), 0, 0)))
-    it("log", lambda m: (m.cyl(0.09, 0.34, (0, 0, 0.09), "wood_dark", seg=8, axis="Y"),
-                         m.cyl(0.07, 0.35, (0, 0, 0.09), "wood_light", seg=8, axis="Y")))
-    it("plank", lambda m: m.box((0.14, 0.34, 0.045), (0, 0, 0.023), "wood"))
-    it("stone_block", lambda m: m.box((0.20, 0.20, 0.20), (0, 0, 0.10), "stone", bevel=0.02))
-    it("concrete", lambda m: m.box((0.22, 0.22, 0.16), (0, 0, 0.08), "slurry", bevel=0.02))
-    it("wheat", lambda m: [m.box((0.035, 0.035, 0.26), (x, y, 0.13), "wheat_head", taper=0.5)
-                           for x, y in ((0, 0), (0.05, 0.03), (-0.04, 0.04), (0.02, -0.05))])
-    it("flour", lambda m: (m.box((0.18, 0.14, 0.20), (0, 0, 0.10), "cream", bevel=0.04, taper=0.8),
-                           m.box((0.10, 0.08, 0.04), (0, 0, 0.21), "wood")))
-    it("bread", lambda m: m.box((0.24, 0.13, 0.11), (0, 0, 0.055), "bread", bevel=0.04))
-    it("barrel_water", bar("water", "mid"))
-    it("barrel_oil", bar("oil", "red"))
-    it("barrel_fuel", bar("red", "dark"))
-    it("crate", lambda m: crate(m, (0, 0, 0), s=0.26))
-    for key in ("core_fe", "core_coal", "core_cu"):
-        it(key, lambda m, key=key: crystal(m, (0, 0, 0.14), 0.11, key))
-    it("sawdust", pile("wood_light"))
-    it("gravel", pile("stone_dark"))
-    it("seed", pile("wheat"))
-    it("briquette", lambda m: m.box((0.20, 0.14, 0.10), (0, 0, 0.05), "coal", bevel=0.02))
-    it("oilcan", bar("wheat", "mid"))
-    it("cloth", lambda m: (m.box((0.26, 0.20, 0.05), (0, 0, 0.025), "cream", bevel=0.015),
-                           m.box((0.27, 0.05, 0.052), (0, 0, 0.026), "red")))
-    it("diamond", lambda m: crystal(m, (0, 0, 0.12), 0.09, "water_light"))
-    it("blade", lambda m: (m.gear(0.12, 0.02, (0, 0, 0.01), "water_light", teeth=10, axis="Z"),
-                           m.cyl(0.04, 0.03, (0, 0, 0.015), "mid", seg=6)))
-    it("frame", lambda m: (m.box((0.26, 0.26, 0.05), (0, 0, 0.025), "iron"),
-                           m.box((0.26, 0.26, 0.05), (0, 0, 0.215), "iron"),
-                           [m.box((0.05, 0.05, 0.24), (x, y, 0.12), "iron")
-                            for x in (-0.105, 0.105) for y in (-0.105, 0.105)]))
-    it("ingot_alloy", ingot("gold_dark"))
-    it("motor", lambda m: (m.cyl(0.10, 0.24, (0, 0, 0.11), "steel", seg=8, axis="X"),
-                           m.cyl(0.11, 0.06, (0, 0, 0.11), "copper", seg=8, axis="X"),
-                           m.cyl(0.03, 0.34, (0, 0, 0.11), "light", seg=6, axis="X"),
-                           m.box((0.16, 0.16, 0.03), (0, 0, 0.015), "dark")))
+    for s in ITEM_SPECS:
+        m = Model("item_" + s["key"])
+        s["fn"](m)
+        items[s["key"]] = m.done()
+        s["tris"] = m.tris
     return items
 
 
@@ -1882,19 +2158,6 @@ if "thumbs" in ARGS:
         shoot(os.path.join(OUT, "img", s["key"] + ".png"), O + Vector((0, 0, s["tz"])),
               s["ortho"] * 0.74, (640, 640), True)
         print("THUMB", s["key"])
-    items_row = list(ITEMS)
-    per = (len(items_row) + 2) // 3
-    for i, name in enumerate(items_row):
-        r, c = divmod(i, per)
-        u = (c - (per - 1) / 2) * 0.46
-        v = (1 - r) * 0.95
-        place(ITEMS[name], (u - v, -80 + u + v, 0))
-    if not only:
-        shoot(os.path.join(OUT, "img", "_items.png"), (0, -80, 0.1), 10.6, (2000, 720), True)
-    meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
-            for s in shown]
-    json.dump({"machines": meta, "items": items_row}, open(os.path.join(OUT, "catalog.json"), "w"),
-              ensure_ascii=False, indent=1)
 
 # ============================ CONNECTED LINE ============================
 if "line" in ARGS:
@@ -1953,6 +2216,23 @@ if "line" in ARGS:
     scene.cycles.samples = 72
     shoot(os.path.join(OUT, "img", "_line.png"), B + Vector((0, 0, 0.6)), 14.2, (2200, 1400), False)
     print("LINE done")
+
+# ============================ ITEM THUMBNAILS ============================
+if "items" in ARGS:
+    os.makedirs(os.path.join(OUT, "img", "items"), exist_ok=True)
+    scene.cycles.samples = 24
+    for i, s in enumerate(ITEM_SPECS):
+        O = Vector((i * 6.0, -300, 0))
+        place(ITEMS[s["key"]], O, s["rz"])
+        shoot(os.path.join(OUT, "img", "items", s["key"] + ".png"), O + Vector((0, 0, s["tz"])),
+              s["ortho"], (320, 320), True)
+    print("ITEMS done", len(ITEM_SPECS))
+
+meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
+        for s in SPECS if s["show"]]
+items_meta = [{k: s[k] for k in ("key", "ko", "cat", "tris")} for s in ITEM_SPECS]
+json.dump({"machines": meta, "items": items_meta}, open(os.path.join(OUT, "catalog.json"), "w"),
+          ensure_ascii=False, indent=1)
 
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "factorykit.blend"))
 print("ALL done")

@@ -1,0 +1,172 @@
+[
+ {
+  "key": "grass",
+  "ko": "잔디",
+  "cat": "자연"
+ },
+ {
+  "key": "dirt",
+  "ko": "흙",
+  "cat": "자연"
+ },
+ {
+  "key": "farmland",
+  "ko": "경작지",
+  "cat": "자연"
+ },
+ {
+  "key": "stone",
+  "ko": "돌",
+  "cat": "자연"
+ },
+ {
+  "key": "sand",
+  "ko": "모래",
+  "cat": "자연"
+ },
+ {
+  "key": "gravel",
+  "ko": "자갈",
+  "cat": "자연"
+ },
+ {
+  "key": "clay",
+  "ko": "점토",
+  "cat": "자연"
+ },
+ {
+  "key": "log",
+  "ko": "통나무",
+  "cat": "자연"
+ },
+ {
+  "key": "leaves",
+  "ko": "나뭇잎",
+  "cat": "자연"
+ },
+ {
+  "key": "ore_coal",
+  "ko": "석탄 광석",
+  "cat": "광석"
+ },
+ {
+  "key": "ore_cu",
+  "ko": "구리 광석",
+  "cat": "광석"
+ },
+ {
+  "key": "ore_fe",
+  "ko": "철 광석",
+  "cat": "광석"
+ },
+ {
+  "key": "ore_au",
+  "ko": "금 광석",
+  "cat": "광석"
+ },
+ {
+  "key": "ore_dia",
+  "ko": "다이아 광석",
+  "cat": "광석"
+ },
+ {
+  "key": "planks",
+  "ko": "판자",
+  "cat": "건축"
+ },
+ {
+  "key": "stone_bricks",
+  "ko": "석재 벽돌",
+  "cat": "건축"
+ },
+ {
+  "key": "bricks",
+  "ko": "벽돌",
+  "cat": "건축"
+ },
+ {
+  "key": "glass",
+  "ko": "유리",
+  "cat": "건축"
+ },
+ {
+  "key": "concrete",
+  "ko": "콘크리트",
+  "cat": "건축"
+ },
+ {
+  "key": "asphalt",
+  "ko": "포장재",
+  "cat": "건축"
+ },
+ {
+  "key": "quartz",
+  "ko": "석영",
+  "cat": "건축"
+ },
+ {
+  "key": "block_fe",
+  "ko": "철 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "block_cu",
+  "ko": "구리 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "block_steel",
+  "ko": "강철 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "block_au",
+  "ko": "금 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "block_dia",
+  "ko": "다이아 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "block_coal",
+  "ko": "석탄 블록",
+  "cat": "금속"
+ },
+ {
+  "key": "tread",
+  "ko": "금속 바닥",
+  "cat": "금속"
+ },
+ {
+  "key": "grating",
+  "ko": "격자 바닥",
+  "cat": "금속"
+ },
+ {
+  "key": "cloth_white",
+  "ko": "흰 천 블록",
+  "cat": "색 블록"
+ },
+ {
+  "key": "cloth_red",
+  "ko": "빨간 천 블록",
+  "cat": "색 블록"
+ },
+ {
+  "key": "cloth_yellow",
+  "ko": "노란 천 블록",
+  "cat": "색 블록"
+ },
+ {
+  "key": "cloth_green",
+  "ko": "초록 천 블록",
+  "cat": "색 블록"
+ },
+ {
+  "key": "cloth_blue",
+  "ko": "파란 천 블록",
+  "cat": "색 블록"
+ }
+]

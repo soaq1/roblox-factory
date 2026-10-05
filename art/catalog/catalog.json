@@ -1811,49 +1811,713 @@
    "colors": 7,
    "ins": [],
    "outs": []
+  },
+  {
+   "key": "coreforge",
+   "ko": "핵 제련소",
+   "fam": "궁극의 장치",
+   "recipe": "막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지",
+   "ports": [
+    [
+     "W",
+     "in",
+     -1
+    ],
+    [
+     "W",
+     "in",
+     1
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    3
+   ],
+   "tris": 2292,
+   "colors": 14,
+   "ins": [
+    "core_fe",
+    "ingot_steel",
+    "ingot_au"
+   ],
+   "outs": [
+    "core_dia"
+   ]
+  },
+  {
+   "key": "reactor",
+   "ko": "무한 동력로",
+   "fam": "궁극의 장치",
+   "recipe": "연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림",
+   "ports": [],
+   "size": [
+    3,
+    3
+   ],
+   "tris": 2396,
+   "colors": 7,
+   "ins": [],
+   "outs": []
   }
  ],
  "items": [
-  "ore_cu",
-  "ore_fe",
-  "coal",
-  "stone",
-  "crushed",
-  "clean",
-  "sand",
-  "ingot_cu",
-  "ingot_fe",
-  "ingot_steel",
-  "plate_cu",
-  "coil",
-  "gear",
-  "board",
-  "plastic",
-  "glass",
-  "log",
-  "plank",
-  "stone_block",
-  "concrete",
-  "wheat",
-  "flour",
-  "bread",
-  "barrel_water",
-  "barrel_oil",
-  "barrel_fuel",
-  "crate",
-  "core_fe",
-  "core_coal",
-  "core_cu",
-  "sawdust",
-  "gravel",
-  "seed",
-  "briquette",
-  "oilcan",
-  "cloth",
-  "diamond",
-  "blade",
-  "frame",
-  "ingot_alloy",
-  "motor"
+  {
+   "key": "pick_wood",
+   "ko": "나무 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "pick_stone",
+   "ko": "돌 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "pick_iron",
+   "ko": "철 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "pick_steel",
+   "ko": "강철 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "pick_gold",
+   "ko": "금 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "pick_dia",
+   "ko": "다이아 곡괭이",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_wood",
+   "ko": "나무 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_stone",
+   "ko": "돌 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_iron",
+   "ko": "철 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_steel",
+   "ko": "강철 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_gold",
+   "ko": "금 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "axe_dia",
+   "ko": "다이아 도끼",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_wood",
+   "ko": "나무 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_stone",
+   "ko": "돌 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_iron",
+   "ko": "철 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_steel",
+   "ko": "강철 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_gold",
+   "ko": "금 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "shovel_dia",
+   "ko": "다이아 삽",
+   "cat": "도구",
+   "tris": 40
+  },
+  {
+   "key": "hoe_wood",
+   "ko": "나무 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "hoe_stone",
+   "ko": "돌 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "hoe_iron",
+   "ko": "철 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "hoe_steel",
+   "ko": "강철 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "hoe_gold",
+   "ko": "금 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "hoe_dia",
+   "ko": "다이아 괭이",
+   "cat": "도구",
+   "tris": 32
+  },
+  {
+   "key": "sword_wood",
+   "ko": "나무 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "sword_stone",
+   "ko": "돌 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "sword_iron",
+   "ko": "철 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "sword_steel",
+   "ko": "강철 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "sword_gold",
+   "ko": "금 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "sword_dia",
+   "ko": "다이아 검",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "hammer",
+   "ko": "망치",
+   "cat": "도구",
+   "tris": 56
+  },
+  {
+   "key": "wrench",
+   "ko": "렌치",
+   "cat": "도구",
+   "tris": 52
+  },
+  {
+   "key": "fishing_rod",
+   "ko": "낚싯대",
+   "cat": "도구",
+   "tris": 72
+  },
+  {
+   "key": "bucket",
+   "ko": "양동이",
+   "cat": "도구",
+   "tris": 200
+  },
+  {
+   "key": "watering_can",
+   "ko": "물뿌리개",
+   "cat": "도구",
+   "tris": 112
+  },
+  {
+   "key": "stone",
+   "ko": "돌",
+   "cat": "원석과 광물",
+   "tris": 20
+  },
+  {
+   "key": "coal",
+   "ko": "석탄",
+   "cat": "원석과 광물",
+   "tris": 20
+  },
+  {
+   "key": "ore_cu",
+   "ko": "구리 광석",
+   "cat": "원석과 광물",
+   "tris": 80
+  },
+  {
+   "key": "ore_fe",
+   "ko": "철 광석",
+   "cat": "원석과 광물",
+   "tris": 80
+  },
+  {
+   "key": "ore_au",
+   "ko": "금 광석",
+   "cat": "원석과 광물",
+   "tris": 80
+  },
+  {
+   "key": "ore_dia",
+   "ko": "다이아 원석",
+   "cat": "원석과 광물",
+   "tris": 80
+  },
+  {
+   "key": "diamond",
+   "ko": "다이아",
+   "cat": "원석과 광물",
+   "tris": 40
+  },
+  {
+   "key": "sand",
+   "ko": "모래",
+   "cat": "원석과 광물",
+   "tris": 28
+  },
+  {
+   "key": "gravel",
+   "ko": "자갈",
+   "cat": "원석과 광물",
+   "tris": 80
+  },
+  {
+   "key": "clay",
+   "ko": "점토",
+   "cat": "원석과 광물",
+   "tris": 20
+  },
+  {
+   "key": "dirt_clod",
+   "ko": "흙",
+   "cat": "원석과 광물",
+   "tris": 20
+  },
+  {
+   "key": "crushed",
+   "ko": "분쇄 구리광",
+   "cat": "광석 가공",
+   "tris": 80
+  },
+  {
+   "key": "crushed_fe",
+   "ko": "분쇄 철광",
+   "cat": "광석 가공",
+   "tris": 80
+  },
+  {
+   "key": "crushed_au",
+   "ko": "분쇄 금광",
+   "cat": "광석 가공",
+   "tris": 80
+  },
+  {
+   "key": "clean",
+   "ko": "정제 구리광",
+   "cat": "광석 가공",
+   "tris": 92
+  },
+  {
+   "key": "clean_fe",
+   "ko": "정제 철광",
+   "cat": "광석 가공",
+   "tris": 92
+  },
+  {
+   "key": "clean_au",
+   "ko": "정제 금광",
+   "cat": "광석 가공",
+   "tris": 92
+  },
+  {
+   "key": "slag",
+   "ko": "찌꺼기",
+   "cat": "광석 가공",
+   "tris": 80
+  },
+  {
+   "key": "ingot_cu",
+   "ko": "구리 주괴",
+   "cat": "주괴",
+   "tris": 44
+  },
+  {
+   "key": "ingot_fe",
+   "ko": "철 주괴",
+   "cat": "주괴",
+   "tris": 44
+  },
+  {
+   "key": "ingot_steel",
+   "ko": "강철 주괴",
+   "cat": "주괴",
+   "tris": 44
+  },
+  {
+   "key": "ingot_au",
+   "ko": "금 주괴",
+   "cat": "주괴",
+   "tris": 44
+  },
+  {
+   "key": "ingot_alloy",
+   "ko": "합금 주괴",
+   "cat": "주괴",
+   "tris": 44
+  },
+  {
+   "key": "plate_cu",
+   "ko": "구리판",
+   "cat": "금속 부품",
+   "tris": 44
+  },
+  {
+   "key": "rod_cu",
+   "ko": "구리 막대",
+   "cat": "금속 부품",
+   "tris": 60
+  },
+  {
+   "key": "plate_fe",
+   "ko": "철판",
+   "cat": "금속 부품",
+   "tris": 44
+  },
+  {
+   "key": "rod_fe",
+   "ko": "철 막대",
+   "cat": "금속 부품",
+   "tris": 60
+  },
+  {
+   "key": "plate_steel",
+   "ko": "강철판",
+   "cat": "금속 부품",
+   "tris": 44
+  },
+  {
+   "key": "rod_steel",
+   "ko": "강철 막대",
+   "cat": "금속 부품",
+   "tris": 60
+  },
+  {
+   "key": "coil",
+   "ko": "구리선",
+   "cat": "금속 부품",
+   "tris": 64
+  },
+  {
+   "key": "wire_au",
+   "ko": "금선",
+   "cat": "금속 부품",
+   "tris": 64
+  },
+  {
+   "key": "bolt",
+   "ko": "볼트",
+   "cat": "금속 부품",
+   "tris": 120
+  },
+  {
+   "key": "gear",
+   "ko": "기어",
+   "cat": "금속 부품",
+   "tris": 156
+  },
+  {
+   "key": "frame",
+   "ko": "기계 틀",
+   "cat": "금속 부품",
+   "tris": 72
+  },
+  {
+   "key": "beam",
+   "ko": "강철 기둥",
+   "cat": "금속 부품",
+   "tris": 36
+  },
+  {
+   "key": "blade",
+   "ko": "절삭 날",
+   "cat": "금속 부품",
+   "tris": 216
+  },
+  {
+   "key": "motor",
+   "ko": "모터",
+   "cat": "조립품",
+   "tris": 88
+  },
+  {
+   "key": "board",
+   "ko": "회로 기판",
+   "cat": "조립품",
+   "tris": 36
+  },
+  {
+   "key": "board_adv",
+   "ko": "고급 회로",
+   "cat": "조립품",
+   "tris": 132
+  },
+  {
+   "key": "cell",
+   "ko": "전지",
+   "cat": "조립품",
+   "tris": 76
+  },
+  {
+   "key": "monster_part",
+   "ko": "핵심 부품",
+   "cat": "조립품",
+   "tris": 104
+  },
+  {
+   "key": "plank",
+   "ko": "판자",
+   "cat": "건축 재료",
+   "tris": 12
+  },
+  {
+   "key": "stone_block",
+   "ko": "석재",
+   "cat": "건축 재료",
+   "tris": 44
+  },
+  {
+   "key": "brick",
+   "ko": "벽돌",
+   "cat": "건축 재료",
+   "tris": 44
+  },
+  {
+   "key": "glass",
+   "ko": "유리",
+   "cat": "건축 재료",
+   "tris": 12
+  },
+  {
+   "key": "concrete",
+   "ko": "콘크리트",
+   "cat": "건축 재료",
+   "tris": 44
+  },
+  {
+   "key": "asphalt",
+   "ko": "포장재",
+   "cat": "건축 재료",
+   "tris": 44
+  },
+  {
+   "key": "cloth",
+   "ko": "천",
+   "cat": "건축 재료",
+   "tris": 56
+  },
+  {
+   "key": "log",
+   "ko": "통나무",
+   "cat": "나무와 연료",
+   "tris": 56
+  },
+  {
+   "key": "sawdust",
+   "ko": "톱밥",
+   "cat": "나무와 연료",
+   "tris": 80
+  },
+  {
+   "key": "charcoal",
+   "ko": "숯",
+   "cat": "나무와 연료",
+   "tris": 24
+  },
+  {
+   "key": "briquette",
+   "ko": "연료 덩이",
+   "cat": "나무와 연료",
+   "tris": 44
+  },
+  {
+   "key": "barrel_water",
+   "ko": "물통",
+   "cat": "나무와 연료",
+   "tris": 84
+  },
+  {
+   "key": "barrel_oil",
+   "ko": "원유통",
+   "cat": "나무와 연료",
+   "tris": 84
+  },
+  {
+   "key": "barrel_fuel",
+   "ko": "연료통",
+   "cat": "나무와 연료",
+   "tris": 84
+  },
+  {
+   "key": "oilcan",
+   "ko": "식물 기름통",
+   "cat": "나무와 연료",
+   "tris": 84
+  },
+  {
+   "key": "tar",
+   "ko": "타르",
+   "cat": "나무와 연료",
+   "tris": 84
+  },
+  {
+   "key": "plastic",
+   "ko": "플라스틱",
+   "cat": "나무와 연료",
+   "tris": 44
+  },
+  {
+   "key": "wheat",
+   "ko": "밀",
+   "cat": "농산물과 음식",
+   "tris": 48
+  },
+  {
+   "key": "seed",
+   "ko": "씨앗",
+   "cat": "농산물과 음식",
+   "tris": 80
+  },
+  {
+   "key": "flour",
+   "ko": "밀가루",
+   "cat": "농산물과 음식",
+   "tris": 56
+  },
+  {
+   "key": "dough",
+   "ko": "반죽",
+   "cat": "농산물과 음식",
+   "tris": 20
+  },
+  {
+   "key": "bread",
+   "ko": "빵",
+   "cat": "농산물과 음식",
+   "tris": 44
+  },
+  {
+   "key": "cotton",
+   "ko": "목화",
+   "cat": "농산물과 음식",
+   "tris": 72
+  },
+  {
+   "key": "oilseed",
+   "ko": "기름 작물",
+   "cat": "농산물과 음식",
+   "tris": 76
+  },
+  {
+   "key": "sapling",
+   "ko": "묘목",
+   "cat": "농산물과 음식",
+   "tris": 72
+  },
+  {
+   "key": "core_stone",
+   "ko": "돌 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "core_coal",
+   "ko": "석탄 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "core_cu",
+   "ko": "구리 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "core_fe",
+   "ko": "철 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "core_au",
+   "ko": "금 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "core_dia",
+   "ko": "다이아 광맥 핵",
+   "cat": "광맥 핵",
+   "tris": 40
+  },
+  {
+   "key": "crate",
+   "ko": "상자 (포장)",
+   "cat": "포장",
+   "tris": 84
+  }
  ]
 }
