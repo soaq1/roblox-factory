@@ -15,6 +15,7 @@ local PlacementService = require(script.Parent.PlacementService)
 local SaveService = require(script.Parent.SaveService)
 
 local BATCH = 400 -- blocks built before letting the server breathe
+local FALL_DEPTH = 90 -- studs below the island at which a falling player is brought back
 
 local function buildStarter(island: IslandService.Island)
 	for _, b in IslandGen.generate() do
@@ -40,29 +41,51 @@ local function buildSaved(player: Player, island: IslandService.Island, saved): 
 	return true
 end
 
-local function spawnCharacter(player: Player, island: IslandService.Island)
-	player.CharacterAdded:Connect(function(character)
-		local root = character:WaitForChild("HumanoidRootPart", 10)
-		if root then
-			character:PivotTo(IslandService.spawnCFrame(island))
-		end
-		local humanoid = character:WaitForChild("Humanoid", 10)
-		if humanoid and humanoid:IsA("Humanoid") then
-			humanoid.Died:Once(function()
-				task.wait(2)
-				if player.Parent == Players and IslandService.get(player) == island then
-					player:LoadCharacter()
+local function putOnIsland(player: Player, island: IslandService.Island)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if character and root and root:IsA("BasePart") then
+		character:PivotTo(IslandService.spawnCFrame(island))
+		root.AssemblyLinearVelocity = Vector3.zero
+	end
+end
+
+-- Characters do not load on their own in this game (the island has to exist first), so this loop
+-- owns the player's body: it loads one when there is none or it has died, and brings back anyone
+-- who has fallen off the island.
+local function keepCharacter(player: Player, island: IslandService.Island)
+	local deadSince: number? = nil
+	while IslandService.get(player) == island do
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local alive = character ~= nil and character.Parent ~= nil and humanoid ~= nil and humanoid.Health > 0
+
+		if not alive then
+			local since = deadSince or os.clock()
+			deadSince = since
+			if os.clock() - since >= 2 or character == nil then
+				deadSince = nil
+				-- LoadCharacter waits until the body is placed, so moving it afterwards sticks.
+				local ok = pcall(player.LoadCharacter, player)
+				if ok and IslandService.get(player) == island then
+					putOnIsland(player, island)
 				end
-			end)
+			end
+		else
+			deadSince = nil
+			if root and root:IsA("BasePart") and root.Position.Y < island.origin.Y - FALL_DEPTH then
+				putOnIsland(player, island)
+			end
 		end
-	end)
-	player:LoadCharacter()
+		task.wait(0.5)
+	end
 end
 
 local function onPlayerAdded(player: Player)
 	local island = IslandService.create(player)
 	local result = SaveService.load(player)
-	if player.Parent ~= Players then
+	if IslandService.get(player) ~= island then
 		return -- left while loading; PlayerRemoving has already cleaned up
 	end
 
@@ -70,13 +93,15 @@ local function onPlayerAdded(player: Player)
 		if not buildSaved(player, island, result.island) then
 			return
 		end
-		island.canSave = true
+		-- If anything in the stored island could not be read, do not save this session: writing
+		-- back would erase the unreadable parts for good.
+		island.canSave = result.skipped == 0
 		if result.skipped > 0 then
 			Net.get("Notify"):FireClient(
 				player,
-				"저장된 섬에서 읽을 수 없는 항목 "
+				"저장된 섬에서 읽을 수 없는 항목이 "
 					.. result.skipped
-					.. "개를 건너뛰었습니다."
+					.. "개 있습니다. 이번 접속은 저장되지 않습니다."
 			)
 		end
 	else
@@ -84,8 +109,6 @@ local function onPlayerAdded(player: Player)
 		if result.status == "new" then
 			island.canSave = true
 		else
-			-- The stored island exists but could not be read. Play on a fresh island without
-			-- saving, so the stored copy is left untouched.
 			Net.get("Notify"):FireClient(
 				player,
 				"저장된 섬을 불러오지 못했습니다. 이번 접속은 저장되지 않습니다."
@@ -94,7 +117,7 @@ local function onPlayerAdded(player: Player)
 	end
 
 	Net.get("Bag"):FireClient(player, island.bag)
-	spawnCharacter(player, island)
+	keepCharacter(player, island)
 end
 
 local function onPlayerRemoving(player: Player)
@@ -110,6 +133,7 @@ local function onPlayerRemoving(player: Player)
 	IslandService.destroy(player)
 end
 
+ItemService.start()
 MachineService.start()
 PlacementService.start()
 SaveService.start()

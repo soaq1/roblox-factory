@@ -18,6 +18,7 @@ export type Island = {
 	folder: Folder,
 	blocksFolder: Folder,
 	machinesFolder: Folder,
+	spawn: SpawnLocation,
 	cells: { [string]: Cell },
 	bag: { [string]: number },
 	canSave: boolean,
@@ -46,13 +47,32 @@ function IslandService.create(player: Player): Island
 	machinesFolder.Parent = folder
 	folder.Parent = Workspace
 
+	-- A thin pad the player always arrives on. It is not a block, so it cannot be broken: even if
+	-- the ground under it is dug away there is still somewhere to stand.
+	local origin = Vector3.new(slot * Config.ISLAND_SPACING, 0, 0)
+	local s = IslandGen.SPAWN
+	local pad = Instance.new("SpawnLocation")
+	pad.Name = "SpawnPad"
+	pad.Anchored = true
+	pad.Neutral = true
+	pad.Duration = 0
+	pad.Size = Vector3.new(CELL, 0.1, CELL)
+	pad.Position = origin + Vector3.new(s.x * CELL, (s.y - 0.5) * CELL + 0.05, s.z * CELL)
+	pad.Material = Enum.Material.SmoothPlastic
+	pad.Color = Color3.fromRGB(228, 225, 219)
+	pad.Transparency = 0.5
+	pad.CanQuery = false -- the build cursor looks straight through it
+	pad.Parent = folder
+	player.RespawnLocation = pad
+
 	local island: Island = {
 		owner = player,
 		slot = slot,
-		origin = Vector3.new(slot * Config.ISLAND_SPACING, 0, 0),
+		origin = origin,
 		folder = folder,
 		blocksFolder = blocksFolder,
 		machinesFolder = machinesFolder,
+		spawn = pad,
 		cells = {},
 		bag = {},
 		-- Stays false until the island has finished loading, so a half-built island is never saved

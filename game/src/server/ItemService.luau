@@ -199,6 +199,31 @@ function ItemService.nearest(position: Vector3, range: number): BasePart?
 end
 
 -- Counts what is really there, which also corrects the running total if the engine removed anything.
+-- Touched only fires at the moment two parts meet, when at least one is still moving. This sweep
+-- catches stacks that have since come to rest side by side.
+function ItemService.start()
+	task.spawn(function()
+		while true do
+			task.wait(0.5)
+			for _, child in folder:GetChildren() do
+				if
+					child:IsA("BasePart")
+					and isLive(child)
+					and child.AssemblyLinearVelocity.Magnitude <= REST_SPEED
+				then
+					local reach = child.Size + Vector3.new(0.15, 0.15, 0.15)
+					for _, other in Workspace:GetPartBoundsInBox(child.CFrame, reach, overlap) do
+						tryMerge(child, other)
+						if not isLive(child) then
+							break
+						end
+					end
+				end
+			end
+		end
+	end)
+end
+
 function ItemService.count(): number
 	liveCount = #folder:GetChildren()
 	return liveCount

@@ -17,7 +17,7 @@ Defs.Blocks = {
 Defs.Items = {
 	iron_ore = { name = "철 원석", color = { 143, 160, 179 }, size = { 1.0, 0.8, 1.0 } },
 	coal = { name = "석탄", color = { 47, 45, 48 }, size = { 0.9, 0.8, 0.9 } },
-	iron_ingot = { name = "철 주괴", color = { 205, 211, 219 }, size = { 1.3, 0.5, 0.7 } },
+	iron_ingot = { name = "철 주괴", color = { 205, 211, 219 }, size = { 0.7, 0.5, 1.3 } },
 } :: { [string]: { name: string, color: RGB, size: { number } } }
 
 -- `module` names a file in server/machines. Other fields are read by that module.

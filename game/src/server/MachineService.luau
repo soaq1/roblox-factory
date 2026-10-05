@@ -54,11 +54,12 @@ function MachineService.create(
 		center = IslandService.cellCenter(island, x, y, z),
 		base = Kit.base(IslandService.cellCenter(island, x, y, z), dir),
 	}
+	-- Parent first: a conveyor's velocity is only reliable once the part is in the world.
+	model.Parent = island.machinesFolder
 	machine.mod.build(machine)
 	if machine.mod.load and saved ~= nil then
 		machine.mod.load(machine, saved)
 	end
-	model.Parent = island.machinesFolder
 
 	machines[machine] = true
 	total += 1

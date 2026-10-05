@@ -6,7 +6,8 @@ local Grid = {}
 local DIRS = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } }
 
 function Grid.key(x: number, y: number, z: number): string
-	return x .. "," .. y .. "," .. z
+	-- Adding zero turns negative zero into zero, so "-0" can never name a second copy of a cell.
+	return (x + 0) .. "," .. (y + 0) .. "," .. (z + 0)
 end
 
 function Grid.parseKey(key: string): (number?, number?, number?)
