@@ -17,6 +17,9 @@
     "Players": {
       "$properties": { "CharacterAutoLoads": false }
     },
+    "TextChatService": {
+      "$properties": { "ChatVersion": "TextChatService" }
+    },
     "Workspace": {
       "$properties": { "FallenPartsDestroyHeight": -300, "StreamingEnabled": false }
     },
