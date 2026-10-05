@@ -158,10 +158,16 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 	if not cell then
 		return
 	end
-	-- In survival mode a block has to be worked at: how long depends on the tool in the bag.
+	-- Nothing is broken without a tool in the hand.
+	local hand = Profile.inHand(island)
+	if next(hand) == nil then
+		Profile.hint(player, Profile.NEED_TOOL)
+		return
+	end
+	-- In survival mode a block has to be worked at: how long depends on the tool in the hand.
 	-- Machines come up in one go, and in creative mode so does everything.
 	if island.mode == "survival" and cell.kind == "block" then
-		local needed = ToolLogic.blockHits(cell.id, island.bag)
+		local needed = ToolLogic.blockHits(cell.id, hand)
 		if needed > 1 then
 			local swing, hits = ToolLogic.swing(swings[player], key, os.clock(), SWING_GAP, SWING_KEEP)
 			swings[player] = swing
@@ -214,6 +220,12 @@ function PlacementService.start()
 	Net.get("Place").OnServerEvent:Connect(place)
 	Net.get("Break").OnServerEvent:Connect(breakCell)
 	Net.get("Drop").OnServerEvent:Connect(drop)
+	Net.get("Hold").OnServerEvent:Connect(function(player: Player, entry: any)
+		local island = IslandService.get(player)
+		if island and allowed(player) then
+			Profile.hold(island, entry)
+		end
+	end)
 	Net.get("Pickup").OnServerEvent:Connect(pickup)
 	Players.PlayerRemoving:Connect(function(player)
 		swings[player] = nil

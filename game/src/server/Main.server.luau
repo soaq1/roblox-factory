@@ -151,7 +151,15 @@ GameCommands.start()
 MachineActs.start()
 -- Larger systems, each in its own file with a start() of its own.
 for _, name in
-	{ "HubService", "MineService", "MonsterService", "ShopService", "VisitService", "PowerService" }
+	{
+		"DayCycle",
+		"HubService",
+		"MineService",
+		"MonsterService",
+		"ShopService",
+		"VisitService",
+		"PowerService",
+	}
 do
 	local source = script.Parent:FindFirstChild(name)
 	if source and source:IsA("ModuleScript") then

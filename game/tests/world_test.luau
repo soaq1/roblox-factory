@@ -120,4 +120,43 @@ test("a swing that comes too soon is ignored, and a long pause starts over", fun
 	eq(hits, 1)
 end)
 
+test("a tool is told from other items by its name", function()
+	local kind, rank = ToolLogic.parse("pick_iron")
+	eq(kind, "pick")
+	eq(rank, 3)
+	eq((ToolLogic.parse("sword_dia")), "sword")
+	eq((ToolLogic.parse("ingot_fe")), nil)
+	eq((ToolLogic.parse("hammer")), nil)
+	eq((ToolLogic.parse("pick_banana")), nil)
+	eq((ToolLogic.parse(7)), nil)
+	eq((ToolLogic.parse(nil)), nil)
+end)
+test("only the tool in the hand counts", function()
+	local bag = { pick_dia = 1, pick_wood = 1, axe_iron = 1 }
+	-- holding the wooden pick, the diamond one in the bag does nothing
+	eq(
+		ToolLogic.blockHits("stone", ToolLogic.inHand(bag, "pick_wood", false)),
+		ToolLogic.blockHits("stone", { pick_wood = 1 })
+	)
+	-- holding an axe, stone goes as slowly as with the wrong tool
+	eq(
+		ToolLogic.blockHits("stone", ToolLogic.inHand(bag, "axe_iron", false)),
+		ToolLogic.blockHits("stone", {})
+	)
+	-- a tool that is not owned is not in the hand, unless everything is free
+	eq(next(ToolLogic.inHand(bag, "pick_gold", false)), nil)
+	eq(next(ToolLogic.inHand(bag, "pick_gold", true)), "pick_gold")
+	-- things that are not tools are never "in hand" for this purpose
+	eq(next(ToolLogic.inHand({ ingot_fe = 5 }, "ingot_fe", false)), nil)
+	eq(next(ToolLogic.inHand(bag, nil, true)), nil)
+end)
+test("the richer rocks need the right pickaxe in the hand", function()
+	local bag = { pick_steel = 1, pick_wood = 1 }
+	eq(ToolLogic.nodeSwing("ore_dia", ToolLogic.inHand(bag, "pick_wood", false)), nil)
+	assert(
+		ToolLogic.nodeSwing("ore_dia", ToolLogic.inHand(bag, "pick_steel", false)),
+		"steel pick should mine diamond"
+	)
+end)
+
 T.done()

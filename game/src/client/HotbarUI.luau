@@ -1,4 +1,5 @@
--- The nine quick slots, the palette of things to place, and the bag and coin read-outs.
+-- The ten quick slots (keys 1 to 9, then 0), the palette of things to place, and the bag and coin
+-- read-outs. The selected slot is what is in the player's hand: left click uses it.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -10,10 +11,11 @@ local UIKit = require(script.Parent.UIKit)
 
 local HotbarUI = {}
 
-local SLOT = 70
+local SLOT = 66
+local SLOTS = 10
 local TILE = 96
 
-local slots = table.clone(Defs.DefaultHotbar)
+local slots: { string } = table.create(SLOTS, "") -- "" is an empty slot
 local selected = 1
 local slotFrames: { Frame } = {}
 local groupList: ScrollingFrame
@@ -28,6 +30,19 @@ HotbarUI.bag = {} :: { [string]: number }
 HotbarUI.state =
 	{ mode = "creative", coins = 0, tiers = {} } :: { mode: string, coins: number, tiers: { [string]: number } }
 local listeners: { () -> () } = {}
+local selectListeners: { () -> () } = {}
+
+-- Runs `run` whenever what is in the hand changes: another slot, or the slot's contents.
+function HotbarUI.onSelect(run: () -> ())
+	table.insert(selectListeners, run)
+end
+
+local function handChanged()
+	Net.get("Hold"):FireServer(slots[selected])
+	for _, run in selectListeners do
+		task.spawn(run)
+	end
+end
 
 -- Runs `run` whenever the bag or the state changes.
 function HotbarUI.onChange(run: () -> ())
@@ -55,7 +70,7 @@ local function redrawCounts()
 	for i, frame in slotFrames do
 		local count = frame:FindFirstChild("Count") :: TextLabel
 		local dim = frame:FindFirstChild("Dim") :: Frame
-		if survival then
+		if survival and slots[i] ~= "" then
 			local held = ScreenLogic.held(Defs, UIKit.Stock, HotbarUI.bag, slots[i])
 			count.Text = UIKit.number(held)
 			count.Visible = true
@@ -71,8 +86,11 @@ local function redrawSlot(i: number)
 	local frame = slotFrames[i]
 	UIKit.picture(frame:FindFirstChild("Picture") :: Frame, slots[i])
 	local name = frame:FindFirstChild("Name") :: TextLabel
-	name.Text = Defs.name(slots[i])
+	name.Text = if slots[i] == "" then "" else Defs.name(slots[i])
 	redrawCounts()
+	if i == selected then
+		handChanged()
+	end
 end
 
 local function redrawSelection()
@@ -87,15 +105,16 @@ function HotbarUI.selected(): string
 	return slots[selected]
 end
 
--- Which of the nine slots is selected.
+-- Which of the slots is selected.
 function HotbarUI.selectedIndex(): number
 	return selected
 end
 
 function HotbarUI.select(index: number)
-	if index >= 1 and index <= #slots then
+	if index >= 1 and index <= #slots and index ~= selected then
 		selected = index
 		redrawSelection()
+		handChanged()
 	end
 end
 
@@ -111,7 +130,37 @@ function HotbarUI.notify(text: string)
 	UIKit.toast(text)
 end
 
+-- In survival mode the bar follows the bag the way an inventory would: a slot whose thing has run
+-- out empties, and something newly gained takes the first empty slot.
+local function follow()
+	if HotbarUI.state.mode ~= "survival" then
+		return
+	end
+	local onBar: { [string]: boolean } = {}
+	for i, entry in slots do
+		if entry ~= "" and ScreenLogic.held(Defs, UIKit.Stock, HotbarUI.bag, entry) < 1 then
+			slots[i] = ""
+			redrawSlot(i)
+		end
+		onBar[slots[i]] = true
+	end
+	for _, held in ScreenLogic.sorted(Defs, UIKit.Stock, HotbarUI.bag) do
+		local forms = ScreenLogic.forms(Defs, UIKit.Stock, held.key)
+		local entry = forms.place or forms.drop
+		if entry and not onBar[entry] and not (forms.drop and onBar[forms.drop]) then
+			local free = table.find(slots, "")
+			if not free then
+				return
+			end
+			slots[free] = entry
+			onBar[entry] = true
+			redrawSlot(free)
+		end
+	end
+end
+
 local function changed()
+	follow()
 	redrawCounts()
 	for _, run in listeners do
 		task.spawn(run)
@@ -229,7 +278,7 @@ end
 local function buildSlot(bar: Frame, i: number, entry: string)
 	local frame = UIKit.tile(bar, entry, SLOT, SLOT + 14)
 	frame.LayoutOrder = i
-	local number = UIKit.label(frame, tostring(i), 11)
+	local number = UIKit.label(frame, tostring(i % 10), 11)
 	number.Size = UDim2.fromOffset(14, 14)
 	number.Position = UDim2.fromOffset(2, 0)
 	number.TextColor3 = UIKit.DIM
@@ -303,18 +352,19 @@ function HotbarUI.init()
 
 	local hint = UIKit.label(
 		gui,
-		"좌클릭 부수기 · 우클릭 놓기 · R 돌리기 · F 줍기 · E 목록 · B 가방 · C 조합 · T 거래 · V 섬 구경",
+		"좌클릭: 든 것 쓰기(놓기, 도구로 부수기) · R 돌리기 · F 줍기 · E 목록 · B 가방 · C 조합 · T 거래 · V 섬 구경",
 		14
 	)
 	hint.Name = "Hint"
 	hint.AnchorPoint = Vector2.new(0.5, 0)
 	hint.Position = UDim2.new(0.5, 0, 0, 8)
-	hint.Size = UDim2.fromOffset(820, 20)
+	hint.Size = UDim2.fromOffset(900, 20)
 	hint.TextWrapped = false
 	hint.TextStrokeTransparency = 0.5
 
 	buildPalette()
 	redrawSelection()
+	handChanged()
 	showBag({})
 	Net.get("Bag").OnClientEvent:Connect(showBag)
 	Net.get("State").OnClientEvent:Connect(showState)

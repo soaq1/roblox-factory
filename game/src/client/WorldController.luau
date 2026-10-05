@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
+local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
 local UIKit = require(script.Parent.UIKit)
 
@@ -70,6 +71,7 @@ local function swing(): number?
 	if not action or not what then
 		return nil
 	end
+	HandView.swing()
 	Net.get("WorldAct"):FireServer(action, what)
 	return if action == "mine" then MINE_SECONDS else ATTACK_SECONDS
 end

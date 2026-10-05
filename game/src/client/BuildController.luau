@@ -1,5 +1,7 @@
--- Turns mouse and keyboard input into place, break and pick-up requests, and draws the outline
--- showing where the next thing will go. The server decides whether each request is allowed.
+-- Turns mouse and keyboard input into place, break, drop and pick-up requests, and draws the
+-- outline showing where the next thing will go. Left click uses whatever is in the hand: a block or
+-- machine is placed, a tool breaks, anything else is dropped. Right click is left to the camera.
+-- The server decides whether each request is allowed.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -11,23 +13,22 @@ local Config = require(Shared:WaitForChild("Config"))
 local Defs = require(Shared:WaitForChild("Defs"))
 local Grid = require(Shared:WaitForChild("Grid"))
 local Net = require(Shared:WaitForChild("Net"))
+local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
+local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
 
 local BuildController = {}
 
 local player = Players.LocalPlayer
 local CELL = Config.CELL
-local CLICK_SECONDS = 0.35 -- a right press longer than this, or that moves, is a camera drag
-local CLICK_PIXELS = 8
 local FREE = Color3.fromRGB(120, 220, 140)
 local BLOCKED = Color3.fromRGB(230, 90, 80)
+local MARK = Color3.fromRGB(255, 255, 255)
 
 local hotbar
 local dir = 0
 local ghost: Part
 local arrow: Part
-local rightDownAt: number? = nil
-local rightDragged = 0 -- pixels the mouse travelled while the right button was held
 local SWING_SECONDS = 0.2 -- how often a held left button swings again
 -- The cell being broken while the left button is held. Holding only ever works on the cell the
 -- press began on, so sweeping the cursor never tears through a row of machines.
@@ -44,6 +45,7 @@ local keys = {
 	[Enum.KeyCode.Seven] = 7,
 	[Enum.KeyCode.Eight] = 8,
 	[Enum.KeyCode.Nine] = 9,
+	[Enum.KeyCode.Zero] = 10,
 }
 
 local function origin(): Vector3?
@@ -168,35 +170,71 @@ local function makeGhost()
 	arrow.Parent = Workspace
 end
 
+-- What left click would do with the thing in the hand: "place", "break", "drop", or nil.
+local function intent(): string?
+	local entry = hotbar.selected()
+	local item = Defs.itemOf(entry)
+	if item then
+		return if ToolLogic.parse(item) then "break" else "drop"
+	end
+	return if Defs.isPlaceable(entry) then "place" else nil
+end
+
 local function drawGhost()
 	local at = origin()
 	local found = if Screens.anyOpen() then nil else target()
-	if not at or not found then
+	local what = intent()
+	if not at or not found or not what then
 		ghost.Transparency = 1
 		arrow.Transparency = 1
+		return
+	end
+	arrow.Transparency = 1
+	if what == "break" then
+		-- With a tool in the hand, mark the thing that would be broken.
+		ghost.Size = Vector3.new(CELL, CELL, CELL) * 1.02
+		ghost.CFrame = CFrame.new(cellCenter(at, found.bx, found.by, found.bz))
+		ghost.Color = MARK
+		ghost.Transparency = 0.8
 		return
 	end
 	local center = cellCenter(at, found.px, found.py, found.pz)
 	local def = Defs.Machines[hotbar.selected()]
 	local box, size = CFrame.new(center), Vector3.new(CELL, CELL, CELL)
-	if def then
+	if def and what == "place" then
 		-- A machine's outline covers every cell it will take. The aimed cell is its back-left corner.
 		local cx, cz = Grid.footprintCentre(dir, def.sx, def.sz)
 		box = CFrame.new(center + Vector3.new(cx * CELL, (def.sy - 1) * CELL / 2, cz * CELL))
 			* CFrame.Angles(0, -dir * math.pi / 2, 0)
 		size = Vector3.new(def.sx * CELL, def.sy * CELL, def.sz * CELL)
+		-- The arrow points the way things will come out.
+		arrow.CFrame = box * CFrame.new(size.X / 2 - 0.8, size.Y / 2 + 0.1, 0)
+		arrow.Transparency = 0
 	end
 	ghost.Size = size * 0.98
 	ghost.CFrame = box
 	ghost.Color = if isOccupied(box, size) then BLOCKED else FREE
 	ghost.Transparency = 0.6
-	if def then
-		-- The arrow points the way things will come out.
-		arrow.CFrame = box * CFrame.new(size.X / 2 - 0.8, size.Y / 2 + 0.1, 0)
-		arrow.Transparency = 0
-	else
-		arrow.Transparency = 1
+end
+
+-- Uses what is in the hand on whatever the cursor points at. Returns the cell being broken when
+-- that is what happened, so the swing can be kept up while the button is held.
+local function use(): Target?
+	local found = if Screens.anyOpen() then nil else target()
+	local what = intent()
+	if not found or not what then
+		return nil
 	end
+	HandView.swing()
+	if what == "break" then
+		Net.get("Break"):FireServer(found.bx, found.by, found.bz)
+		return found
+	elseif what == "drop" then
+		Net.get("Drop"):FireServer(Defs.itemOf(hotbar.selected()), found.px, found.py, found.pz)
+	else
+		Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
+	end
+	return nil
 end
 
 local function onInputBegan(input: InputObject, handledByUi: boolean)
@@ -204,15 +242,8 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		return
 	end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		local found = if Screens.anyOpen() then nil else target()
-		breaking = found
+		breaking = use()
 		sinceSwing = 0
-		if found then
-			Net.get("Break"):FireServer(found.bx, found.by, found.bz)
-		end
-	elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-		rightDownAt = os.clock()
-		rightDragged = 0
 	elseif input.KeyCode == Enum.KeyCode.R then
 		dir = Grid.rotate(dir, 1)
 	elseif input.KeyCode == Enum.KeyCode.F then
@@ -222,9 +253,9 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 	end
 end
 
--- While the left button stays down on the same cell, swing at it again every so often. In
--- survival mode a block takes several swings; once it is gone the cursor finds another cell and
--- the swinging stops.
+-- While the left button stays down on the same cell with a tool in the hand, swing at it again
+-- every so often. In survival mode a block takes several swings; once it is gone the cursor finds
+-- another cell and the swinging stops.
 local function keepBreaking(dt: number)
 	local first = breaking
 	if not first then
@@ -236,44 +267,23 @@ local function keepBreaking(dt: number)
 	end
 	sinceSwing = 0
 	local found = if Screens.anyOpen() then nil else target()
-	if not found or found.bx ~= first.bx or found.by ~= first.by or found.bz ~= first.bz then
+	if
+		intent() ~= "break"
+		or not found
+		or found.bx ~= first.bx
+		or found.by ~= first.by
+		or found.bz ~= first.bz
+	then
 		breaking = nil
 		return
 	end
+	HandView.swing()
 	Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 end
 
 local function onInputEnded(input: InputObject)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		breaking = nil
-		return
-	end
-	if input.UserInputType ~= Enum.UserInputType.MouseButton2 or not rightDownAt then
-		return
-	end
-	local held = os.clock() - rightDownAt
-	rightDownAt = nil
-	if held > CLICK_SECONDS or rightDragged > CLICK_PIXELS or Screens.anyOpen() then
-		return
-	end
-	local found = target()
-	if not found then
-		return
-	end
-	local entry = hotbar.selected()
-	local item = Defs.itemOf(entry)
-	if item then
-		Net.get("Drop"):FireServer(item, found.px, found.py, found.pz)
-	else
-		Net.get("Place"):FireServer(entry, found.px, found.py, found.pz, dir)
-	end
-end
-
--- While the right button is held Roblox pins the cursor to turn the camera, so the cursor position
--- does not change. The movement has to be added up from the raw deltas instead.
-local function onInputChanged(input: InputObject)
-	if rightDownAt and input.UserInputType == Enum.UserInputType.MouseMovement then
-		rightDragged += Vector2.new(input.Delta.X, input.Delta.Y).Magnitude
 	end
 end
 
@@ -282,7 +292,6 @@ function BuildController.init(hotbarUi)
 	makeGhost()
 	UserInputService.InputBegan:Connect(onInputBegan)
 	UserInputService.InputEnded:Connect(onInputEnded)
-	UserInputService.InputChanged:Connect(onInputChanged)
 	RunService.RenderStepped:Connect(drawGhost)
 	RunService.RenderStepped:Connect(keepBreaking)
 end

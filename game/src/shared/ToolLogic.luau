@@ -31,6 +31,33 @@ function ToolLogic.best(bag: Bag, kind: string): (number, string?)
 	return 0, nil
 end
 
+-- The kind and rank of a tool, or nil if the item is not one ("pick_iron" -> "pick", 3).
+function ToolLogic.parse(itemId: any): (string?, number)
+	if type(itemId) ~= "string" then
+		return nil, 0
+	end
+	local kind, tier = string.match(itemId, "^(%a+)_(%a+)$")
+	if not kind or not tier then
+		return nil, 0
+	end
+	local rank = table.find(ToolLogic.TIERS, tier)
+	if rank and table.find(ToolLogic.KINDS, kind) then
+		return kind, rank
+	end
+	return nil, 0
+end
+
+-- The bag to judge a swing by. Only the tool in the hand counts, not the best one carried, so
+-- this is a bag holding just that tool: empty if the hand holds no tool, or one the player does
+-- not have (`free` is creative mode, where every tool is to hand).
+function ToolLogic.inHand(bag: Bag, held: any, free: boolean): Bag
+	local kind = ToolLogic.parse(held)
+	if kind and (free or (bag[held] or 0) >= 1) then
+		return { [held] = 1 }
+	end
+	return {}
+end
+
 function ToolLogic.power(rank: number): number
 	return POWER[math.clamp(rank, 0, #ToolLogic.TIERS) + 1]
 end

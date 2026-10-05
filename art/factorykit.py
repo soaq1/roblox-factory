@@ -2458,7 +2458,7 @@ if "gamedata" in ARGS:
             volume[mk] = volume.get(mk, 0) + size[0] * size[1] * size[2]
         main = max(volume, key=volume.get)
         game["items"][s["key"]] = {
-            "name": s["ko"], "category": s["cat"], "colour": colour_index(main),
+            "name": s["ko"], "category": s["cat"], "colour": colour_index(main), "prims": convert(prims),
             "size": [round(max(0.5, min(1.6, (hi[i] - lo[i]) * S)), 2) for i in (0, 2, 1)],
             "ball": all(shape == "s" for shape, _, _, _ in prims),
         }

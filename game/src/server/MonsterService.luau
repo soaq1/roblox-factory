@@ -257,7 +257,7 @@ local function onAttack(player: Player, target: any)
 	end
 	lastHit[player] = now
 
-	slime.hp -= ToolLogic.damage(island.bag)
+	slime.hp -= ToolLogic.damage(Profile.inHand(island)) -- the sword in the hand, or fists
 	showHealth(slime)
 	if slime.hp > 0 then
 		if offset.Magnitude > 0.1 then

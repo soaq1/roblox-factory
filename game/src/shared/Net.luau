@@ -8,6 +8,7 @@ local NAMES = {
 	"Break",
 	"Pickup",
 	"Drop",
+	"Hold", -- which hotbar entry is in the hand
 	"Craft",
 	"Hand",
 	"Upgrade",

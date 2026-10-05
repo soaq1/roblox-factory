@@ -172,7 +172,12 @@ local function onMine(player: Player, target: any)
 	if (node.part.Position - root.Position).Magnitude > REACH then
 		return
 	end
-	local swing = ToolLogic.nodeSwing(node.kind, island.bag)
+	local hand = Profile.inHand(island)
+	if next(hand) == nil then
+		Profile.hint(player, Profile.NEED_TOOL)
+		return
+	end
+	local swing = ToolLogic.nodeSwing(node.kind, hand)
 	if not swing then
 		local needs = ToolLogic.nodeNeeds(node.kind)
 		tell(

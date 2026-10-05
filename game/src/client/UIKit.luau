@@ -2,7 +2,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared:WaitForChild("Config"))
 local Defs = require(Shared:WaitForChild("Defs"))
 local ModelBuilder = require(Shared:WaitForChild("ModelBuilder"))
 local Stock = require(Shared:WaitForChild("Stock"))(Defs)
@@ -125,28 +124,6 @@ function UIKit.clear(frame: Instance)
 	end
 end
 
-local function machinePicture(parent: Instance, def)
-	local view = Instance.new("ViewportFrame")
-	view.Size = UDim2.fromScale(1, 1)
-	view.BackgroundTransparency = 1
-	view.Ambient = Color3.fromRGB(175, 175, 175)
-	view.LightColor = Color3.fromRGB(255, 255, 255)
-	view.LightDirection = Vector3.new(-0.5, -1, -0.7)
-	local shown = if def.stages then def.stages[#def.stages] else def.icon
-	ModelBuilder.build(view, CFrame.new(), shown)
-
-	local height = math.max(def.height, 1.5)
-	local centre = Vector3.new(0, -Config.CELL / 2 + height / 2, 0)
-	local radius = Vector3.new(def.sx * Config.CELL, height, def.sz * Config.CELL).Magnitude / 2
-	local camera = Instance.new("Camera")
-	camera.FieldOfView = 20
-	camera.CFrame =
-		CFrame.lookAt(centre + Vector3.new(0.8, 0.7, 1).Unit * (radius / math.tan(math.rad(10))), centre)
-	camera.Parent = view
-	view.CurrentCamera = camera
-	view.Parent = parent
-end
-
 local function swatch(frame: Instance, color: Color3, top: Color3?, transparency: number, radius: number)
 	local side = Instance.new("Frame")
 	side.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -168,6 +145,42 @@ local function swatch(frame: Instance, color: Color3, top: Color3?, transparency
 	end
 end
 
+-- A small view of a model, seen from the front corner, framed to fit.
+local function modelPicture(parent: Instance, id: string)
+	local view = Instance.new("ViewportFrame")
+	view.Size = UDim2.fromScale(1, 1)
+	view.BackgroundTransparency = 1
+	view.Ambient = Color3.fromRGB(175, 175, 175)
+	view.LightColor = Color3.fromRGB(255, 255, 255)
+	view.LightDirection = Vector3.new(-0.5, -1, -0.7)
+	ModelBuilder.build(view, CFrame.new(), id)
+
+	local centre, size = ModelBuilder.bounds(id)
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 20
+	camera.CFrame = CFrame.lookAt(
+		centre + Vector3.new(0.8, 0.7, 1).Unit * (size.Magnitude / 2 / math.tan(math.rad(10))),
+		centre
+	)
+	camera.Parent = view
+	view.CurrentCamera = camera
+	view.Parent = parent
+end
+
+local function machinePicture(parent: Instance, def)
+	modelPicture(parent, if def.stages then def.stages[#def.stages] else def.icon)
+end
+
+-- A loose item: its model if it has one, otherwise a lump in its colour.
+local function itemPicture(frame: Instance, id: string)
+	if ModelBuilder.has("item_" .. id) then
+		modelPicture(frame, "item_" .. id)
+	else
+		local def = Defs.Items[id]
+		swatch(frame, rgb(def.color), nil, 0, if def.ball then 100 else 5)
+	end
+end
+
 -- Fills a frame with the picture of anything: a palette entry ("smelter", "grass", "item:log")
 -- or a bag key ("smelter", "log", "block:grass").
 function UIKit.picture(frame: Instance, entry: string)
@@ -175,8 +188,7 @@ function UIKit.picture(frame: Instance, entry: string)
 	local item = Defs.itemOf(entry)
 	local block = Stock.blockOf(entry)
 	if item then
-		local def = Defs.Items[item]
-		swatch(frame, rgb(def.color), nil, 0, if def.ball then 100 else 5)
+		itemPicture(frame, item)
 	elseif block then
 		local def = Defs.Blocks[block]
 		swatch(frame, rgb(def.color), rgb(def.top), def.transparency, 0)
@@ -186,8 +198,7 @@ function UIKit.picture(frame: Instance, entry: string)
 		local def = Defs.Blocks[entry]
 		swatch(frame, rgb(def.color), rgb(def.top), def.transparency, 0)
 	elseif Defs.Items[entry] then
-		local def = Defs.Items[entry]
-		swatch(frame, rgb(def.color), nil, 0, if def.ball then 100 else 5)
+		itemPicture(frame, entry)
 	end
 end
 
@@ -204,7 +215,7 @@ function UIKit.tile(parent: Instance, entry: string, width: number, height: numb
 	art.BackgroundTransparency = 1
 	art.Size = UDim2.new(1, 0, 1, -26)
 	art.Parent = frame
-	local text = UIKit.label(frame, name or Defs.name(entry), 11)
+	local text = UIKit.label(frame, name or (if entry == "" then "" else Defs.name(entry)), 11)
 	text.Name = "Name"
 	text.Size = UDim2.new(1, -6, 0, 26)
 	text.Position = UDim2.new(0, 3, 1, -27)

@@ -253,8 +253,11 @@ open(os.path.join(SHARED, "ModelPalette.luau"), "w", encoding="utf-8").write(pal
 model_dir = os.path.join(SHARED, "Models")
 shutil.rmtree(model_dir, ignore_errors=True)
 os.makedirs(model_dir)
-for key, m in models["machines"].items():
-    flat = [v for prim in m["prims"] for v in prim]
+# Items are stored the same way under "item_<id>", for pictures and for what is held in the hand.
+shapes = {key: m["prims"] for key, m in models["machines"].items()}
+shapes.update({"item_" + key: i["prims"] for key, i in models["items"].items()})
+for key, prims in shapes.items():
+    flat = [v for prim in prims for v in prim]
     body = ", ".join(repr(v) if isinstance(v, float) else str(v) for v in flat)
     text = HEADER + ("--!nocheck\n-- 17 numbers per part: shape (0 block, 1 cylinder, 2 ball), size x y z, position x y z,\n"
                      "-- nine rotation values, palette index. Positions are relative to the centre of the\n"

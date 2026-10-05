@@ -23,7 +23,17 @@ DebugUI.init()
 
 -- The other screens and controllers, each in its own file with an init() of its own.
 for _, name in
-	{ "BagUI", "CraftUI", "TradeUI", "ShopUI", "VisitUI", "MachineUI", "PowerUI", "WorldController" }
+	{
+		"HandView",
+		"BagUI",
+		"CraftUI",
+		"TradeUI",
+		"ShopUI",
+		"VisitUI",
+		"MachineUI",
+		"PowerUI",
+		"WorldController",
+	}
 do
 	local source = script.Parent:FindFirstChild(name)
 	if source and source:IsA("ModuleScript") then
