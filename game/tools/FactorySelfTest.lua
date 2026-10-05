@@ -37,18 +37,22 @@ if RunService:IsRunning() then
 	local ok, args = pcall(function()
 		return StudioTestService:GetTestArgs()
 	end)
-	-- Always say what came through. Reading nothing here used to end quietly, which left the play
-	-- test running for ever with no scenario and nothing reported.
-	local described = if type(args) == "table"
-		then (pcall(HttpService.JSONEncode, HttpService, args) and HttpService:JSONEncode(args) or "a table")
-		else type(args) .. " " .. tostring(args)
-	post("/result", { stage = "args", ok = ok, args = described })
-	if not ok or type(args) ~= "table" or type(args.scenario) ~= "string" then
-		-- Ending the test is what stops play mode, so do it even when there is nothing to run.
+	-- No arguments at all means a person pressed Play, not this plugin. Keep out of their way:
+	-- ending a test they did not ask for would stop their game after a second.
+	if not ok or type(args) ~= "table" then
+		return
+	end
+	local described = if pcall(HttpService.JSONEncode, HttpService, args)
+		then HttpService:JSONEncode(args)
+		else "a table that could not be written out"
+	post("/result", { stage = "args", args = described })
+	if type(args.scenario) ~= "string" then
+		-- Arguments arrived but name no scenario. Ending the test is what stops play mode, so do
+		-- it rather than leave the session sitting there with nothing to run.
 		pcall(function()
 			StudioTestService:EndTest(HttpService:JSONEncode({
 				pass = false,
-				problems = { "the test arguments did not reach the game: " .. described },
+				problems = { "no scenario was named: " .. described },
 			}))
 		end)
 		return
@@ -59,6 +63,9 @@ if RunService:IsRunning() then
 		task.wait(0.25)
 	end
 	local result = Workspace:GetAttribute("SelfTestResult") or '{"error":"the game did not finish in time"}'
+	-- Reported from in here, because what EndTest is given does not come back out of
+	-- ExecutePlayModeAsync: the editor side only learns that the test ended.
+	post("/result", { stage = "result", scenario = args.scenario, result = result })
 	local ended, problem = pcall(function()
 		StudioTestService:EndTest(result)
 	end)

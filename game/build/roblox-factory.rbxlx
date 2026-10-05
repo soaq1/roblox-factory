@@ -44147,6 +44147,7 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TextChatService = game:GetService("TextChatService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -44318,6 +44319,31 @@ end
 function scenarios.idle(_player, _island, args)
 	task.wait(tonumber(args.seconds) or 20)
 	return { pass = true }
+end
+
+-- Checks the two things a chat command needs before anyone types one: the place has to be on the
+-- current chat system (a place built by Rojo defaults to the old one, which Roblox has removed),
+-- and the commands have to have been registered. Whether typing one then works is for a person to
+-- try; nothing here can type into the chat bar.
+function scenarios.chat(_player, _island, _args)
+	local problems: { string } = {}
+	local version = TextChatService.ChatVersion
+	say("chat version", tostring(version))
+	if version ~= Enum.ChatVersion.TextChatService then
+		table.insert(problems, "the place is on " .. tostring(version) .. ", where no command can arrive")
+	end
+	local found: { string } = {}
+	for _, child in TextChatService:GetChildren() do
+		if child:IsA("TextChatCommand") then
+			table.insert(found, child.PrimaryAlias)
+		end
+	end
+	table.sort(found)
+	say("commands", table.concat(found, " "))
+	if not table.find(found, "/mode") then
+		table.insert(problems, "/mode was never registered")
+	end
+	return { pass = #problems == 0, version = tostring(version), commands = found, problems = problems }
 end
 
 -- How far the right upper arm is turned away from the body, in degrees. Raised for a held tool it
