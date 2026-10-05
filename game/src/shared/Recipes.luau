@@ -1956,15 +1956,6 @@ return {
 			},
 		},
 		{
-			out = "block:farmland",
-			n = 1,
-			bench = "bag",
-			tier = 0,
-			ins = {
-				dirt_clod = 1,
-			},
-		},
-		{
 			out = "block:block_fe",
 			n = 1,
 			bench = "basic",

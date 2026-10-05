@@ -25,6 +25,7 @@ BENCH_KO = {"bag": "가방", "basic": "기본", "tool": "도구", "part": "부�
 # ---------------------------------------------------------------- where things first come from
 RAW = {
     "dirt_clod": "섬의 땅을 팜",
+    "block:farmland": "괭이를 들고 흙이나 잔디를 침 (밭 갈기)",
     "stone": "섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기",
     "log": "나무를 벰 (묘목을 심어 기름) · 벌목기",
     "coal": "허브 광산 · 석탄 광맥 핵을 꽂은 추출기",
@@ -274,7 +275,6 @@ C("block:asphalt", 1, "basic", 1, asphalt=4)
 C("block:sand", 1, "basic", 1, sand=4)
 C("block:gravel", 1, "basic", 1, gravel=4)
 C("block:clay", 1, "basic", 1, clay=4)
-C("block:farmland", 1, "bag", 0, note="괭이로 흙을 갈아 만듦", dirt_clod=1)
 C("block:block_fe", 1, "basic", 1, ingot_fe=9)
 C("block:block_cu", 1, "basic", 1, ingot_cu=9)
 C("block:block_steel", 1, "basic", 1, ingot_steel=9)

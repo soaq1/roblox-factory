@@ -1,6 +1,7 @@
 {
  "raw": {
   "dirt_clod": "섬의 땅을 팜",
+  "block:farmland": "괭이를 들고 흙이나 잔디를 침 (밭 갈기)",
   "stone": "섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기",
   "log": "나무를 벰 (묘목을 심어 기름) · 벌목기",
   "coal": "허브 광산 · 석탄 광맥 핵을 꽂은 추출기",
@@ -2382,16 +2383,6 @@
     "clay": 4
    },
    "note": ""
-  },
-  {
-   "out": "block:farmland",
-   "n": 1,
-   "bench": "bag",
-   "tier": 0,
-   "ins": {
-    "dirt_clod": 1
-   },
-   "note": "괭이로 흙을 갈아 만듦"
   },
   {
    "out": "block:block_fe",

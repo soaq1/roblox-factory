@@ -9,6 +9,9 @@ return function(Defs)
 	local BLOCK = "block:"
 	-- Blocks that come apart into something else when broken, and are placed from that same thing.
 	local BREAKS_INTO = { dirt = "dirt_clod" }
+	-- Blocks that fall apart into something they cannot be put back from: dug-up farmland is just
+	-- dirt again, and has to be tilled with a hoe to be farmland once more.
+	local CRUMBLES_TO = { farmland = "dirt_clod" }
 
 	Stock.SAPLING_CHANCE = 0.1 -- how often breaking leaves gives a sapling
 
@@ -38,8 +41,8 @@ return function(Defs)
 		if id == "leaves" then
 			return if roll < Stock.SAPLING_CHANCE then "sapling" else nil
 		end
-		if BREAKS_INTO[id] then
-			return BREAKS_INTO[id]
+		if BREAKS_INTO[id] or CRUMBLES_TO[id] then
+			return BREAKS_INTO[id] or CRUMBLES_TO[id]
 		end
 		-- A block that is also an item (log, stone, ore) comes back as the item.
 		if Defs.Items[id] then

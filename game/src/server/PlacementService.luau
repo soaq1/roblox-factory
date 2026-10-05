@@ -181,6 +181,12 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		Profile.hint(player, Profile.NEED_TOOL)
 		return
 	end
+	-- A hoe does not break soil, it tills it: the block becomes farmland where it lies.
+	if cell.kind == "block" and ToolLogic.tills(island.extra.held, cell.id) then
+		IslandService.clearCell(island, key)
+		IslandService.setBlock(island, x, y, z, "farmland")
+		return
+	end
 	-- In survival mode a block has to be worked at: how long depends on the tool in the hand.
 	-- Machines come up in one go, and in creative mode so does everything.
 	if island.mode == "survival" and cell.kind == "block" then

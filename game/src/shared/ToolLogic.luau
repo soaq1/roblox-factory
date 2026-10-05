@@ -58,6 +58,14 @@ function ToolLogic.inHand(bag: Bag, held: any, free: boolean): Bag
 	return {}
 end
 
+-- Ground a hoe turns into farmland.
+local TILLABLE = { dirt = true, grass = true }
+
+-- Does swinging this tool at this block till it into farmland rather than break it?
+function ToolLogic.tills(held: any, blockId: string): boolean
+	return (ToolLogic.parse(held)) == "hoe" and TILLABLE[blockId] == true
+end
+
 -- How many tools of any kind a bag holds.
 function ToolLogic.count(bag: Bag): number
 	local total = 0

@@ -539,11 +539,18 @@ end)
 test("whatever a block breaks into can pay to place it again", function()
 	for id in Defs.Blocks do
 		local drop = Stock.blockDrop(id, 0.5)
-		if drop then
+		-- farmland is the exception: it has to be tilled, see the next test
+		if drop and id ~= "farmland" then
 			assert(Stock.isKey(drop), id .. " breaks into unknown " .. drop)
 			assert(table.find(Stock.placeCost(id), drop), id .. " cannot be placed from " .. drop)
 		end
 	end
+end)
+test("dug-up farmland is dirt again and cannot be laid back down as farmland", function()
+	eq(Stock.blockDrop("farmland", 0.5), "dirt_clod")
+	eq(table.find(Stock.placeCost("farmland"), "dirt_clod"), nil)
+	-- the dirt it leaves can still go down as dirt
+	assert(table.find(Stock.placeCost("dirt"), "dirt_clod"), "a clod should place dirt")
 end)
 test("machines are placed from themselves, plants from their seed", function()
 	eq(Stock.placeCost("smelter")[1], "smelter")
