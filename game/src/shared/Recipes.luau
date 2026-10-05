@@ -1132,6 +1132,15 @@ return {
 			},
 		},
 		{
+			out = "sign",
+			n = 2,
+			bench = "basic",
+			tier = 1,
+			ins = {
+				plank = 3,
+			},
+		},
+		{
 			out = "belt_corner",
 			n = 2,
 			bench = "machine",

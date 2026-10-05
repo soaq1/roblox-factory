@@ -186,6 +186,7 @@ C("wb_all", 1, "machine", 3, ingot_au=200, diamond=50, motor=50, board_adv=50, p
 
 # transport
 C("belt", 4, "machine", 1, plate_fe=2, rod_fe=2)
+C("sign", 2, "basic", 1, plank=3, note="글자를 적는 표지판")
 C("belt_corner", 2, "machine", 1, plate_fe=2, rod_fe=2)
 C("belt_corner_l", 2, "machine", 1, plate_fe=2, rod_fe=2, note="왼쪽으로 꺾이는 것")
 C("belt_open", 4, "machine", 1, plate_fe=2, note="난간이 없어 철 막대가 안 듦")

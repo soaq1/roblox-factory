@@ -17,6 +17,8 @@ local NAMES = {
 	"VisitAct", -- go to another player's island, or home
 	"MachineAct", -- do something to a placed machine: owner id, cell x y z, action, argument
 	"WorldAct", -- mine a node, hit a monster, use a portal
+	"PlayerAct", -- ask about another player, or ask them to trade
+	"Prefs", -- (also server to client) the saved hotbar and settings
 	-- server to client
 	"Notify",
 	"Bag",
@@ -26,6 +28,7 @@ local NAMES = {
 	"Visit", -- the list of islands that can be visited
 	"MachineInfo", -- a placed machine wants its screen shown
 	"World", -- mining progress, monster health and the like
+	"PlayerInfo", -- what another player lets others see
 }
 
 local folder: Folder

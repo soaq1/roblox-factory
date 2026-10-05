@@ -8,6 +8,7 @@ local Defs = require(Shared.Defs)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
 local Wallet = require(Shared.Wallet)
+local Prefs = require(Shared.Prefs)
 local ToolLogic = require(Shared.ToolLogic)
 local Stock = require(Shared.Stock)(Defs)
 
@@ -61,6 +62,7 @@ function Profile.load(island, bag: any, stored: any)
 	if stored.mode == "creative" or stored.mode == "survival" then
 		island.mode = stored.mode
 	end
+	island.prefs = Prefs.sanitize(stored.prefs, Defs.isEntry)
 	if type(stored.fuel) == "number" and stored.fuel == stored.fuel then
 		island.handFuel = math.clamp(math.floor(stored.fuel), 0, 64)
 	end
@@ -79,6 +81,7 @@ function Profile.save(island): { [string]: any }
 		coins = island.coins,
 		tiers = table.clone(island.tiers),
 		fuel = island.handFuel,
+		prefs = { bar = table.clone(island.prefs.bar), settings = table.clone(island.prefs.settings) },
 	}
 end
 

@@ -67,6 +67,7 @@ OTHER = {
     "assembler": ("assembler", {}), "circuit": ("assembler", {}), "manufacturer": ("assembler", {}),
     "logger": ("logger", {}), "harvester": ("harvester", {}), "seeder": ("seeder", {}),
     "sprinkler": ("sprinkler", {}), "vending": ("vending", {}), "chest": ("chest", {"topIntake": True}),
+    "sign": ("sign", {"walkThrough": True}),
     "generator": ("power", {"power": "generator"}), "incinerator": ("power", {"power": "incinerator"}),
     "windturbine": ("power", {"power": "wind"}), "solar": ("power", {"power": "solar"}),
     "battery": ("power", {"power": "battery"}), "pole": ("power", {"power": "pole"}),
@@ -129,7 +130,7 @@ clash = set(machines) & (set(block_defs) | set(items))
 assert not clash, f"machine ids also used by a block or an item: {clash}"
 
 FAMILY_ORDER = ["운반", "물리 장치", "판단 장치", "공급", "식물", "변환", "조합", "포장·판매", "동력",
-                "궁극의 장치", "손 작업"]
+                "궁극의 장치", "손 작업", "표시"]
 palette_groups = []
 block_cats = []
 for b in blocks:

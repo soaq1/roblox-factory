@@ -2,6 +2,7 @@
 local StarterGui = game:GetService("StarterGui")
 
 local Screens = require(script.Parent.Screens)
+local Settings = require(script.Parent.Settings)
 local HotbarUI = require(script.Parent.HotbarUI)
 local BuildController = require(script.Parent.BuildController)
 local DebugUI = require(script.Parent.DebugUI)
@@ -17,31 +18,23 @@ if not game:IsLoaded() then
 end
 
 Screens.init()
+Settings.init()
 HotbarUI.init()
 BuildController.init(HotbarUI)
 DebugUI.init()
 
--- The other screens and controllers, each in its own file with an init() of its own.
-for _, name in
-	{
-		"HandView",
-		"BagUI",
-		"CraftUI",
-		"TradeUI",
-		"ShopUI",
-		"VisitUI",
-		"MachineUI",
-		"PowerUI",
-		"WorldController",
-	}
-do
-	local source = script.Parent:FindFirstChild(name)
-	if source and source:IsA("ModuleScript") then
+-- Every other screen and controller: any module in this folder with an init() of its own.
+local STARTED = { Screens = true, Settings = true, HotbarUI = true, BuildController = true, DebugUI = true }
+for _, source in script.Parent:GetChildren() do
+	if source:IsA("ModuleScript") and not STARTED[source.Name] then
 		local ok, err = pcall(function()
-			(require(source) :: any).init(HotbarUI)
+			local module = require(source) :: any
+			if type(module) == "table" and type(module.init) == "function" then
+				module.init(HotbarUI)
+			end
 		end)
 		if not ok then
-			warn(name .. " did not start: " .. tostring(err))
+			warn(source.Name .. " did not start: " .. tostring(err))
 		end
 	end
 end

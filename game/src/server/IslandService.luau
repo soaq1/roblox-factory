@@ -26,6 +26,7 @@ export type Island = {
 	tiers: { [string]: number }, -- workbench kind -> tier, for kinds raised above 1
 	handFuel: number, -- heat left over from the last fire lit for hand work
 	extra: { [string]: any }, -- other systems keep their per-island data here, under their own name
+	prefs: { bar: { string }, settings: { [string]: boolean } }, -- the saved hotbar and settings
 	canSave: boolean,
 }
 
@@ -85,6 +86,7 @@ function IslandService.create(player: Player): Island
 		tiers = {},
 		handFuel = 0,
 		extra = {},
+		prefs = { bar = {}, settings = {} },
 		-- Stays false until the island has finished loading, so a half-built island is never saved
 		-- over the real one.
 		canSave = false,

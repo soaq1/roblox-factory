@@ -515,6 +515,35 @@ test("coins, tiers and mode travel with a stored island", function()
 	eq(old.profile, nil)
 end)
 
+-- Saved hotbar and settings
+local Prefs = require("../src/shared/Prefs")
+test("a saved hotbar is always ten entries, with anything unknown left empty", function()
+	local bar = Prefs.cleanBar({ "item:pick_wood", "belt", "banana", 7, "item:nope", "grass" }, Defs.isEntry)
+	eq(#bar, 10)
+	eq(bar[1], "item:pick_wood")
+	eq(bar[2], "belt")
+	eq(bar[3], "")
+	eq(bar[4], "")
+	eq(bar[5], "")
+	eq(bar[6], "grass")
+	eq(bar[10], "")
+	eq(#Prefs.cleanBar("junk", Defs.isEntry), 10)
+end)
+test("stored settings keep only real settings with true or false", function()
+	local saved = Prefs.sanitize(
+		{ bar = {}, settings = { holdToRepeat = false, dragPlace = "no", banana = true } },
+		Defs.isEntry
+	)
+	eq(saved.settings.holdToRepeat, false)
+	eq(saved.settings.dragPlace, nil)
+	eq(saved.settings.banana, nil)
+	eq(#saved.bar, 0)
+	eq(Prefs.value(saved.settings, "holdToRepeat"), false)
+	eq(Prefs.value(saved.settings, "dragPlace"), true)
+	eq(Prefs.value(saved.settings, "banana"), false)
+	eq(#Prefs.sanitize(nil, Defs.isEntry).bar, 0)
+end)
+
 -- Bag keys
 test("a bag key is an item, a machine, or a block with its prefix", function()
 	eq(Stock.isKey("ingot_fe"), true)

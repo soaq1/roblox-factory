@@ -2088,6 +2088,21 @@ Defs.Machines = {
 		needsPower = true,
 		signal = "timer",
 	},
+	sign = {
+		name = "표지판",
+		family = "표시",
+		note = "글자를 적어 세워 둠. 앞면과 뒷면에 보임",
+		sx = 1,
+		sz = 1,
+		sy = 2,
+		height = 3.38,
+		icon = "sign",
+		ports = {},
+		behavior = "sign",
+		hidden = false,
+		needsPower = false,
+		walkThrough = true,
+	},
 	campfire = {
 		name = "모닥불",
 		family = "손 작업",
@@ -2905,6 +2920,11 @@ Defs.Palette = {
 		tab = "기계",
 		name = "손 작업",
 		ids = { "campfire", "hand_furnace", "wb_basic", "wb_tool", "wb_part", "wb_machine", "wb_cook", "wb_elec", "wb_furn", "wb_all", "chest" },
+	},
+	{
+		tab = "기계",
+		name = "표시",
+		ids = { "sign" },
 	},
 	{
 		tab = "아이템",

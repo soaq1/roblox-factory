@@ -160,6 +160,8 @@ for _, name in
 		"ShopService",
 		"VisitService",
 		"PowerService",
+		"PrefsService",
+		"SocialService",
 	}
 do
 	local source = script.Parent:FindFirstChild(name)

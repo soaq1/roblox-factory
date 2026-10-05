@@ -191,6 +191,10 @@
 "behavior": "signal",
 "hidden": false
 },
+"sign": {
+"behavior": "sign",
+"hidden": false
+},
 "campfire": {
 "behavior": "bench",
 "hidden": false

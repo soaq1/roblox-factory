@@ -41,6 +41,7 @@ local MODULES = {
 	signal = "Signal",
 	power = "Power",
 	vending = "Vending",
+	sign = "Sign",
 }
 
 local machines: { [any]: boolean } = {}
@@ -105,6 +106,7 @@ function MachineService.create(
 	model:SetAttribute("CellX", x)
 	model:SetAttribute("CellY", y)
 	model:SetAttribute("CellZ", z)
+	model:SetAttribute("Dir", dir)
 
 	local cx, cz = Grid.footprintCentre(dir, def.sx, def.sz)
 	local center = IslandService.cellCenter(island, x, y, z)
