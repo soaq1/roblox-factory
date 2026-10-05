@@ -58,17 +58,29 @@ function HandArm.hold(player: Player, entry: any)
 	apply(player)
 end
 
--- Call when the player uses what is in their hand. Roblox's animation script looks for this note
--- on the held Tool and plays its slash once.
-function HandArm.swing(player: Player)
+-- Call when the player uses what is in their hand. Roblox's animation script looks for a note
+-- called "toolanim" on the held Tool, plays its slash once, and takes the note away again.
+--
+-- It takes it away on the machine it runs on, which is the player's own, so the server's copy of
+-- the note stays where it is. Asking whether a note is already there and leaving it alone would
+-- therefore swing once and never again -- that is exactly what happened. So the old note is thrown
+-- away and a fresh one put in its place; the new child is what the animation script notices.
+-- Returns the note it left, for the self-test to look at.
+function HandArm.swing(player: Player): StringValue?
 	local character = player.Character
 	local tool = character and toolIn(character)
-	if tool and not tool:FindFirstChild("toolanim") then
-		local note = Instance.new("StringValue")
-		note.Name = "toolanim"
-		note.Value = "Slash"
-		note.Parent = tool
+	if not tool then
+		return nil
 	end
+	local old = tool:FindFirstChild("toolanim")
+	if old then
+		old:Destroy()
+	end
+	local note = Instance.new("StringValue")
+	note.Name = "toolanim"
+	note.Value = "Slash"
+	note.Parent = tool
+	return note
 end
 
 -- Whether the arm is up and Roblox accepted the Tool, for the self-test to report.

@@ -34,12 +34,23 @@ if RunService:IsRunning() then
 	if not RunService:IsServer() then
 		return
 	end
+	-- The arguments come either way: GetTestArgs when Studio passes them through, and otherwise
+	-- Workspace's "SelfTest" attribute, which the editor side wrote into the place before starting
+	-- play. GetTestArgs only works some of the time -- one run had it, the next had nothing -- and
+	-- the attribute is carried over because the play session is made from what is open in the editor.
 	local ok, args = pcall(function()
 		return StudioTestService:GetTestArgs()
 	end)
-	-- No arguments at all means a person pressed Play, not this plugin. Keep out of their way:
+	if not ok or type(args) ~= "table" or type(args.scenario) ~= "string" then
+		local carried = Workspace:GetAttribute("SelfTest")
+		if type(carried) == "string" then
+			local read, decoded = pcall(HttpService.JSONDecode, HttpService, carried)
+			args = if read and type(decoded) == "table" then decoded else args
+		end
+	end
+	-- No arguments either way means a person pressed Play, not this plugin. Keep out of their way:
 	-- ending a test they did not ask for would stop their game after a second.
-	if not ok or type(args) ~= "table" then
+	if type(args) ~= "table" then
 		return
 	end
 	local described = if pcall(HttpService.JSONEncode, HttpService, args)
@@ -87,11 +98,22 @@ task.spawn(function()
 			if decoded and type(command) == "table" and command.cmd then
 				local started = os.clock()
 				post("/result", { stage = "starting", id = command.id, cmd = command.cmd, args = command.args })
+				-- Write the arguments into the place as well. A play session is made from what is
+				-- open in the editor, so this is already there when the game starts, whether or not
+				-- Studio passes the arguments through its own channel. It leaves the open place
+				-- marked as changed, which is why it is cleared again below.
+				pcall(function()
+					Workspace:SetAttribute("SelfTest", HttpService:JSONEncode(command.args or {}))
+				end)
 				local ran, result = pcall(function()
 					if command.cmd == "run" then
 						return StudioTestService:ExecuteRunModeAsync(command.args or {})
 					end
 					return StudioTestService:ExecutePlayModeAsync(command.args or {})
+				end)
+				-- So that pressing Play by hand later does not run the last test again.
+				pcall(function()
+					Workspace:SetAttribute("SelfTest", nil)
 				end)
 				post("/result", {
 					stage = "done",

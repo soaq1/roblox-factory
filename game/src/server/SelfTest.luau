@@ -252,6 +252,27 @@ function scenarios.arm(player, _island, args)
 		table.insert(problems, "the arm was only up for " .. raised .. " of " .. rounds .. " seconds")
 	end
 
+	-- Swinging has to work every time, not once. The animation plays off a note left on the tool,
+	-- and the player's own machine takes that note away when it reads it, which the server never
+	-- hears about. A second swing therefore has to leave a new note rather than find the old one
+	-- and think the work is done.
+	local first = HandArm.swing(player)
+	task.wait(0.4)
+	local second = HandArm.swing(player)
+	say(
+		"arm swings",
+		"first=" .. tostring(first ~= nil),
+		"second=" .. tostring(second ~= nil),
+		"fresh=" .. tostring(first ~= nil and second ~= nil and first ~= second)
+	)
+	if not first or not second then
+		table.insert(problems, "swinging left no note on the tool")
+	elseif first == second then
+		table.insert(problems, "the second swing reused the first note, so it would never play again")
+	elseif second.Parent == nil then
+		table.insert(problems, "the note from the second swing was not left on the tool")
+	end
+
 	HandArm.hold(player, "")
 	task.wait(1.5)
 	local after = HandArm.state(player)
