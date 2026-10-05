@@ -54,7 +54,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             data["at"] = time.strftime("%H:%M:%S")
             last_result = data
-            with open(OUT, "a", encoding="utf-8") as f:
+            with open(OUT, "a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(data, ensure_ascii=False) + "\n")
             self.reply({"ok": True})
 

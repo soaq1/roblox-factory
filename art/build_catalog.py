@@ -271,5 +271,5 @@ page = f'''<!doctype html>
 </body>
 </html>
 '''
-open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(page)
+open(os.path.join(OUT, "index.html"), "w", encoding="utf-8", newline="\n").write(page)
 print("wrote index.html: machines", total, "items", len(data["items"]), "blocks", len(blocks))

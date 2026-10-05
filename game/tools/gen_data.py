@@ -216,7 +216,7 @@ end
 
 return Defs
 '''
-open(os.path.join(SHARED, "Defs.luau"), "w", encoding="utf-8").write(defs)
+open(os.path.join(SHARED, "Defs.luau"), "w", encoding="utf-8", newline="\n").write(defs)
 
 uses_fuel = {k: True for k in recipes["fuel_users"] if k in process_by_machine}
 craft = [dict(out=c["out"], n=c["n"], bench=c["bench"], tier=c["tier"], ins=c["ins"]) for c in recipes["craft"]]
@@ -249,11 +249,11 @@ return {{
 	upgrades = {lua(recipes["upgrades"], 1)},
 }}
 '''
-open(os.path.join(SHARED, "Recipes.luau"), "w", encoding="utf-8").write(rec)
+open(os.path.join(SHARED, "Recipes.luau"), "w", encoding="utf-8", newline="\n").write(rec)
 
 pal = HEADER + "--!nocheck\n-- Colours used by the generated models: r, g, b, and whether the part glows.\nreturn " + lua(
     [[*p["rgb"], p["neon"]] for p in palette]) + "\n"
-open(os.path.join(SHARED, "ModelPalette.luau"), "w", encoding="utf-8").write(pal)
+open(os.path.join(SHARED, "ModelPalette.luau"), "w", encoding="utf-8", newline="\n").write(pal)
 
 model_dir = os.path.join(SHARED, "Models")
 shutil.rmtree(model_dir, ignore_errors=True)
@@ -267,20 +267,20 @@ for key, prims in shapes.items():
     text = HEADER + ("--!nocheck\n-- 17 numbers per part: shape (0 block, 1 cylinder, 2 ball), size x y z, position x y z,\n"
                      "-- nine rotation values, palette index. Positions are relative to the centre of the\n"
                      "-- machine's footprint, one cell above the ground being y = 1.5.\n") + "return { " + body + " }\n"
-    open(os.path.join(model_dir, key + ".luau"), "w", encoding="utf-8").write(text)
+    open(os.path.join(model_dir, key + ".luau"), "w", encoding="utf-8", newline="\n").write(text)
 
 # Where the middle of each imported mesh lies, in studs, from the middle of its model's footprint
 # on the ground. Written by art/factorykit.py -- meshes.
 mesh_info_path = os.path.join(ROOT, "art", "export", "game", "models_info.json")
-mesh_info = json.load(open(mesh_info_path)) if os.path.exists(mesh_info_path) else {}
+mesh_info = json.load(open(mesh_info_path, encoding="utf-8")) if os.path.exists(mesh_info_path) else {}
 centres = {name: e["center"] for name, e in mesh_info.items() if name[:2] in ("m_", "i_")}
-open(os.path.join(SHARED, "MeshInfo.luau"), "w", encoding="utf-8").write(
+open(os.path.join(SHARED, "MeshInfo.luau"), "w", encoding="utf-8", newline="\n").write(
     HEADER + "--!nocheck\n-- The middle of each real mesh: x, y, z in studs from the middle of the model's footprint on\n"
     "-- the ground. Empty if the meshes have not been exported.\nreturn " + lua(centres) + "\n")
 
 # What each machine does in the game, for the catalogue page to show.
 json.dump({k: dict(behavior=m["behavior"], hidden=m["hidden"]) for k, m in machines.items()},
-          open(os.path.join(ROOT, "art", "catalog", "game.json"), "w"), ensure_ascii=False, indent=0)
+          open(os.path.join(ROOT, "art", "catalog", "game.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=0)
 
 print(f"blocks {len(block_defs)}, items {len(items)}, machines {len(machines)}, models {len(models['machines'])}")
 working = sorted(k for k, m in machines.items() if m["behavior"] != "decor" and not m["hidden"])

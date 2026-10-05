@@ -576,10 +576,10 @@ A("- 제련로에 금 주괴 10개를 넣었습니다. 원작의 제강소에 �
 A("- 기계 작업대 2단계에 철 주괴 200개를 넣었습니다. 원작의 3단계 작업대가 400개였습니다.")
 A("")
 
-open(os.path.join(ROOT, "docs", "recipes.md"), "w", encoding="utf-8").write("\n".join(L) + "\n")
+open(os.path.join(ROOT, "docs", "recipes.md"), "w", encoding="utf-8", newline="\n").write("\n".join(L) + "\n")
 json.dump({"raw": RAW, "fuel": FUEL, "fuel_users": FUEL_USERS, "needs_power": NEEDS_POWER, "process": PROCESS,
            "craft": CRAFT, "upgrades": {f"{k}:{t}": v for (k, t), v in UPGRADES.items()}},
-          open(os.path.join(HERE, "recipes.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+          open(os.path.join(HERE, "recipes.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=1)
 
 print(f"공정 {len(PROCESS)}개, 조합 {len(CRAFT)}개")
 print("모르는 이름:", sorted(set(problems)) or "없음")

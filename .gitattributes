@@ -1,0 +1,10 @@
+# 줄끝은 어느 컴퓨터에서나 LF로 둡니다. StyLua와 Lune이 LF를 기대하고,
+# 윈도우 깃의 기본 설정(core.autocrlf=true)이 CRLF로 바꿔 놓으면
+# 고친 것이 없어도 모든 파일이 달라진 것으로 보입니다.
+* text=auto eol=lf
+
+# 깃이 손대면 안 되는 파일
+*.png   binary
+*.fbx   binary
+*.blend binary
+*.rbxm  binary

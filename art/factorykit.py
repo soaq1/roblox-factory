@@ -2415,7 +2415,7 @@ if "export" in ARGS:
                                                name=s["ko"], cells=list(s["size"]))
     for s in ITEM_SPECS:
         index["items"][s["key"]] = dict(export_mesh(ITEMS[s["key"]], "items", s["key"]), name=s["ko"])
-    json.dump(index, open(os.path.join(EXPORT, "models.json"), "w"), ensure_ascii=False, indent=1)
+    json.dump(index, open(os.path.join(EXPORT, "models.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=1)
     print("EXPORT done", len(index["machines"]), len(index["items"]))
 
 # ============================ MESHES FOR THE GAME ============================
@@ -2570,7 +2570,7 @@ if "meshes" in ARGS:
         note("t_limb", plain(limb(), "t_limb", at), at)
         n += 1
         write(objects, "models.fbx")
-        json.dump(info, open(os.path.join(MESH_OUT, "models_info.json"), "w"), indent=0)
+        json.dump(info, open(os.path.join(MESH_OUT, "models_info.json"), "w", encoding="utf-8", newline="\n"), indent=0)
         print("MESHES done", len(info), "objects")
 
 # ============================ GAME DATA ============================
@@ -2630,14 +2630,14 @@ if "gamedata" in ARGS:
     game["palette"] = [{"key": mk, "hex": PAL[mk], "neon": mk in EMIT} for mk in used]
     out_dir = os.path.join(os.path.dirname(HERE), "game", "tools")
     os.makedirs(out_dir, exist_ok=True)
-    json.dump(game, open(os.path.join(out_dir, "modeldata.json"), "w"), ensure_ascii=False)
+    json.dump(game, open(os.path.join(out_dir, "modeldata.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False)
     print("GAMEDATA done", len(game["machines"]), len(game["items"]), len(used), "colours",
           sum(len(m["prims"]) for m in game["machines"].values()), "parts")
 
 meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
         for s in SPECS if s["show"]]
 items_meta = [{k: s[k] for k in ("key", "ko", "cat", "tris")} for s in ITEM_SPECS]
-json.dump({"machines": meta, "items": items_meta}, open(os.path.join(OUT, "catalog.json"), "w"),
+json.dump({"machines": meta, "items": items_meta}, open(os.path.join(OUT, "catalog.json"), "w", encoding="utf-8", newline="\n"),
           ensure_ascii=False, indent=1)
 
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "factorykit.blend"))

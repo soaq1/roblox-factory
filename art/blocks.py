@@ -491,5 +491,5 @@ for i, (key, ko, cat, top, side, bottom) in enumerate(BLOCKS):
         return [round(v / (R * R) * 255) for v in total]
 
     meta.append(dict(key=key, ko=ko, cat=cat, colour=average(side), top=average(top)))
-json.dump(meta, open(os.path.join(OUT, "blocks.json"), "w"), ensure_ascii=False, indent=1)
+json.dump(meta, open(os.path.join(OUT, "blocks.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=1)
 print("BLOCKS done", len(meta))
