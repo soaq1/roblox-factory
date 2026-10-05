@@ -167,6 +167,7 @@ for _, name in
 		"PowerService",
 		"PrefsService",
 		"SocialService",
+		"SelfTest",
 	}
 do
 	local source = script.Parent:FindFirstChild(name)

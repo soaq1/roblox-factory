@@ -189,9 +189,19 @@ local function holdArm()
 			end
 			local tool = Instance.new("Tool")
 			tool.Name = "Held"
-			tool.RequiresHandle = false
 			tool.CanBeDropped = false
 			tool.ManualActivationOnly = true
+			-- Roblox's animation script only treats a Tool as held if it has a part named
+			-- Handle, so it gets one: tiny, unseen, weightless.
+			local handle = Instance.new("Part")
+			handle.Name = "Handle"
+			handle.Size = Vector3.new(0.2, 0.2, 0.2)
+			handle.Transparency = 1
+			handle.CanCollide = false
+			handle.CanQuery = false
+			handle.CanTouch = false
+			handle.Massless = true
+			handle.Parent = tool
 			tool.Parent = character
 			held = tool
 		end
@@ -228,6 +238,60 @@ function HandView.init(hotbarUi)
 	end)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
+	-- TEMPORARY: say what the arm is doing, so the log can be read instead of the screen.
+	task.spawn(function()
+		for round = 1, 6 do
+			task.wait(4)
+			local character = player.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+			local lines = { "HANDVIEW round " .. round }
+			table.insert(lines, "pieces=" .. #pieces .. " selected=" .. tostring(hotbar.selected()))
+			table.insert(
+				lines,
+				"rig="
+					.. tostring(humanoid and humanoid.RigType)
+					.. " animate="
+					.. tostring(character and character:FindFirstChild("Animate") ~= nil)
+			)
+			local tool = character and character:FindFirstChildOfClass("Tool")
+			table.insert(
+				lines,
+				"tool="
+					.. tostring(tool and tool.Name)
+					.. " handle="
+					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
+					.. " heldSame="
+					.. tostring(tool == held)
+			)
+			local hand = character and character:FindFirstChild("RightHand")
+			table.insert(
+				lines,
+				"rightGrip="
+					.. tostring(hand and hand:FindFirstChild("RightGrip") ~= nil)
+					.. " gripMark="
+					.. tostring(hand and hand:FindFirstChild("RightGripAttachment") ~= nil)
+			)
+			if animator then
+				local names = {}
+				for _, track in animator:GetPlayingAnimationTracks() do
+					table.insert(names, track.Name .. "(" .. tostring(track.Priority) .. ")")
+				end
+				table.insert(lines, "tracks=" .. table.concat(names, ","))
+			end
+			local upper = character and character:FindFirstChild("RightUpperArm")
+			local lower = character and character:FindFirstChild("HumanoidRootPart")
+			if upper and lower and upper:IsA("BasePart") and lower:IsA("BasePart") then
+				local rel = lower.CFrame:ToObjectSpace(upper.CFrame)
+				local rx, ry, rz = rel:ToOrientation()
+				table.insert(
+					lines,
+					string.format("upperArm rel rot %.0f %.0f %.0f", math.deg(rx), math.deg(ry), math.deg(rz))
+				)
+			end
+			print(table.concat(lines, " | "))
+		end
+	end)
 end
 
 return HandView
