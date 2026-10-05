@@ -239,30 +239,54 @@ function HandView.init(hotbarUi)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
 	-- TEMPORARY: say what the arm is doing, so the log can be read instead of the screen.
+	-- Every 3 seconds for two minutes, which is long enough to start a play test, pick something
+	-- up and walk around in third person. Delete once the arm works.
 	task.spawn(function()
-		for round = 1, 6 do
-			task.wait(4)
+		for round = 1, 40 do
+			task.wait(3)
+			local camera = Workspace.CurrentCamera
 			local character = player.Character
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
 			local lines = { "HANDVIEW round " .. round }
-			table.insert(lines, "pieces=" .. #pieces .. " selected=" .. tostring(hotbar.selected()))
+			table.insert(
+				lines,
+				"pieces="
+					.. #pieces
+					.. " selected="
+					.. tostring(hotbar.selected())
+					.. " view="
+					.. (if camera then (if isFirstPerson(camera) then "first" else "third") else "none")
+			)
+			-- Roblox's animation script lives in the character as "Animate" and is what raises the
+			-- arm. If it is missing or switched off, nothing will ever move the arm.
+			local animate = character and character:FindFirstChild("Animate")
 			table.insert(
 				lines,
 				"rig="
 					.. tostring(humanoid and humanoid.RigType)
 					.. " animate="
-					.. tostring(character and character:FindFirstChild("Animate") ~= nil)
+					.. (if animate
+						then animate.ClassName .. "/off=" .. tostring((animate :: any).Disabled)
+						else "MISSING")
+					.. " toolnone="
+					.. tostring(animate ~= nil and animate:FindFirstChild("toolnone") ~= nil)
 			)
+			-- The empty Tool this file puts in the character, and whether Roblox accepted it: on a
+			-- real equip Roblox welds the tool's Handle to the right hand as "RightGrip".
 			local tool = character and character:FindFirstChildOfClass("Tool")
 			table.insert(
 				lines,
 				"tool="
 					.. tostring(tool and tool.Name)
-					.. " handle="
-					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
 					.. " heldSame="
 					.. tostring(tool == held)
+					.. " heldParent="
+					.. tostring(held and held.Parent and held.Parent.Name)
+					.. " handle="
+					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
+					.. " requiresHandle="
+					.. tostring(tool and tool.RequiresHandle)
 			)
 			local hand = character and character:FindFirstChild("RightHand")
 			table.insert(
@@ -275,7 +299,15 @@ function HandView.init(hotbarUi)
 			if animator then
 				local names = {}
 				for _, track in animator:GetPlayingAnimationTracks() do
-					table.insert(names, track.Name .. "(" .. tostring(track.Priority) .. ")")
+					table.insert(
+						names,
+						string.format(
+							"%s(%s,w%.2f)",
+							track.Name,
+							tostring(track.Priority),
+							track.WeightCurrent
+						)
+					)
 				end
 				table.insert(lines, "tracks=" .. table.concat(names, ","))
 			end
