@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공장 기계 카탈로그</title>
+<style>
+  :root {
+    --bg: #1c1e22; --panel: #24272c; --line: #353a41; --text: #e9eaec; --dim: #9aa0a8;
+    --in: #f0b429; --out: #35b8a6; --link: #58b6e8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.6 -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--dim); margin: 0 0 28px; }
+  h2 { font-size: 24px; margin: 56px 0 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .count { color: var(--dim); font-size: 16px; font-weight: 400; margin-left: 6px; }
+  .lede { color: var(--dim); margin: 10px 0 20px; }
+  .hero img, .items img { width: 100%; display: block; border-radius: 10px; }
+  .items { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 18px 0 0; padding: 0; list-style: none;
+            color: var(--dim); font-size: 14px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 7px;
+              vertical-align: -1px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .card { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+          overflow: hidden; }
+  .shot { aspect-ratio: 1; background: #16181b; }
+  .shot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  figcaption { padding: 12px 14px 14px; }
+  h3 { margin: 0 0 4px; font-size: 17px; color: var(--link); }
+  .recipe { margin: 0 0 8px; font-size: 14.5px; }
+  .meta { margin: 0; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>공장 기계 카탈로그</h1>
+  <p class="sub">기계와 벨트 31종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
+  <div class="hero"><img src="img/_line.png" alt="벨트로 연결한 공장 예시"></div>
+  <ul class="legend">
+    <li><i style="background:var(--in)"></i>노란 테두리는 입구</li>
+    <li><i style="background:var(--out)"></i>청록 테두리는 출구</li>
+    <li><i style="background:#ff5a1f"></i>주황 발광은 열</li>
+    <li><i style="background:#4aa8d8"></i>파랑은 물</li>
+    <li><i style="background:#d9483b"></i>빨강은 움직이는 부품</li>
+  </ul>
+  
+  <section>
+    <h2>운반 <span class="count">7</span></h2>
+    <p class="lede">아이템을 옮기고, 나누고, 합치고, 골라내는 장치</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/belt.png" alt="직선 벨트" loading="lazy"></div>
+      <figcaption>
+        <h3>직선 벨트</h3>
+        <p class="recipe">아이템을 한 방향으로 옮김</p>
+        <p class="meta">1×1칸 · 벨트 · 삼각형 152</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/belt_corner.png" alt="코너 벨트" loading="lazy"></div>
+      <figcaption>
+        <h3>코너 벨트</h3>
+        <p class="recipe">진행 방향을 90도 꺾음 (좌·우 대칭형)</p>
+        <p class="meta">1×1칸 · 벨트 · 삼각형 252</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/belt_ramp.png" alt="경사 벨트" loading="lazy"></div>
+      <figcaption>
+        <h3>경사 벨트</h3>
+        <p class="recipe">두 칸에 걸쳐 한 칸 높이를 올림</p>
+        <p class="meta">2×1칸 · 벨트 · 삼각형 216</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/splitter.png" alt="분배기" loading="lazy"></div>
+      <figcaption>
+        <h3>분배기</h3>
+        <p class="recipe">들어온 아이템을 두 방향으로 번갈아 내보냄</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 616</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/merger.png" alt="합류기" loading="lazy"></div>
+      <figcaption>
+        <h3>합류기</h3>
+        <p class="recipe">두 줄을 한 줄로 합침</p>
+        <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 764</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/sorter.png" alt="분류기" loading="lazy"></div>
+      <figcaption>
+        <h3>분류기</h3>
+        <p class="recipe">지정한 아이템만 옆으로 빼내고 나머지는 통과</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 704</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/storage.png" alt="보관함" loading="lazy"></div>
+      <figcaption>
+        <h3>보관함</h3>
+        <p class="recipe">아이템을 쌓아 두었다가 순서대로 내보내는 완충 창고</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 808</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>공급 <span class="count">5</span></h2>
+    <p class="lede">아무것도 넣지 않아도 자원을 내보내는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/drill.png" alt="채굴 드릴" loading="lazy"></div>
+      <figcaption>
+        <h3>채굴 드릴</h3>
+        <p class="recipe">광맥 위에 놓으면 광석(구리, 철, 석탄, 돌)을 캐냄</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 984</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/logger.png" alt="벌목기" loading="lazy"></div>
+      <figcaption>
+        <h3>벌목기</h3>
+        <p class="recipe">주변 나무를 베어 통나무를 내보냄</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 980</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/pump.png" alt="물 펌프" loading="lazy"></div>
+      <figcaption>
+        <h3>물 펌프</h3>
+        <p class="recipe">물을 끌어올려 물통으로 내보냄</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 844</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/pumpjack.png" alt="펌프잭" loading="lazy"></div>
+      <figcaption>
+        <h3>펌프잭</h3>
+        <p class="recipe">유전 위에 놓으면 원유통을 내보냄</p>
+        <p class="meta">2×1칸 · 출구 1 · 삼각형 920</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/harvester.png" alt="수확기" loading="lazy"></div>
+      <figcaption>
+        <h3>수확기</h3>
+        <p class="recipe">앞쪽 밭의 다 자란 작물을 거둬들임</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 508</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>변환 <span class="count">10</span></h2>
+    <p class="lede">재료 하나를 받아 정해진 결과물로 바꾸는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/crusher.png" alt="분쇄기" loading="lazy"></div>
+      <figcaption>
+        <h3>분쇄기</h3>
+        <p class="recipe">광석 → 분쇄 광석(수량 2배), 돌 → 모래</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,132</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/washer.png" alt="세척기" loading="lazy"></div>
+      <figcaption>
+        <h3>세척기</h3>
+        <p class="recipe">분쇄 광석 → 정제 광석 (제련 수율이 오름)</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 988</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/smelter.png" alt="제련로" loading="lazy"></div>
+      <figcaption>
+        <h3>제련로</h3>
+        <p class="recipe">광석 → 주괴 (구리, 철)</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,056</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/kiln.png" alt="가마" loading="lazy"></div>
+      <figcaption>
+        <h3>가마</h3>
+        <p class="recipe">모래 → 유리, 통나무 → 숯</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 688</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/sawmill.png" alt="제재기" loading="lazy"></div>
+      <figcaption>
+        <h3>제재기</h3>
+        <p class="recipe">통나무 → 판자</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 944</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/stonecutter.png" alt="석재 절단기" loading="lazy"></div>
+      <figcaption>
+        <h3>석재 절단기</h3>
+        <p class="recipe">돌 → 석재 블록</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 796</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/press.png" alt="압연 프레스" loading="lazy"></div>
+      <figcaption>
+        <h3>압연 프레스</h3>
+        <p class="recipe">주괴 → 판재</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 960</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/wiredraw.png" alt="신선기" loading="lazy"></div>
+      <figcaption>
+        <h3>신선기</h3>
+        <p class="recipe">구리 주괴 → 구리선 묶음</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 748</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/refinery.png" alt="정유탑" loading="lazy"></div>
+      <figcaption>
+        <h3>정유탑</h3>
+        <p class="recipe">원유 → 연료통 + 플라스틱 (출구 둘)</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 1,280</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/mill.png" alt="제분기" loading="lazy"></div>
+      <figcaption>
+        <h3>제분기</h3>
+        <p class="recipe">밀 → 밀가루</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 724</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>조합 <span class="count">6</span></h2>
+    <p class="lede">재료 둘 이상을 받아 하나로 만드는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/blast.png" alt="고로" loading="lazy"></div>
+      <figcaption>
+        <h3>고로</h3>
+        <p class="recipe">철 주괴 + 석탄 → 강철 주괴</p>
+        <p class="meta">2×2칸 · 입구 2 · 출구 1 · 삼각형 1,708</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/assembler.png" alt="조립기" loading="lazy"></div>
+      <figcaption>
+        <h3>조립기</h3>
+        <p class="recipe">판재 + 구리선 → 기계 부품</p>
+        <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 840</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/circuit.png" alt="회로 제작기" loading="lazy"></div>
+      <figcaption>
+        <h3>회로 제작기</h3>
+        <p class="recipe">구리선 + 플라스틱 → 회로 기판</p>
+        <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 732</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/mixer.png" alt="혼합기" loading="lazy"></div>
+      <figcaption>
+        <h3>혼합기</h3>
+        <p class="recipe">모래 + 물통 → 콘크리트</p>
+        <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 836</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/oven.png" alt="제빵 오븐" loading="lazy"></div>
+      <figcaption>
+        <h3>제빵 오븐</h3>
+        <p class="recipe">밀가루 + 물통 → 빵</p>
+        <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 712</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/manufacturer.png" alt="제조 공장" loading="lazy"></div>
+      <figcaption>
+        <h3>제조 공장</h3>
+        <p class="recipe">기계 부품 + 회로 기판 + 강철 → 모터</p>
+        <p class="meta">2×2칸 · 입구 3 · 출구 1 · 삼각형 1,564</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>포장·판매 <span class="count">2</span></h2>
+    <p class="lede">묶어서 물체 수를 줄이고, 코인으로 바꾸는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/packer.png" alt="포장기" loading="lazy"></div>
+      <figcaption>
+        <h3>포장기</h3>
+        <p class="recipe">같은 아이템 8개 → 상자 1개 (물체 수를 줄임)</p>
+        <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,008</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/seller.png" alt="판매기" loading="lazy"></div>
+      <figcaption>
+        <h3>판매기</h3>
+        <p class="recipe">들어온 아이템을 코인으로 바꿈</p>
+        <p class="meta">1×1칸 · 입구 1 · 삼각형 652</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>동력 <span class="count">1</span></h2>
+    <p class="lede">다른 기계를 돌리는 전력을 만드는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/generator.png" alt="석탄 발전기" loading="lazy"></div>
+      <figcaption>
+        <h3>석탄 발전기</h3>
+        <p class="recipe">석탄이나 연료통을 태워 주변 기계에 전력을 공급</p>
+        <p class="meta">1×1칸 · 입구 1 · 삼각형 960</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section>
+    <h2>아이템 <span class="count">28</span></h2>
+    <p class="lede">벨트 위를 굴러다니는 물체들</p>
+    <div class="items"><img src="img/_items.png" alt="아이템 모음"></div>
+  </section>
+</main>
+</body>
+</html>

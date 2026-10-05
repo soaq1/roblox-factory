@@ -1,0 +1,936 @@
+{
+ "machines": [
+  {
+   "key": "belt",
+   "ko": "직선 벨트",
+   "fam": "운반",
+   "recipe": "아이템을 한 방향으로 옮김",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 152,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "belt_corner",
+   "ko": "코너 벨트",
+   "fam": "운반",
+   "recipe": "진행 방향을 90도 꺾음 (좌·우 대칭형)",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 252,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "belt_ramp",
+   "ko": "경사 벨트",
+   "fam": "운반",
+   "recipe": "두 칸에 걸쳐 한 칸 높이를 올림",
+   "ports": [],
+   "size": [
+    2,
+    1
+   ],
+   "tris": 216,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "splitter",
+   "ko": "분배기",
+   "fam": "운반",
+   "recipe": "들어온 아이템을 두 방향으로 번갈아 내보냄",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 616,
+   "colors": 8,
+   "ins": [
+    "ingot_cu"
+   ],
+   "outs": [
+    "ingot_cu",
+    "ingot_cu"
+   ]
+  },
+  {
+   "key": "merger",
+   "ko": "합류기",
+   "fam": "운반",
+   "recipe": "두 줄을 한 줄로 합침",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "N",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 764,
+   "colors": 8,
+   "ins": [
+    "plate_cu",
+    "coil"
+   ],
+   "outs": [
+    "plate_cu"
+   ]
+  },
+  {
+   "key": "sorter",
+   "ko": "분류기",
+   "fam": "운반",
+   "recipe": "지정한 아이템만 옆으로 빼내고 나머지는 통과",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 704,
+   "colors": 10,
+   "ins": [
+    "ore_cu"
+   ],
+   "outs": [
+    "stone",
+    "ore_cu"
+   ]
+  },
+  {
+   "key": "storage",
+   "ko": "보관함",
+   "fam": "운반",
+   "recipe": "아이템을 쌓아 두었다가 순서대로 내보내는 완충 창고",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 808,
+   "colors": 8,
+   "ins": [
+    "plate_cu"
+   ],
+   "outs": [
+    "plate_cu"
+   ]
+  },
+  {
+   "key": "drill",
+   "ko": "채굴 드릴",
+   "fam": "공급",
+   "recipe": "광맥 위에 놓으면 광석(구리, 철, 석탄, 돌)을 캐냄",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 984,
+   "colors": 8,
+   "ins": [],
+   "outs": [
+    "ore_cu"
+   ]
+  },
+  {
+   "key": "logger",
+   "ko": "벌목기",
+   "fam": "공급",
+   "recipe": "주변 나무를 베어 통나무를 내보냄",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 980,
+   "colors": 10,
+   "ins": [],
+   "outs": [
+    "log"
+   ]
+  },
+  {
+   "key": "pump",
+   "ko": "물 펌프",
+   "fam": "공급",
+   "recipe": "물을 끌어올려 물통으로 내보냄",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 844,
+   "colors": 10,
+   "ins": [],
+   "outs": [
+    "barrel_water"
+   ]
+  },
+  {
+   "key": "pumpjack",
+   "ko": "펌프잭",
+   "fam": "공급",
+   "recipe": "유전 위에 놓으면 원유통을 내보냄",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    2,
+    1
+   ],
+   "tris": 920,
+   "colors": 10,
+   "ins": [],
+   "outs": [
+    "barrel_oil"
+   ]
+  },
+  {
+   "key": "harvester",
+   "ko": "수확기",
+   "fam": "공급",
+   "recipe": "앞쪽 밭의 다 자란 작물을 거둬들임",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 508,
+   "colors": 10,
+   "ins": [],
+   "outs": [
+    "wheat"
+   ]
+  },
+  {
+   "key": "crusher",
+   "ko": "분쇄기",
+   "fam": "변환",
+   "recipe": "광석 → 분쇄 광석(수량 2배), 돌 → 모래",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 1132,
+   "colors": 9,
+   "ins": [
+    "ore_cu"
+   ],
+   "outs": [
+    "crushed"
+   ]
+  },
+  {
+   "key": "washer",
+   "ko": "세척기",
+   "fam": "변환",
+   "recipe": "분쇄 광석 → 정제 광석 (제련 수율이 오름)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 988,
+   "colors": 10,
+   "ins": [
+    "crushed"
+   ],
+   "outs": [
+    "clean"
+   ]
+  },
+  {
+   "key": "smelter",
+   "ko": "제련로",
+   "fam": "변환",
+   "recipe": "광석 → 주괴 (구리, 철)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 1056,
+   "colors": 9,
+   "ins": [
+    "ore_cu"
+   ],
+   "outs": [
+    "ingot_cu"
+   ]
+  },
+  {
+   "key": "kiln",
+   "ko": "가마",
+   "fam": "변환",
+   "recipe": "모래 → 유리, 통나무 → 숯",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 688,
+   "colors": 12,
+   "ins": [
+    "sand"
+   ],
+   "outs": [
+    "glass"
+   ]
+  },
+  {
+   "key": "sawmill",
+   "ko": "제재기",
+   "fam": "변환",
+   "recipe": "통나무 → 판자",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 944,
+   "colors": 12,
+   "ins": [
+    "log"
+   ],
+   "outs": [
+    "plank"
+   ]
+  },
+  {
+   "key": "stonecutter",
+   "ko": "석재 절단기",
+   "fam": "변환",
+   "recipe": "돌 → 석재 블록",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 796,
+   "colors": 11,
+   "ins": [
+    "stone"
+   ],
+   "outs": [
+    "stone_block"
+   ]
+  },
+  {
+   "key": "press",
+   "ko": "압연 프레스",
+   "fam": "변환",
+   "recipe": "주괴 → 판재",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 960,
+   "colors": 11,
+   "ins": [
+    "ingot_cu"
+   ],
+   "outs": [
+    "plate_cu"
+   ]
+  },
+  {
+   "key": "wiredraw",
+   "ko": "신선기",
+   "fam": "변환",
+   "recipe": "구리 주괴 → 구리선 묶음",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 748,
+   "colors": 9,
+   "ins": [
+    "ingot_cu"
+   ],
+   "outs": [
+    "coil"
+   ]
+  },
+  {
+   "key": "refinery",
+   "ko": "정유탑",
+   "fam": "변환",
+   "recipe": "원유 → 연료통 + 플라스틱 (출구 둘)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 1280,
+   "colors": 12,
+   "ins": [
+    "barrel_oil"
+   ],
+   "outs": [
+    "barrel_fuel",
+    "plastic"
+   ]
+  },
+  {
+   "key": "mill",
+   "ko": "제분기",
+   "fam": "변환",
+   "recipe": "밀 → 밀가루",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 724,
+   "colors": 11,
+   "ins": [
+    "wheat"
+   ],
+   "outs": [
+    "flour"
+   ]
+  },
+  {
+   "key": "blast",
+   "ko": "고로",
+   "fam": "조합",
+   "recipe": "철 주괴 + 석탄 → 강철 주괴",
+   "ports": [
+    [
+     "W",
+     "in",
+     -0.5
+    ],
+    [
+     "S",
+     "in",
+     -0.5
+    ],
+    [
+     "E",
+     "out",
+     -0.5
+    ]
+   ],
+   "size": [
+    2,
+    2
+   ],
+   "tris": 1708,
+   "colors": 12,
+   "ins": [
+    "ingot_fe",
+    "coal"
+   ],
+   "outs": [
+    "ingot_steel"
+   ]
+  },
+  {
+   "key": "assembler",
+   "ko": "조립기",
+   "fam": "조합",
+   "recipe": "판재 + 구리선 → 기계 부품",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 840,
+   "colors": 11,
+   "ins": [
+    "plate_cu",
+    "coil"
+   ],
+   "outs": [
+    "gear"
+   ]
+  },
+  {
+   "key": "circuit",
+   "ko": "회로 제작기",
+   "fam": "조합",
+   "recipe": "구리선 + 플라스틱 → 회로 기판",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 732,
+   "colors": 11,
+   "ins": [
+    "coil",
+    "plastic"
+   ],
+   "outs": [
+    "board"
+   ]
+  },
+  {
+   "key": "mixer",
+   "ko": "혼합기",
+   "fam": "조합",
+   "recipe": "모래 + 물통 → 콘크리트",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 836,
+   "colors": 11,
+   "ins": [
+    "sand",
+    "barrel_water"
+   ],
+   "outs": [
+    "concrete"
+   ]
+  },
+  {
+   "key": "oven",
+   "ko": "제빵 오븐",
+   "fam": "조합",
+   "recipe": "밀가루 + 물통 → 빵",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 712,
+   "colors": 12,
+   "ins": [
+    "flour",
+    "barrel_water"
+   ],
+   "outs": [
+    "bread"
+   ]
+  },
+  {
+   "key": "manufacturer",
+   "ko": "제조 공장",
+   "fam": "조합",
+   "recipe": "기계 부품 + 회로 기판 + 강철 → 모터",
+   "ports": [
+    [
+     "W",
+     "in",
+     0.5
+    ],
+    [
+     "W",
+     "in",
+     -0.5
+    ],
+    [
+     "S",
+     "in",
+     -0.5
+    ],
+    [
+     "E",
+     "out",
+     -0.5
+    ]
+   ],
+   "size": [
+    2,
+    2
+   ],
+   "tris": 1564,
+   "colors": 11,
+   "ins": [
+    "gear",
+    "board",
+    "ingot_steel"
+   ],
+   "outs": [
+    "motor"
+   ]
+  },
+  {
+   "key": "packer",
+   "ko": "포장기",
+   "fam": "포장·판매",
+   "recipe": "같은 아이템 8개 → 상자 1개 (물체 수를 줄임)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 1008,
+   "colors": 10,
+   "ins": [
+    "plate_cu"
+   ],
+   "outs": [
+    "crate"
+   ]
+  },
+  {
+   "key": "seller",
+   "ko": "판매기",
+   "fam": "포장·판매",
+   "recipe": "들어온 아이템을 코인으로 바꿈",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 652,
+   "colors": 9,
+   "ins": [
+    "crate"
+   ],
+   "outs": []
+  },
+  {
+   "key": "generator",
+   "ko": "석탄 발전기",
+   "fam": "동력",
+   "recipe": "석탄이나 연료통을 태워 주변 기계에 전력을 공급",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 960,
+   "colors": 11,
+   "ins": [
+    "coal"
+   ],
+   "outs": []
+  }
+ ],
+ "items": [
+  "ore_cu",
+  "ore_fe",
+  "coal",
+  "stone",
+  "crushed",
+  "clean",
+  "sand",
+  "ingot_cu",
+  "ingot_fe",
+  "ingot_steel",
+  "plate_cu",
+  "coil",
+  "gear",
+  "board",
+  "plastic",
+  "glass",
+  "log",
+  "plank",
+  "stone_block",
+  "concrete",
+  "wheat",
+  "flour",
+  "bread",
+  "barrel_water",
+  "barrel_oil",
+  "barrel_fuel",
+  "crate",
+  "motor"
+ ]
+}
