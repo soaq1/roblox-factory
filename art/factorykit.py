@@ -920,8 +920,7 @@ def _packer(m, T):
     m.cyl(0.05, 0.07, (0.0, -0.37, T + 0.42), "dark", seg=8, axis="Y")
 
 
-@machine("seller", "판매기", "포장·판매", "들어온 아이템을 코인으로 바꿈",
-         ports=(W_IN,), ins=("crate",), ortho=4.9, tz=0.95)
+@machine("seller", "판매기", "포장·판매", "", ports=(W_IN,), show=False)
 def _seller(m, T):
     y = window(m, "hole")
     for i, h in enumerate((0.07, 0.13, 0.19)):
@@ -1929,7 +1928,7 @@ if "line" in ARGS:
     put("belt", -1, -2, Wd)
     put("packer", -2, -2, mx=True)
     put("belt", -3, -2, Wd)
-    put("seller", -4, -2, mx=True)
+    put("storage", -4, -2, mx=True)
     # side branch: splitter south exit -> wire -> assembler north input
     put("belt", 2, 1, Sd)
     put("belt_corner", 2, 0, Sd)             # S -> W
