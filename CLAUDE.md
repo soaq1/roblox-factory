@@ -16,6 +16,22 @@
 - 코드를 직접 검토하지 못합니다. 그래서 **무엇이 되고 무엇이 안 되는지, 무엇을 확인했고 무엇을 확인하지 못했는지**를 평범한 말로 정확히 알려 주는 것이 중요합니다. 스튜디오에서 실행해 보지 못한 코드는 그렇다고 말합니다.
 - 설명에 코드 용어가 필요하면 풀어서 씁니다.
 
+## 쓰는 컴퓨터와 명령 (2026-10-05, 맥북 → 윈도우)
+
+작업하는 컴퓨터가 윈도우 11로 바뀌었습니다. 문서의 명령은 맥 기준으로 쓰여 있으니, 윈도우에서는 아래로 바꿔 읽습니다.
+
+| 문서의 명령 | 윈도우에서 |
+|---|---|
+| `python3 ...` | `py ...` (3.14.5). `python`은 마이크로소프트 스토어 껍데기라 아무것도 안 하고 끝납니다. |
+| `/Applications/Blender.app/Contents/MacOS/Blender` | `"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe"` (4.0.2) |
+| `~/Library/Logs/Roblox` | `%LOCALAPPDATA%\Roblox\logs` |
+| `~/Documents/Roblox/Plugins` | `%LOCALAPPDATA%\Roblox\Plugins` |
+
+- 도구는 Rokit 1.2.0을 `%USERPROFILE%\.rokit`에 넣고 `game/`에서 `rokit install`로 맞췄습니다(rojo 7.7.1, lune 0.10.5, StyLua 2.5.2, selene 0.32.0, luau-lsp 1.70.1). 새 컴퓨터에서는 [Rokit 릴리스](https://github.com/rojo-rbx/rokit/releases)의 `windows-x86_64` 압축을 풀고 `rokit self-install`을 먼저 실행합니다.
+- **StyLua는 출력을 다른 명령으로 넘기면(파이프) 윈도우에서 죽습니다**(`fatal runtime error: I/O error`). 터미널에서 그대로 실행합니다.
+- **줄끝은 LF로 고정입니다.** `.gitattributes`가 `* text=auto eol=lf`로 못 박아 두었습니다. 윈도우 깃의 기본 설정이 CRLF로 바꿔 놓으면 고친 것이 없어도 StyLua가 모든 파일을 다르다고 하고, 319개 파일이 전부 바뀐 것으로 보입니다. 파일을 만드는 파이썬 스크립트도 `newline="\n"`을 명시해 윈도우에서도 LF로 씁니다. 이걸 빼면 스크립트를 한 번 돌릴 때마다 내용은 같은데 200개 파일이 바뀝니다.
+- 확인된 것: 이 컴퓨터에서 `stylua --check`, `selene src`, `lune run tests/all.luau`(261개 통과), `rojo build`, `py data/recipes.py`, `py game/tools/gen_data.py`, `py art/build_catalog.py`가 모두 맥에서와 같은 결과를 냅니다.
+
 ## 지켜야 할 결정
 
 `docs/game-design.md`의 확정 항목은 다시 묻지 않습니다. 특히 다음은 여러 번 확인된 것입니다.
