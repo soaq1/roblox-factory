@@ -15,7 +15,7 @@
 
 | 하려는 일 | 명령 |
 |---|---|
-| 게임 파일 만들기 | `rojo build default.project.json -o build/roblox-factory.rbxlx` |
+| 게임 파일 만들기 | `rojo build build.project.json -o build/roblox-factory.rbxlx` |
 | 모델과 레시피를 게임 자료로 바꾸기 | `python3 tools/gen_data.py` (모델이나 레시피를 고친 뒤) |
 | 자동 시험 | `lune run tests/all.luau` |
 | 코드 모양 정리 | `stylua src tests` |

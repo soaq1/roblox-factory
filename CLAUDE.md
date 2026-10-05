@@ -49,7 +49,7 @@
 ## 게임 코드 (`game/`)
 
 - 도구는 Rokit으로 맞춥니다. `game/`에서 `rokit install`.
-- 고친 뒤에는 `stylua src tests`, `lune run tests/all.luau`, `selene src`를 돌리고, `rojo build default.project.json -o build/roblox-factory.rbxlx`로 게임 파일을 다시 만듭니다.
+- 고친 뒤에는 `stylua src tests`, `lune run tests/all.luau`, `selene src`를 돌리고, `rojo build build.project.json -o build/roblox-factory.rbxlx`로 게임 파일을 다시 만듭니다. `build.project.json`은 `default.project.json`에 가져온 모델(`assets/Models.rbxm`)을 더한 것입니다. 실시간 연결(`rojo serve default.project.json`)에는 모델을 넣지 않습니다. 플러그인은 모델의 모양 번호를 써넣을 수 없어서 빈 상자가 되기 때문입니다.
 - 로블록스 기능을 쓰지 않는 계산(격자, 가방, 저장 형식, 가공 기계의 판단, 조합, 거래, 코인, 시작 섬)은 `src/shared`에 두고 `tests/`에서 시험합니다(핵심은 `run.luau`, 시스템마다 `<이름>_test.luau`). 새 계산을 넣으면 시험도 같이 넣습니다.
 - `src/shared`의 `Defs.luau`, `Recipes.luau`, `ModelPalette.luau`, `Models/`는 자동 생성 파일입니다. 고치려면 원본(`art/factorykit.py`, `art/blocks.py`, `data/recipes.py`, `game/tools/gen_data.py`)을 고치고 `python3 game/tools/gen_data.py`를 실행합니다. 모델을 고쳤으면 그 전에 Blender로 `art/factorykit.py -- gamedata`를 실행합니다.
 - 기계의 겉모습은 카탈로그 모델을 로블록스 기본 도형으로 바꾼 것입니다. FBX를 스튜디오로 가져오는 방식은 아직 쓰지 않습니다.
