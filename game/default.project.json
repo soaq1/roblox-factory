@@ -1,0 +1,32 @@
+{
+  "name": "roblox-factory",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" }
+    },
+    "ServerScriptService": {
+      "Server": { "$path": "src/server" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": { "$path": "src/client" }
+      }
+    },
+    "Players": {
+      "$properties": { "CharacterAutoLoads": false }
+    },
+    "Workspace": {
+      "$properties": { "FallenPartsDestroyHeight": -300 }
+    },
+    "Lighting": {
+      "$properties": {
+        "Ambient": [0.55, 0.57, 0.6],
+        "Brightness": 2.2,
+        "ClockTime": 14,
+        "GlobalShadows": true,
+        "OutdoorAmbient": [0.6, 0.62, 0.66]
+      }
+    }
+  }
+}
