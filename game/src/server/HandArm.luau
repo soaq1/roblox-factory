@@ -12,8 +12,16 @@ local Players = game:GetService("Players")
 
 local HandArm = {}
 
+-- Roblox's animation script holds the slash for about this long before letting the arm settle back.
+-- Asking for another swing sooner restarts the slash from the beginning, which judders instead of
+-- looking like repeated swinging. A held use sends a swing every 0.2 seconds and a drag every 0.05,
+-- so the animation is spaced out here. How fast a block actually breaks is a separate matter and is
+-- not touched by this.
+local SWING_GAP = 0.3
+
 -- Whether each player's hand is meant to be full, remembered so a new body gets the same arm.
 local holding: { [Player]: boolean } = {}
+local lastSwing: { [Player]: number } = {}
 
 local function toolIn(character: Model): Tool?
 	local tool = character:FindFirstChild("HeldArm")
@@ -72,6 +80,11 @@ function HandArm.swing(player: Player): StringValue?
 	if not tool then
 		return nil
 	end
+	local now = os.clock()
+	if now - (lastSwing[player] or -10) < SWING_GAP then
+		return nil -- too soon: let the swing that is running play out
+	end
+	lastSwing[player] = now
 	local old = tool:FindFirstChild("toolanim")
 	if old then
 		old:Destroy()
@@ -108,6 +121,7 @@ function HandArm.start()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		holding[player] = nil
+		lastSwing[player] = nil
 	end)
 end
 
