@@ -6,7 +6,8 @@
 
 1. `docs/game-design.md`: 게임 전체 설계. 항목마다 **확정 / 잠정 / 제안 / 미정 / 기각** 상태가 붙어 있습니다.
 2. `docs/specs/2026-10-05-first-playable.md`: 지금 만들고 있는 첫 실행판의 범위와 구조.
-3. `game/README.md`: 코드를 만들고 시험하는 명령과 조작법.
+3. `docs/recipes.md`: 레시피 초안. `data/recipes.py`에서 자동으로 만들어지므로, 고칠 때는 그 파일을 고치고 `python3 data/recipes.py`를 실행합니다.
+4. `game/README.md`: 코드를 만들고 시험하는 명령과 조작법.
 
 ## 개발자
 
@@ -43,6 +44,7 @@
 | `art/` | 모델을 만드는 Blender 스크립트와 카탈로그 |
 | `art/catalog/` | 깃허브 페이지로 서비스되는 카탈로그. https://soaq1.github.io/roblox-factory/ |
 | `art/export/` | 로블록스로 가져갈 모델 파일 |
+| `data/` | 레시피 자료와 점검 스크립트 |
 
 ## 게임 코드 (`game/`)
 

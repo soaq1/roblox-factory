@@ -1,0 +1,2473 @@
+{
+ "raw": {
+  "dirt_clod": "섬의 땅을 팜",
+  "stone": "섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기",
+  "log": "나무를 벰 (묘목을 심어 기름) · 벌목기",
+  "coal": "허브 광산 · 석탄 광맥 핵을 꽂은 추출기",
+  "ore_cu": "허브 광산 · 구리 광맥 핵을 꽂은 추출기",
+  "ore_fe": "허브 광산 · 철 광맥 핵을 꽂은 추출기",
+  "ore_au": "허브 광산에서만 (핵 제련소가 있으면 금 광맥 핵)",
+  "ore_dia": "허브 광산에서만 (핵 제련소가 있으면 다이아 광맥 핵)",
+  "core_stone": "허브 광산에서 돌을 캐다 낮은 확률로",
+  "core_coal": "허브 광산에서 석탄을 캐다 낮은 확률로",
+  "core_cu": "허브 광산에서 구리를 캐다 낮은 확률로",
+  "core_fe": "허브 광산에서 철을 캐다 낮은 확률로",
+  "core_au": "핵 제련소에서만",
+  "core_dia": "핵 제련소에서만",
+  "monster_part": "몬스터를 잡아 낮은 확률로",
+  "seed": "농부에게서 삼 · 작물을 거두면 일부가 씨앗으로 돌아옴",
+  "sapling": "농부에게서 삼 · 나뭇잎을 부수면 가끔 나옴",
+  "wheat": "밭에서 기름 (씨앗)",
+  "cotton": "밭에서 기름 (씨앗)",
+  "oilseed": "밭에서 기름 (씨앗)",
+  "barrel_water": "물 펌프 (손으로 물을 뜨는 방법은 미정)",
+  "barrel_oil": "펌프잭 (원유를 어디서 얻는지는 미정)",
+  "crate": "포장기가 같은 아이템 8개를 묶어 만듦",
+  "block:grass": "섬의 땅 · 흙 위에 저절로 번짐",
+  "block:dirt": "섬의 땅",
+  "block:stone": "섬의 땅",
+  "block:log": "나무",
+  "block:leaves": "나무",
+  "block:ore_coal": "허브 광산",
+  "block:ore_cu": "허브 광산",
+  "block:ore_fe": "허브 광산",
+  "block:ore_au": "허브 광산",
+  "block:ore_dia": "허브 광산",
+  "block:quartz": "미정"
+ },
+ "fuel": {
+  "log": 1,
+  "charcoal": 3,
+  "coal": 4,
+  "briquette": 4,
+  "oilcan": 12,
+  "barrel_fuel": 24
+ },
+ "fuel_users": [
+  "campfire",
+  "hand_furnace",
+  "smelter",
+  "kiln",
+  "oven",
+  "blast",
+  "alloy",
+  "caster",
+  "generator",
+  "incinerator"
+ ],
+ "needs_power": [
+  "assembler",
+  "circuit",
+  "manufacturer",
+  "gemcutter",
+  "recycler",
+  "painter",
+  "magsep",
+  "sorter",
+  "lift",
+  "launcher",
+  "blower",
+  "pusher",
+  "sensor",
+  "gate",
+  "counter",
+  "logic",
+  "beacon",
+  "timer",
+  "coreforge"
+ ],
+ "process": [
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "ore_fe": 1
+   },
+   "outs": {
+    "ingot_fe": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "가장 짧은 길"
+  },
+  {
+   "kind": "분쇄",
+   "machine": "crusher",
+   "hand": "wb_part",
+   "ins": {
+    "ore_fe": 1
+   },
+   "outs": {
+    "crushed_fe": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "crushed_fe": 3
+   },
+   "outs": {
+    "ingot_fe": 2
+   },
+   "secs": 6,
+   "tool": null,
+   "note": "부수기만 하면 1.3배"
+  },
+  {
+   "kind": "세척",
+   "machine": "washer",
+   "hand": "wb_basic",
+   "ins": {
+    "crushed_fe": 8,
+    "barrel_water": 1
+   },
+   "outs": {
+    "clean_fe": 8,
+    "slag": 2
+   },
+   "secs": 8,
+   "tool": "bucket",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "clean_fe": 1
+   },
+   "outs": {
+    "ingot_fe": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "부수고 씻으면 2배"
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "ore_cu": 1
+   },
+   "outs": {
+    "ingot_cu": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "가장 짧은 길"
+  },
+  {
+   "kind": "분쇄",
+   "machine": "crusher",
+   "hand": "wb_part",
+   "ins": {
+    "ore_cu": 1
+   },
+   "outs": {
+    "crushed": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "crushed": 3
+   },
+   "outs": {
+    "ingot_cu": 2
+   },
+   "secs": 6,
+   "tool": null,
+   "note": "부수기만 하면 1.3배"
+  },
+  {
+   "kind": "세척",
+   "machine": "washer",
+   "hand": "wb_basic",
+   "ins": {
+    "crushed": 8,
+    "barrel_water": 1
+   },
+   "outs": {
+    "clean": 8,
+    "slag": 2
+   },
+   "secs": 8,
+   "tool": "bucket",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "clean": 1
+   },
+   "outs": {
+    "ingot_cu": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "부수고 씻으면 2배"
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "ore_au": 1
+   },
+   "outs": {
+    "ingot_au": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "가장 짧은 길"
+  },
+  {
+   "kind": "분쇄",
+   "machine": "crusher",
+   "hand": "wb_part",
+   "ins": {
+    "ore_au": 1
+   },
+   "outs": {
+    "crushed_au": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "crushed_au": 3
+   },
+   "outs": {
+    "ingot_au": 2
+   },
+   "secs": 6,
+   "tool": null,
+   "note": "부수기만 하면 1.3배"
+  },
+  {
+   "kind": "세척",
+   "machine": "washer",
+   "hand": "wb_basic",
+   "ins": {
+    "crushed_au": 8,
+    "barrel_water": 1
+   },
+   "outs": {
+    "clean_au": 8,
+    "slag": 2
+   },
+   "secs": 8,
+   "tool": "bucket",
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "smelter",
+   "hand": "hand_furnace",
+   "ins": {
+    "clean_au": 1
+   },
+   "outs": {
+    "ingot_au": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "부수고 씻으면 2배"
+  },
+  {
+   "kind": "가열",
+   "machine": "kiln",
+   "hand": "hand_furnace",
+   "ins": {
+    "sand": 2
+   },
+   "outs": {
+    "glass": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "kiln",
+   "hand": "hand_furnace",
+   "ins": {
+    "clay": 1
+   },
+   "outs": {
+    "brick": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "가열",
+   "machine": "kiln",
+   "hand": "hand_furnace",
+   "ins": {
+    "log": 1
+   },
+   "outs": {
+    "charcoal": 1
+   },
+   "secs": 4,
+   "tool": null,
+   "note": "석탄이 없을 때의 연료"
+  },
+  {
+   "kind": "가열",
+   "machine": "oven",
+   "hand": "wb_cook",
+   "ins": {
+    "dough": 1
+   },
+   "outs": {
+    "bread": 1
+   },
+   "secs": 4,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "합금",
+   "machine": "blast",
+   "hand": "hand_furnace",
+   "ins": {
+    "ingot_fe": 4,
+    "coal": 2
+   },
+   "outs": {
+    "ingot_steel": 4
+   },
+   "secs": 12,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "합금",
+   "machine": "blast",
+   "hand": "hand_furnace",
+   "ins": {
+    "ingot_fe": 4,
+    "charcoal": 3
+   },
+   "outs": {
+    "ingot_steel": 4
+   },
+   "secs": 16,
+   "tool": null,
+   "note": "석탄 없이 만드는 길"
+  },
+  {
+   "kind": "합금",
+   "machine": "alloy",
+   "hand": "hand_furnace",
+   "ins": {
+    "ingot_cu": 1,
+    "ingot_au": 1
+   },
+   "outs": {
+    "ingot_alloy": 2
+   },
+   "secs": 8,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "분쇄",
+   "machine": "crusher",
+   "hand": "wb_part",
+   "ins": {
+    "stone": 1
+   },
+   "outs": {
+    "gravel": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "분쇄",
+   "machine": "crusher",
+   "hand": "wb_part",
+   "ins": {
+    "gravel": 1
+   },
+   "outs": {
+    "sand": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "분쇄",
+   "machine": "mill",
+   "hand": "wb_cook",
+   "ins": {
+    "wheat": 1
+   },
+   "outs": {
+    "flour": 1
+   },
+   "secs": 2,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "걸러내기",
+   "machine": "sieve",
+   "hand": "wb_basic",
+   "ins": {
+    "gravel": 10
+   },
+   "outs": {
+    "sand": 8,
+    "ore_fe": 1
+   },
+   "secs": 10,
+   "tool": null,
+   "note": "광맥 핵 없이 철을 얻는 느린 길"
+  },
+  {
+   "kind": "걸러내기",
+   "machine": "sieve",
+   "hand": "wb_basic",
+   "ins": {
+    "sand": 10
+   },
+   "outs": {
+    "ore_cu": 1
+   },
+   "secs": 10,
+   "tool": null,
+   "note": "광맥 핵 없이 구리를 얻는 느린 길"
+  },
+  {
+   "kind": "압연",
+   "machine": "press",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_fe": 1
+   },
+   "outs": {
+    "plate_fe": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "인발",
+   "machine": "wiredraw",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_fe": 1
+   },
+   "outs": {
+    "rod_fe": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "압연",
+   "machine": "press",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_cu": 1
+   },
+   "outs": {
+    "plate_cu": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "인발",
+   "machine": "wiredraw",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_cu": 1
+   },
+   "outs": {
+    "rod_cu": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "압연",
+   "machine": "press",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_steel": 1
+   },
+   "outs": {
+    "plate_steel": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "인발",
+   "machine": "wiredraw",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_steel": 1
+   },
+   "outs": {
+    "rod_steel": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "압연",
+   "machine": "press",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_steel": 2
+   },
+   "outs": {
+    "beam": 1
+   },
+   "secs": 4,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "인발",
+   "machine": "wiredraw",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_cu": 1
+   },
+   "outs": {
+    "coil": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "인발",
+   "machine": "wiredraw",
+   "hand": "wb_part",
+   "ins": {
+    "ingot_au": 1
+   },
+   "outs": {
+    "wire_au": 2
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "절삭",
+   "machine": "lathe",
+   "hand": "wb_part",
+   "ins": {
+    "rod_fe": 1
+   },
+   "outs": {
+    "bolt": 4
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "절삭",
+   "machine": "lathe",
+   "hand": "wb_part",
+   "ins": {
+    "plate_fe": 1
+   },
+   "outs": {
+    "gear": 1
+   },
+   "secs": 3,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "주조",
+   "machine": "caster",
+   "hand": null,
+   "ins": {
+    "ingot_fe": 4
+   },
+   "outs": {
+    "frame": 1
+   },
+   "secs": 6,
+   "tool": null,
+   "note": "조립보다 철이 더 들지만 한 줄로 끝남"
+  },
+  {
+   "kind": "절단",
+   "machine": "sawmill",
+   "hand": "bag",
+   "ins": {
+    "log": 1
+   },
+   "outs": {
+    "plank": 4,
+    "sawdust": 1
+   },
+   "secs": 2,
+   "tool": null,
+   "note": "손으로 하면 톱밥은 안 나옴"
+  },
+  {
+   "kind": "절단",
+   "machine": "stonecutter",
+   "hand": "wb_basic",
+   "ins": {
+    "stone": 1
+   },
+   "outs": {
+    "stone_block": 1
+   },
+   "secs": 2,
+   "tool": "hammer",
+   "note": ""
+  },
+  {
+   "kind": "절단",
+   "machine": "gemcutter",
+   "hand": "wb_tool",
+   "ins": {
+    "ore_dia": 1
+   },
+   "outs": {
+    "diamond": 1
+   },
+   "secs": 6,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "절단",
+   "machine": "gemcutter",
+   "hand": "wb_tool",
+   "ins": {
+    "diamond": 1
+   },
+   "outs": {
+    "blade": 1
+   },
+   "secs": 8,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "압축",
+   "machine": "briquetter",
+   "hand": "wb_basic",
+   "ins": {
+    "sawdust": 4
+   },
+   "outs": {
+    "briquette": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": "부산물이 연료가 됨"
+  },
+  {
+   "kind": "압착",
+   "machine": "oilpress",
+   "hand": "wb_cook",
+   "ins": {
+    "oilseed": 4
+   },
+   "outs": {
+    "oilcan": 1
+   },
+   "secs": 4,
+   "tool": null,
+   "note": "밭에서 얻는 연료"
+  },
+  {
+   "kind": "직조",
+   "machine": "loom",
+   "hand": "wb_furn",
+   "ins": {
+    "cotton": 2
+   },
+   "outs": {
+    "cloth": 1
+   },
+   "secs": 3,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "혼합",
+   "machine": "mixer",
+   "hand": "wb_basic",
+   "ins": {
+    "dirt_clod": 4,
+    "barrel_water": 1
+   },
+   "outs": {
+    "clay": 4
+   },
+   "secs": 4,
+   "tool": "bucket",
+   "note": ""
+  },
+  {
+   "kind": "혼합",
+   "machine": "mixer",
+   "hand": "wb_basic",
+   "ins": {
+    "sand": 2,
+    "gravel": 2,
+    "barrel_water": 1
+   },
+   "outs": {
+    "concrete": 4
+   },
+   "secs": 4,
+   "tool": "bucket",
+   "note": ""
+  },
+  {
+   "kind": "혼합",
+   "machine": "mixer",
+   "hand": "wb_cook",
+   "ins": {
+    "flour": 2,
+    "barrel_water": 1
+   },
+   "outs": {
+    "dough": 4
+   },
+   "secs": 3,
+   "tool": null,
+   "note": ""
+  },
+  {
+   "kind": "혼합",
+   "machine": "mixer",
+   "hand": "wb_basic",
+   "ins": {
+    "slag": 2,
+    "tar": 1
+   },
+   "outs": {
+    "asphalt": 4
+   },
+   "secs": 4,
+   "tool": null,
+   "note": "찌꺼기와 타르의 쓸모"
+  },
+  {
+   "kind": "정유",
+   "machine": "refinery",
+   "hand": "hand_furnace",
+   "ins": {
+    "barrel_oil": 2
+   },
+   "outs": {
+    "barrel_fuel": 1,
+    "plastic": 2,
+    "tar": 1
+   },
+   "secs": 10,
+   "tool": null,
+   "note": ""
+  }
+ ],
+ "craft": [
+  {
+   "out": "frame",
+   "n": 1,
+   "bench": "part",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 2,
+    "rod_fe": 2
+   },
+   "note": "거의 모든 기계의 뼈대"
+  },
+  {
+   "out": "motor",
+   "n": 1,
+   "bench": "part",
+   "tier": 2,
+   "ins": {
+    "coil": 4,
+    "gear": 2,
+    "frame": 1
+   },
+   "note": "움직이는 기계의 재료"
+  },
+  {
+   "out": "cell",
+   "n": 1,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "plate_cu": 1,
+    "plate_fe": 1,
+    "charcoal": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "board",
+   "n": 1,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "coil": 3,
+    "glass": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "board",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "coil": 2,
+    "plastic": 1
+   },
+   "note": "석유를 뚫은 뒤의 싼 길"
+  },
+  {
+   "out": "board_adv",
+   "n": 1,
+   "bench": "elec",
+   "tier": 3,
+   "ins": {
+    "board": 2,
+    "wire_au": 4,
+    "ingot_alloy": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_wood",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 5
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_stone",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "stone": 3,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_iron",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 3,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_steel",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_steel": 3,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_gold",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_au": 3,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "pick_dia",
+   "n": 1,
+   "bench": "tool",
+   "tier": 3,
+   "ins": {
+    "diamond": 3,
+    "rod_steel": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_wood",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 5
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_stone",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "stone": 3,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_iron",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 3,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_steel",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_steel": 3,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_gold",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_au": 3,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "axe_dia",
+   "n": 1,
+   "bench": "tool",
+   "tier": 3,
+   "ins": {
+    "diamond": 3,
+    "rod_steel": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_wood",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 3
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_stone",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "stone": 1,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_iron",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 1,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_steel",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_steel": 1,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_gold",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_au": 1,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "shovel_dia",
+   "n": 1,
+   "bench": "tool",
+   "tier": 3,
+   "ins": {
+    "diamond": 1,
+    "rod_steel": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_wood",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_stone",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "stone": 2,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_iron",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 2,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_steel",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_steel": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_gold",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_au": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hoe_dia",
+   "n": 1,
+   "bench": "tool",
+   "tier": 3,
+   "ins": {
+    "diamond": 2,
+    "rod_steel": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_wood",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_stone",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "stone": 2,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_iron",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 2,
+    "plank": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_steel",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_steel": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_gold",
+   "n": 1,
+   "bench": "tool",
+   "tier": 2,
+   "ins": {
+    "ingot_au": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sword_dia",
+   "n": 1,
+   "bench": "tool",
+   "tier": 3,
+   "ins": {
+    "diamond": 2,
+    "rod_steel": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "hammer",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 2,
+    "plank": 1
+   },
+   "note": "손으로 부품을 만들 때 듦"
+  },
+  {
+   "out": "wrench",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "bucket",
+   "n": 1,
+   "bench": "part",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 3
+   },
+   "note": ""
+  },
+  {
+   "out": "watering_can",
+   "n": 1,
+   "bench": "tool",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 3,
+    "plate_cu": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "fishing_rod",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "plank": 3,
+    "cloth": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_basic",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "campfire",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "log": 3,
+    "stone": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "chest",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "plank": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "hand_furnace",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "stone": 40
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_tool",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "plank": 10,
+    "stone": 20,
+    "ingot_fe": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_part",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "plank": 10,
+    "ingot_fe": 20
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_machine",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 50,
+    "stone": 30,
+    "plank": 20
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_cook",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "stone": 20,
+    "plank": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_furn",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "plank": 20
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_elec",
+   "n": 1,
+   "bench": "basic",
+   "tier": 2,
+   "ins": {
+    "ingot_cu": 60,
+    "plate_fe": 30,
+    "coil": 40
+   },
+   "note": ""
+  },
+  {
+   "out": "wb_all",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "ingot_au": 200,
+    "diamond": 50,
+    "motor": 50,
+    "board_adv": 50,
+    "plate_steel": 500
+   },
+   "note": "일곱 작업대를 모두 3단계로 올린 뒤에 만듦"
+  },
+  {
+   "out": "belt",
+   "n": 4,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "belt_corner",
+   "n": 2,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 2,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "belt_ramp",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 3,
+    "rod_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "merger",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 3,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "splitter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 3,
+    "rod_fe": 2,
+    "gear": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "storage",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 6,
+    "plank": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "sorter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "board": 1,
+    "motor": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "magsep",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "coil": 20,
+    "ingot_fe": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "funnel",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "chute",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 4,
+    "rod_fe": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "blower",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "motor": 1,
+    "plate_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "lift",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 2,
+    "motor": 1,
+    "plate_fe": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "launcher",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "motor": 1,
+    "plate_steel": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "pusher",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "motor": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "extractor_empty",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "stone": 40,
+    "ingot_fe": 30,
+    "plank": 10,
+    "monster_part": 1
+   },
+   "note": "확정된 구성: 돌, 철 주괴, 나무, 몬스터 부품 하나"
+  },
+  {
+   "out": "extractor_fe",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "extractor_empty": 1,
+    "core_fe": 1
+   },
+   "note": "핵을 꽂음"
+  },
+  {
+   "out": "extractor_coal",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "extractor_empty": 1,
+    "core_coal": 1
+   },
+   "note": "핵을 꽂음"
+  },
+  {
+   "out": "logger",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 2,
+    "plate_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "harvester",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 2,
+    "plank": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "seeder",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 1,
+    "plank": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "sprinkler",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "rod_fe": 4,
+    "plate_cu": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "pump",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "rod_fe": 8,
+    "plate_cu": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "pumpjack",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 4,
+    "motor": 2,
+    "plate_steel": 20
+   },
+   "note": ""
+  },
+  {
+   "out": "crusher",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 4,
+    "stone_block": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "sawmill",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 2,
+    "plate_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "stonecutter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "plate_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "kiln",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "brick": 30,
+    "plate_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "mill",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "plank": 20,
+    "stone_block": 4,
+    "cloth": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "sieve",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "rod_fe": 6,
+    "cloth": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "briquetter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "plate_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "oilpress",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "gear": 2,
+    "plate_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "loom",
+   "n": 1,
+   "bench": "machine",
+   "tier": 1,
+   "ins": {
+    "frame": 1,
+    "plank": 16,
+    "rod_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "smelter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 4,
+    "brick": 60,
+    "plate_fe": 60,
+    "ingot_au": 10
+   },
+   "note": "귀하고 만들기 어려운 기계. 금은 허브에서만 나옴"
+  },
+  {
+   "out": "washer",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "plate_cu": 8,
+    "rod_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "press",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "plate_fe": 20,
+    "ingot_steel": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "wiredraw",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "gear": 4,
+    "ingot_steel": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "lathe",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "gear": 6,
+    "ingot_steel": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "caster",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "brick": 20,
+    "ingot_steel": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "mixer",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "plate_fe": 12,
+    "gear": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "oven",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "brick": 30,
+    "plate_fe": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "blast",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 10,
+    "brick": 200,
+    "plate_steel": 40
+   },
+   "note": "두 칸 폭의 큰 기계"
+  },
+  {
+   "out": "alloy",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "brick": 40,
+    "ingot_steel": 20
+   },
+   "note": ""
+  },
+  {
+   "out": "refinery",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 6,
+    "plate_steel": 40,
+    "rod_steel": 30,
+    "motor": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "gemcutter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "motor": 1,
+    "blade": 1,
+    "glass": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "recycler",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 2,
+    "motor": 1,
+    "gear": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "painter",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 1,
+    "motor": 1,
+    "glass": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "assembler",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 2,
+    "motor": 2,
+    "board": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "circuit",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 2,
+    "motor": 1,
+    "board": 4,
+    "glass": 8
+   },
+   "note": ""
+  },
+  {
+   "out": "manufacturer",
+   "n": 1,
+   "bench": "machine",
+   "tier": 3,
+   "ins": {
+    "frame": 10,
+    "motor": 6,
+    "board": 6,
+    "plate_steel": 40
+   },
+   "note": ""
+  },
+  {
+   "out": "packer",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "gear": 2,
+    "plank": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "vending",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "glass": 8,
+    "ingot_au": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "pole",
+   "n": 2,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "log": 2,
+    "coil": 4,
+    "glass": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "generator",
+   "n": 1,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "frame": 2,
+    "coil": 30,
+    "plate_fe": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "battery",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "cell": 8,
+    "plate_cu": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "windturbine",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "motor": 1,
+    "plate_steel": 6
+   },
+   "note": ""
+  },
+  {
+   "out": "solar",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "glass": 8,
+    "board": 2,
+    "plate_steel": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "incinerator",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 1,
+    "brick": 30,
+    "coil": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "switch",
+   "n": 1,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 2,
+    "coil": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "beacon",
+   "n": 1,
+   "bench": "elec",
+   "tier": 1,
+   "ins": {
+    "rod_fe": 2,
+    "glass": 3,
+    "coil": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "sensor",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "rod_fe": 4,
+    "board": 1,
+    "glass": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "gate",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "rod_fe": 4,
+    "plate_fe": 2,
+    "motor": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "counter",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "rod_fe": 2,
+    "board": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "timer",
+   "n": 1,
+   "bench": "elec",
+   "tier": 2,
+   "ins": {
+    "plate_fe": 2,
+    "board": 1
+   },
+   "note": ""
+  },
+  {
+   "out": "logic",
+   "n": 1,
+   "bench": "elec",
+   "tier": 3,
+   "ins": {
+    "plate_fe": 2,
+    "board": 2
+   },
+   "note": ""
+  },
+  {
+   "out": "coreforge",
+   "n": 1,
+   "bench": "all",
+   "tier": 0,
+   "ins": {
+    "plate_steel": 2000,
+    "motor": 300,
+    "board_adv": 300,
+    "ingot_au": 1000,
+    "diamond": 200,
+    "monster_part": 50,
+    "core_fe": 10,
+    "core_coal": 10,
+    "core_cu": 10,
+    "core_stone": 10
+   },
+   "note": ""
+  },
+  {
+   "out": "reactor",
+   "n": 1,
+   "bench": "all",
+   "tier": 0,
+   "ins": {
+    "plate_steel": 3000,
+    "board_adv": 500,
+    "cell": 1000,
+    "wire_au": 2000,
+    "diamond": 500,
+    "motor": 500
+   },
+   "note": ""
+  },
+  {
+   "out": "block:planks",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "plank": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:stone_bricks",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "stone_block": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:bricks",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "brick": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:glass",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "glass": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:concrete",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "concrete": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:asphalt",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "asphalt": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:sand",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "sand": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:gravel",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "gravel": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:clay",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "clay": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:farmland",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "block:dirt": 1
+   },
+   "note": "괭이로 흙을 갈아 만듦"
+  },
+  {
+   "out": "block:block_fe",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_fe": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:block_cu",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_cu": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:block_steel",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_steel": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:block_au",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "ingot_au": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:block_dia",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "diamond": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:block_coal",
+   "n": 1,
+   "bench": "basic",
+   "tier": 1,
+   "ins": {
+    "coal": 9
+   },
+   "note": ""
+  },
+  {
+   "out": "block:tread",
+   "n": 4,
+   "bench": "part",
+   "tier": 1,
+   "ins": {
+    "plate_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:grating",
+   "n": 4,
+   "bench": "part",
+   "tier": 1,
+   "ins": {
+    "rod_fe": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:cloth_white",
+   "n": 1,
+   "bench": "furn",
+   "tier": 1,
+   "ins": {
+    "cloth": 4
+   },
+   "note": ""
+  },
+  {
+   "out": "block:cloth_red",
+   "n": 1,
+   "bench": "furn",
+   "tier": 1,
+   "ins": {
+    "cloth": 4
+   },
+   "note": "염료는 미정"
+  },
+  {
+   "out": "block:cloth_yellow",
+   "n": 1,
+   "bench": "furn",
+   "tier": 1,
+   "ins": {
+    "cloth": 4
+   },
+   "note": "염료는 미정"
+  },
+  {
+   "out": "block:cloth_green",
+   "n": 1,
+   "bench": "furn",
+   "tier": 1,
+   "ins": {
+    "cloth": 4
+   },
+   "note": "염료는 미정"
+  },
+  {
+   "out": "block:cloth_blue",
+   "n": 1,
+   "bench": "furn",
+   "tier": 1,
+   "ins": {
+    "cloth": 4
+   },
+   "note": "염료는 미정"
+  }
+ ],
+ "upgrades": {
+  "basic:2": {
+   "plank": 40,
+   "stone": 40,
+   "ingot_fe": 20
+  },
+  "basic:3": {
+   "plate_fe": 150,
+   "stone_block": 100,
+   "ingot_steel": 40
+  },
+  "tool:2": {
+   "ingot_fe": 150,
+   "plate_fe": 40
+  },
+  "tool:3": {
+   "ingot_steel": 200,
+   "ingot_au": 30,
+   "diamond": 10
+  },
+  "part:2": {
+   "plate_fe": 100,
+   "rod_fe": 100,
+   "gear": 20
+  },
+  "part:3": {
+   "plate_steel": 150,
+   "motor": 10
+  },
+  "machine:2": {
+   "ingot_fe": 200,
+   "frame": 10,
+   "gear": 20
+  },
+  "machine:3": {
+   "ingot_steel": 300,
+   "motor": 30,
+   "board": 30
+  },
+  "cook:2": {
+   "brick": 40,
+   "plate_fe": 20
+  },
+  "cook:3": {
+   "plate_steel": 30,
+   "glass": 40
+  },
+  "elec:2": {
+   "ingot_steel": 150,
+   "board": 30,
+   "coil": 200
+  },
+  "elec:3": {
+   "wire_au": 100,
+   "board": 100,
+   "cell": 40
+  },
+  "furn:2": {
+   "plank": 100,
+   "cloth": 20,
+   "glass": 20
+  },
+  "furn:3": {
+   "ingot_steel": 20,
+   "cloth": 100,
+   "glass": 100
+  }
+ }
+}
