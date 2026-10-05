@@ -2228,6 +2228,59 @@ if "items" in ARGS:
               s["ortho"], (320, 320), True)
     print("ITEMS done", len(ITEM_SPECS))
 
+# ============================ EXPORT FOR ROBLOX ============================
+# One FBX per model, with the palette colours baked into vertex colours so each model stays a
+# single mesh. Geometry is scaled so that one grid cell is 3 studs. Not yet verified in Studio.
+if "export" in ARGS:
+    EXPORT = os.path.join(HERE, "export")
+    STUDS_PER_CELL = 3.0
+
+    def srgb(key):
+        h = PAL[key].lstrip("#")
+        return [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+
+    def export_mesh(mesh, folder, name):
+        me = mesh.copy()
+        keys = [m.name for m in me.materials]
+        attr = me.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+        for poly in me.polygons:
+            r, g, b = srgb(keys[poly.material_index])
+            for li in poly.loop_indices:
+                attr.data[li].color_srgb = (r, g, b, 1.0)
+        me.materials.clear()
+        me.transform(Matrix.Scale(STUDS_PER_CELL, 4))
+        ob = bpy.data.objects.new(name, me)
+        col.objects.link(ob)
+        for other in bpy.context.view_layer.objects:
+            other.select_set(False)
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        os.makedirs(os.path.join(EXPORT, folder), exist_ok=True)
+        bpy.ops.export_scene.fbx(
+            filepath=os.path.join(EXPORT, folder, name + ".fbx"), use_selection=True, object_types={"MESH"},
+            global_scale=0.01, colors_type="SRGB", mesh_smooth_type="FACE", bake_anim=False,
+            add_leaf_bones=False, axis_forward="-Z", axis_up="Y")
+        lo = [min(v.co[i] for v in me.vertices) for i in range(3)]
+        hi = [max(v.co[i] for v in me.vertices) for i in range(3)]
+        col.objects.unlink(ob)
+        # Blender is Z-up; Roblox is Y-up. Sizes and centres are given in Roblox axes, in studs,
+        # relative to the middle of the model's footprint on the ground.
+        return {
+            "size": [round(hi[0] - lo[0], 3), round(hi[2] - lo[2], 3), round(hi[1] - lo[1], 3)],
+            "center": [round((hi[0] + lo[0]) / 2, 3), round((hi[2] + lo[2]) / 2, 3), round(-(hi[1] + lo[1]) / 2, 3)],
+            "triangles": sum(len(p.vertices) - 2 for p in me.polygons),
+        }
+
+    index = {"studs_per_cell": STUDS_PER_CELL, "machines": {}, "items": {}}
+    for s in SPECS:
+        if s["show"]:
+            index["machines"][s["key"]] = dict(export_mesh(MESH[s["key"]], "machines", s["key"]),
+                                               name=s["ko"], cells=list(s["size"]))
+    for s in ITEM_SPECS:
+        index["items"][s["key"]] = dict(export_mesh(ITEMS[s["key"]], "items", s["key"]), name=s["ko"])
+    json.dump(index, open(os.path.join(EXPORT, "models.json"), "w"), ensure_ascii=False, indent=1)
+    print("EXPORT done", len(index["machines"]), len(index["items"]))
+
 meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
         for s in SPECS if s["show"]]
 items_meta = [{k: s[k] for k in ("key", "ko", "cat", "tris")} for s in ITEM_SPECS]

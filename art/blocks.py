@@ -2,12 +2,16 @@
 # The style is provisional. Writes textures to art/textures and thumbnails to art/catalog/img/blocks.
 # Run:  Blender --background --python blocks.py
 import bpy, bmesh, math, os, random, json
+import numpy as np
 from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEX = os.path.join(HERE, "textures")
 OUT = os.path.join(HERE, "catalog")
 IMG = os.path.join(OUT, "img", "blocks")
+BIG = os.path.join(HERE, "export", "textures")  # enlarged copies for Roblox, which blurs small images
+BIG_SCALE = 16
+os.makedirs(BIG, exist_ok=True)
 os.makedirs(TEX, exist_ok=True)
 os.makedirs(IMG, exist_ok=True)
 
@@ -390,6 +394,13 @@ def material(name, g):
     img.filepath_raw = os.path.join(TEX, name + ".png")
     img.file_format = "PNG"
     img.save()
+    big = np.array(pxs, dtype=np.float32).reshape(R, R, 4).repeat(BIG_SCALE, axis=0).repeat(BIG_SCALE, axis=1)
+    big_img = bpy.data.images.new(name + "_big", R * BIG_SCALE, R * BIG_SCALE, alpha=False)
+    big_img.pixels = big.ravel()
+    big_img.filepath_raw = os.path.join(BIG, name + ".png")
+    big_img.file_format = "PNG"
+    big_img.save()
+    bpy.data.images.remove(big_img)
     m = bpy.data.materials.new(name)
     if m.node_tree is None:
         m.use_nodes = True
