@@ -52,6 +52,7 @@ function Sorter.act(machine, player: Player, action: string, arg: any)
 end
 
 Sorter.tick = Passthrough.tick
+Sorter.whileHalted = Passthrough.whileHalted
 Sorter.accept = Passthrough.accept
 Sorter.drops = Passthrough.drops
 

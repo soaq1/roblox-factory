@@ -270,4 +270,260 @@ test("being un-readied is reported only when I was ready and the other side chan
 	)
 end)
 
+-- Screens of different sizes
+test("a phone counts as a small screen, a tablet and a desktop do not", function()
+	eq(ScreenLogic.isCompact(844, 390), true)
+	eq(ScreenLogic.isCompact(390, 844), true)
+	eq(ScreenLogic.isCompact(1024, 768), false)
+	eq(ScreenLogic.isCompact(1920, 1080), false)
+end)
+test("a window fills a phone screen without spilling over it", function()
+	for _, size in { { 760, 470 }, { 860, 520 }, { 420, 300 }, { 620, 300 } } do
+		local scale = ScreenLogic.windowScale(844, 354, size[1], size[2], true)
+		assert(
+			size[1] * scale <= 844 + 0.01 and size[2] * scale <= 354 + 0.01,
+			"window spills over a phone screen"
+		)
+		assert(scale >= 0.4, "window scaled to nothing")
+	end
+	-- a window laid out small for phones is drawn larger than life, which is what makes it readable
+	assert(ScreenLogic.windowScale(844, 354, 620, 300, true) > 1, "a phone layout should be scaled up")
+end)
+test("on a desktop a window keeps its size, and grows on a tall screen", function()
+	eq(ScreenLogic.windowScale(1366, 768, 760, 470, false), 1)
+	assert(ScreenLogic.windowScale(1920, 1080, 760, 470, false) > 1.2, "should grow at 1080p")
+	assert(ScreenLogic.windowScale(3840, 2160, 760, 470, false) <= 1.6, "should not grow without limit")
+	-- and never spills over a small desktop window
+	local scale = ScreenLogic.windowScale(900, 600, 860, 520, false)
+	assert(860 * scale <= 900 and 520 * scale <= 600, "window spills over a small desktop window")
+	eq(ScreenLogic.windowScale(0, 0, 760, 470, false), 1)
+end)
+test("a touch tablet gets larger windows than a desktop of the same size", function()
+	assert(
+		ScreenLogic.windowScale(1024, 768, 760, 470, true)
+			> ScreenLogic.windowScale(1024, 768, 760, 470, false),
+		"touch should scale up"
+	)
+end)
+test("the item bar keeps its size unless the screen is too narrow for it", function()
+	eq(ScreenLogic.barScale(1920, 720, 8), 1)
+	eq(ScreenLogic.barScale(736, 720, 8), 1)
+	local narrow = ScreenLogic.barScale(600, 720, 8)
+	assert(narrow < 1 and narrow * 720 <= 600 - 16 + 0.01, "bar should shrink to fit")
+	-- a phone leaves room at the sides for the thumbstick and the jump button
+	assert(ScreenLogic.barScale(844, 720, 130) < 1, "bar should shrink between the phone controls")
+	assert(ScreenLogic.barScale(200, 720, 8) >= 0.45, "bar should not shrink to nothing")
+	eq(ScreenLogic.barScale(0, 720, 8), 1)
+end)
+
+-- The item bar
+local ToolLogic = require("../src/shared/ToolLogic")
+local function isTool(key: string): boolean
+	return (ToolLogic.parse(key)) ~= nil
+end
+local function emptyBar(): { string }
+	return table.create(10, "")
+end
+test("a gain is every count that went up, and nothing that went down or stayed", function()
+	local list = ScreenLogic.gains(
+		{ log = 3, stone = 5, coal = 2 },
+		{ log = 5, stone = 4, coal = 2, plank = 8 }
+	)
+	eq(#list, 2)
+	eq(list[1].key, "log")
+	eq(list[1].n, 2)
+	eq(list[2].key, "plank")
+	eq(list[2].n, 8)
+	eq(#ScreenLogic.gains({ log = 3 }, { log = 3 }), 0)
+	eq(#ScreenLogic.gains({ log = 3 }, {}), 0)
+end)
+test("gains of one kind within a second add up, later ones start again", function()
+	eq(ScreenLogic.mergeGain(nil, nil, 2, 10, 1), 2)
+	eq(ScreenLogic.mergeGain(2, 10, 3, 10.6, 1), 5)
+	eq(ScreenLogic.mergeGain(5, 10.6, 1, 12, 1), 1)
+end)
+test("only kinds the bag did not hold before count as new", function()
+	local fresh = ScreenLogic.newKinds({ log = true }, { log = 9, stone = 1, pick_wood = 1 })
+	eq(#fresh, 2)
+	eq(fresh[1], "pick_wood")
+	eq(fresh[2], "stone")
+	eq(#ScreenLogic.newKinds({ log = true }, { log = 50 }), 0)
+end)
+test("with nothing on the bar, tools take the first slots", function()
+	local bar = ScreenLogic.fillSlots(
+		Defs,
+		Stock,
+		emptyBar(),
+		{ "smelter", "log", "pick_wood", "axe_iron", "ingot_fe" },
+		isTool
+	)
+	assert(isTool(Defs.itemOf(bar[1]) :: string), "slot 1 should hold a tool, got " .. bar[1])
+	assert(isTool(Defs.itemOf(bar[2]) :: string), "slot 2 should hold a tool, got " .. bar[2])
+	eq(bar[3], "smelter")
+	eq(bar[6], "")
+end)
+test("a new thing takes the first empty slot and nothing already placed moves", function()
+	local bar = emptyBar()
+	bar[1], bar[3], bar[4] = "item:pick_wood", "belt", "grass"
+	local after, changed = ScreenLogic.fillSlots(Defs, Stock, bar, { "ingot_fe" }, isTool)
+	eq(changed, true)
+	eq(after[1], "item:pick_wood")
+	eq(after[2], "item:ingot_fe")
+	eq(after[3], "belt")
+	eq(after[4], "grass")
+	-- the bar handed in is not altered
+	eq(bar[2], "")
+end)
+test("a thing already on the bar in either form is not added again", function()
+	local bar = emptyBar()
+	bar[1] = "item:log" -- the loose form of something that can also be placed
+	local after, changed = ScreenLogic.fillSlots(Defs, Stock, bar, { "log" }, isTool)
+	eq(changed, false)
+	eq(after[2], "")
+	bar[1] = "log"
+	after, changed = ScreenLogic.fillSlots(Defs, Stock, bar, { "log" }, isTool)
+	eq(changed, false)
+end)
+test("a full bar takes nothing more", function()
+	local bar = {}
+	for i = 1, 10 do
+		bar[i] = "belt"
+	end
+	local after, changed = ScreenLogic.fillSlots(Defs, Stock, bar, { "ingot_fe", "pick_wood" }, isTool)
+	eq(changed, false)
+	eq(#after, 10)
+end)
+test("two slots swap, and an empty one swaps like any other", function()
+	local bar = emptyBar()
+	bar[1], bar[2] = "item:pick_wood", "belt"
+	local after = ScreenLogic.swapSlots(bar, 1, 2)
+	eq(after[1], "belt")
+	eq(after[2], "item:pick_wood")
+	after = ScreenLogic.swapSlots(bar, 1, 7)
+	eq(after[1], "")
+	eq(after[7], "item:pick_wood")
+	eq(bar[1], "item:pick_wood")
+	-- a slot that does not exist changes nothing
+	eq(ScreenLogic.swapSlots(bar, 1, 11)[1], "item:pick_wood")
+end)
+
+-- Finding things
+test("each thing in a bag falls under one tab", function()
+	eq(ScreenLogic.bagTab(Defs, Stock, "smelter", isTool), "machine")
+	eq(ScreenLogic.bagTab(Defs, Stock, "block:planks", isTool), "block")
+	eq(ScreenLogic.bagTab(Defs, Stock, "pick_wood", isTool), "tool")
+	eq(ScreenLogic.bagTab(Defs, Stock, "ingot_fe", isTool), "item")
+	for _, tab in { "machine", "block", "tool", "item" } do
+		assert(table.find(ScreenLogic.BAG_TABS, tab), "tab " .. tab .. " is not listed")
+	end
+end)
+test("a search ignores spaces and case, and an empty search matches everything", function()
+	eq(ScreenLogic.matches("철 주괴", "철주"), true)
+	eq(ScreenLogic.matches("철 주괴", " 주괴 "), true)
+	eq(ScreenLogic.matches("철 주괴", "구리"), false)
+	eq(ScreenLogic.matches("Belt", "bel"), true)
+	eq(ScreenLogic.matches("anything", ""), true)
+	eq(ScreenLogic.matches("anything", "   "), true)
+	eq(ScreenLogic.matches("anything", nil), true)
+	-- what is typed is plain text, never a pattern
+	eq(ScreenLogic.matches("a.b", "."), true)
+	eq(ScreenLogic.matches("abc", "."), false)
+	eq(ScreenLogic.matches("abc", "%a"), false)
+end)
+test("only what can be made right now is listed as makeable", function()
+	local list = ScreenLogic.makeable(CraftLogic, Recipes.craft, { plank = 8 }, {})
+	assert(#list > 0, "planks should make something in the bag")
+	for _, index in list do
+		local recipe = Recipes.craft[index]
+		eq(recipe.bench, "bag")
+		eq(CraftLogic.blocked({ plank = 8 }, recipe, {}, 1), nil)
+	end
+	eq(#ScreenLogic.makeable(CraftLogic, Recipes.craft, {}, {}), 0)
+	-- standing at a bench opens up more
+	local rich = { plank = 999, stone = 999, ingot_fe = 999 }
+	assert(
+		#ScreenLogic.makeable(CraftLogic, Recipes.craft, rich, { basic = 1 })
+			> #ScreenLogic.makeable(CraftLogic, Recipes.craft, rich, {}),
+		"a bench in reach should allow more recipes"
+	)
+end)
+test("makeable hand work leaves the bag as it was", function()
+	local bag = { log = 4 }
+	local list = ScreenLogic.makeableHand(CraftLogic, Recipes.hand, bag, {}, Recipes.fuel)
+	assert(#list > 0, "a log should be workable by hand somewhere")
+	eq(bag.log, 4)
+	for _, index in list do
+		eq(Recipes.hand[index].station, "bag")
+	end
+	eq(#ScreenLogic.makeableHand(CraftLogic, Recipes.hand, {}, {}, Recipes.fuel), 0)
+end)
+test("a tile's entry is turned into the bag keys it stands for", function()
+	eq(ScreenLogic.keysOf(Defs, Stock, "item:ingot_fe")[1], "ingot_fe")
+	eq(ScreenLogic.keysOf(Defs, Stock, "ingot_fe")[1], "ingot_fe")
+	eq(ScreenLogic.keysOf(Defs, Stock, "smelter")[1], "smelter")
+	eq(ScreenLogic.keysOf(Defs, Stock, "block:planks")[1], "block:planks")
+	eq(ScreenLogic.keysOf(Defs, Stock, "planks")[1], "block:planks")
+	-- a log is a block and an item
+	local log = ScreenLogic.keysOf(Defs, Stock, "log")
+	assert(table.find(log, "log") and table.find(log, "block:log"), "a log should stand for both of its keys")
+	eq(#ScreenLogic.keysOf(Defs, Stock, "banana"), 0)
+end)
+test("looking a thing up finds every recipe that makes it and every one that uses it", function()
+	local info = ScreenLogic.lookup(Defs, Recipes, { "ingot_fe" })
+	local kinds = {}
+	for _, line in info.made do
+		kinds[line.kind] = true
+		assert(line.outs.ingot_fe, "a line listed as making iron ingots does not")
+	end
+	assert(kinds.machine and kinds.hand, "iron ingots are made by machine and by hand")
+	assert(#info.used > 10, "iron ingots are used in many things")
+	for _, line in info.used do
+		assert(line.ins.ingot_fe, "a line listed as using iron ingots does not")
+	end
+	-- every recipe that mentions it is found, no more and no fewer
+	local makes, uses = 0, 0
+	for _, recipe in Recipes.craft do
+		makes += if recipe.out == "ingot_fe" then 1 else 0
+		uses += if recipe.ins.ingot_fe then 1 else 0
+	end
+	for _, recipe in Recipes.hand do
+		makes += if recipe.outs.ingot_fe then 1 else 0
+		uses += if recipe.ins.ingot_fe then 1 else 0
+	end
+	for _, list in Recipes.byMachine do
+		for _, recipe in list do
+			makes += if recipe.outs.ingot_fe then 1 else 0
+			uses += if recipe.ins.ingot_fe then 1 else 0
+		end
+	end
+	for _, cost in Recipes.upgrades do
+		uses += if cost.ingot_fe then 1 else 0
+	end
+	eq(#info.made, makes)
+	eq(#info.used, uses)
+end)
+test("a lookup knows extractors, fuels, tools and machines", function()
+	local ore = ScreenLogic.lookup(Defs, Recipes, { "ore_fe" })
+	local fromExtractor = false
+	for _, line in ore.made do
+		fromExtractor = fromExtractor or line.kind == "extractor"
+	end
+	eq(fromExtractor, true)
+	eq(ScreenLogic.lookup(Defs, Recipes, { "coal" }).fuel, Recipes.fuel.coal)
+	eq(ScreenLogic.lookup(Defs, Recipes, { "ingot_fe" }).fuel, nil)
+	-- a hammer is used by the work it is the tool for
+	local hammer = ScreenLogic.lookup(Defs, Recipes, { "hammer" })
+	local asTool = false
+	for _, line in hammer.used do
+		asTool = asTool or (line.kind == "hand" and line.tool == "hammer")
+	end
+	eq(asTool, true)
+	-- a machine is made at a bench
+	local smelter = ScreenLogic.lookup(Defs, Recipes, { "smelter" })
+	eq(smelter.made[1].kind, "craft")
+	-- something unknown has nothing
+	local nothing = ScreenLogic.lookup(Defs, Recipes, { "banana" })
+	eq(#nothing.made + #nothing.used, 0)
+end)
+
 T.done()

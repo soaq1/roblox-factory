@@ -42,6 +42,25 @@ function VendingLogic.isReady(state: State): boolean
 	return state.item ~= nil and state.price >= 1
 end
 
+-- What the machine shows the world on its outside:
+--   "off"      no item or no price has been set yet, so it does nothing
+--   "empty"    it sells, and has nothing left to sell
+--   "nomoney"  it buys, and its owner cannot pay for even one
+--   "full"     it buys, and has bought as many as its owner asked for
+--   "open"     ready to trade
+function VendingLogic.shopState(state: State, ownerCoins: number): string
+	if not VendingLogic.isReady(state) then
+		return "off"
+	end
+	if state.mode == "sell" then
+		return if state.stock < 1 then "empty" else "open"
+	end
+	if state.stock >= math.min(state.limit, VendingLogic.MAX_STOCK) then
+		return "full"
+	end
+	return if ownerCoins < state.price then "nomoney" else "open"
+end
+
 -- The owner sets what the machine deals in. Choosing a different thing first puts the old stock
 -- back in the owner's bag.
 function VendingLogic.configure(

@@ -190,12 +190,19 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		IslandService.setBlock(island, x, y, z, "farmland")
 		return
 	end
-	-- In survival mode a block has to be worked at: how long depends on the tool in the hand.
-	-- Machines come up in one go, and in creative mode so does everything.
-	if island.mode == "survival" and cell.kind == "block" then
-		local needed = ToolLogic.blockHits(cell.id, hand)
+	-- In survival mode a thing has to be worked at: how long depends on the tool in the hand.
+	-- A block wants the tool for its material; a machine is lifted with a pickaxe. Every cell of a
+	-- machine counts as the same target. In creative mode everything comes up in one go.
+	if island.mode == "survival" then
+		local needed, swingAt = 1, key
+		if cell.kind == "block" then
+			needed = ToolLogic.blockHits(cell.id, hand)
+		else
+			needed = ToolLogic.machineHits(ToolLogic.machineHardness(cell.machine.def), hand)
+			swingAt = cell.machine.key
+		end
 		if needed > 1 then
-			local swing, hits = ToolLogic.swing(swings[player], key, os.clock(), SWING_GAP, SWING_KEEP)
+			local swing, hits = ToolLogic.swing(swings[player], swingAt, os.clock(), SWING_GAP, SWING_KEEP)
 			swings[player] = swing
 			if hits == 0 then
 				return
@@ -208,30 +215,54 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		swings[player] = nil
 	end
 
-	-- In survival mode what is broken goes back into the bag.
+	local changed = false
 	local back: string? = nil
 	if cell.kind == "machine" then
+		-- What the machine held goes into the owner's bag with it, rather than spilling.
+		local machine = cell.machine
 		back = Stock.machineReturn(cell.id)
-		MachineService.remove(cell.machine, true)
+		if machine.mod.drops then
+			local ok, held = pcall(machine.mod.drops, machine)
+			if ok and type(held) == "table" then
+				for id, count in held do
+					if Inventory.add(island.bag, id, count) then
+						changed = true
+					end
+				end
+			end
+		end
+		MachineService.remove(machine, false)
 	else
 		back = Stock.blockDrop(cell.id, math.random())
 		IslandService.clearCell(island, key)
 	end
+	-- In survival mode what is broken goes back into the bag.
 	if island.mode == "survival" and back then
 		Inventory.add(island.bag, back, 1)
+		changed = true
+	end
+	if changed then
 		Profile.push(island)
 	end
 end
 
-local function pickup(player: Player)
+-- Picks up one loose stack. The one the player is pointing at is taken if it is close enough;
+-- otherwise the nearest one lying still, and items riding a belt only when nothing else is near.
+local function pickup(player: Player, aimed: any)
 	local island = IslandService.get(player)
 	local position = rootPosition(player)
 	if not island or not position or not allowed(player) then
 		return
 	end
+	local part: BasePart? = nil
+	if typeof(aimed) == "Instance" and aimed:IsA("BasePart") and ItemService.info(aimed) then
+		if (aimed.Position - position).Magnitude <= Config.PICKUP_RANGE then
+			part = aimed
+		end
+	end
+	part = part or ItemService.pick(position, Config.PICKUP_RANGE)
 	-- Only what lies on the player's own island can be picked up, so a visitor cannot walk off
 	-- with what is lying on their host's.
-	local part = ItemService.nearest(position, Config.PICKUP_RANGE)
 	if not part or not IslandService.owns(island, part.Position) then
 		return
 	end

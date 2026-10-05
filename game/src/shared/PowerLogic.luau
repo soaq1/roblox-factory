@@ -41,6 +41,63 @@ export type Result = {
 	links: { { string } }, -- pairs of poles joined by a wire
 }
 
+-- How far electricity reaches, in cells (placeholders). The server's power system and the
+-- player's reach preview both take their numbers from here, so they cannot disagree.
+PowerLogic.REACH_CELLS = {
+	poleLink = 10, -- poles this close are joined by a wire
+	poleReach = 5, -- a pole feeds machines this close
+	sourceReach = 2.5, -- a generator feeds machines this close without any pole
+}
+
+-- The same distances in studs, for a grid whose cells are `cell` studs wide.
+function PowerLogic.settings(cell: number): Settings
+	local reach = PowerLogic.REACH_CELLS
+	return {
+		poleLink = reach.poleLink * cell,
+		poleReach = reach.poleReach * cell,
+		sourceReach = reach.sourceReach * cell,
+	}
+end
+
+export type Spot = { x: number, y: number, z: number, kind: string, everywhere: boolean? }
+
+-- For the reach preview: how far a power machine standing at `spot` feeds the machines around it
+-- (0 for one that feeds nothing by itself, such as a battery), and which of the other power
+-- machines it would be joined to, by their place in `others`.
+--   a pole joins poles within poleLink and generators within its reach
+--   a generator joins poles whose reach it stands in, and generators standing close by
+function PowerLogic.preview(spot: Spot, others: { Spot }, settings: Settings): (number, { number })
+	local joined = {}
+	local function close(other: Spot, range: number): boolean
+		local dx, dy, dz = spot.x - other.x, spot.y - other.y, spot.z - other.z
+		return dx * dx + dy * dy + dz * dz <= range * range
+	end
+	local reach = 0
+	if spot.kind == "pole" then
+		reach = settings.poleReach
+	elseif spot.kind == "source" and not spot.everywhere then
+		reach = settings.sourceReach
+	end
+	for index, other in others do
+		local range = 0
+		if spot.kind == "pole" then
+			range = if other.kind == "pole"
+				then settings.poleLink
+				elseif other.kind == "source" then settings.poleReach
+				else 0
+		elseif spot.kind == "source" then
+			range = if other.kind == "pole"
+				then settings.poleReach
+				elseif other.kind == "source" then settings.sourceReach
+				else 0
+		end
+		if range > 0 and close(other, range) then
+			table.insert(joined, index)
+		end
+	end
+	return reach, joined
+end
+
 local function near(a: Device, b: Device, range: number): boolean
 	local dx, dy, dz = a.x - b.x, a.y - b.y, a.z - b.z
 	return dx * dx + dy * dy + dz * dz <= range * range

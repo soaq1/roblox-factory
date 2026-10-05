@@ -91,6 +91,11 @@ function TradeService.ask(player: Player, target: any)
 		return
 	end
 	if asked[target] == player then
+		-- Accepting: anything this player had asked of someone else no longer stands.
+		local other = asked[player]
+		if other and other ~= target and other.Parent then
+			Net.get("Trade"):FireClient(other, { withdrawn = player.UserId })
+		end
 		asked[target] = nil
 		asked[player] = nil
 		local trade: Open = { session = TradeLogic.new(), a = target, b = player }
@@ -99,11 +104,22 @@ function TradeService.ask(player: Player, target: any)
 		show(trade)
 		return
 	end
+	if asked[player] == target then
+		-- Asking again (T pressed twice beside them) does not pester the other player again.
+		Profile.notify(player, target.Name .. "님의 대답을 기다리는 중입니다")
+		return
+	end
+	local before = asked[player]
+	if before and before.Parent then
+		-- Only one request stands at a time: the earlier one is taken back.
+		Net.get("Trade"):FireClient(before, { withdrawn = player.UserId })
+	end
 	asked[player] = target
 	Profile.notify(player, target.Name .. "님에게 거래를 청했습니다")
 	Profile.notify(
 		target,
-		player.Name .. "님이 거래를 청했습니다. T를 눌러 받을 수 있습니다"
+		player.Name
+			.. "님이 거래를 청했습니다. 가까이 가서 T를 누르거나 거래 화면에서 받을 수 있습니다"
 	)
 	-- The trade screen shows this as a request waiting to be accepted.
 	Net.get("Trade"):FireClient(target, { request = { id = player.UserId, name = player.Name } })

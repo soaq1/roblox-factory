@@ -107,10 +107,10 @@ local function take(buf: { [string]: number }, id: string, n: number)
 	end
 end
 
--- Burns one item from the buffer when the fuel has run out. The weakest fuel goes first, so a
--- log is burned before coal. An item that the waiting recipe needs is only burned if there is more
--- of it than the recipe uses.
-local function refuel(state: State, rules: Rules, recipe: Recipe)
+-- The item to burn when the fuel has run out. The weakest fuel goes first, so a log is burned
+-- before coal. An item that the waiting recipe needs is only burned if there is more of it than
+-- the recipe uses.
+local function fuelToBurn(state: State, rules: Rules, recipe: Recipe): string?
 	local best: string? = nil
 	for id, n in state.buf do
 		local value = rules.fuel[id]
@@ -120,6 +120,11 @@ local function refuel(state: State, rules: Rules, recipe: Recipe)
 			end
 		end
 	end
+	return best
+end
+
+local function refuel(state: State, rules: Rules, recipe: Recipe)
+	local best = fuelToBurn(state, rules, recipe)
 	if best then
 		take(state.buf, best, 1)
 		state.fuel += rules.fuel[best]
@@ -170,6 +175,101 @@ function ProcessLogic.step(state: State, dt: number, rules: Rules)
 			state.fuel = math.max(0, state.fuel - (rules.fuelPerJob or 1))
 		end
 	end
+end
+
+export type Flags = {
+	halted: boolean?, -- stopped by a signal device
+	needsPower: boolean?, -- cannot run without electricity
+	powered: boolean?,
+	stuck: boolean?, -- finished items have been unable to leave for a while
+}
+
+-- What the machine is doing, as a code (see shared/StatusText):
+--   "halted"   stopped by a signal            "nopower"  needs electricity and has none
+--   "blocked"  finished items cannot leave    "waiting"  no recipe has all its ingredients
+--   "nofuel"   ready to work but nothing to burn          "working"  none of the above
+function ProcessLogic.status(state: State, rules: Rules, flags: Flags): string
+	if flags.halted then
+		return "halted"
+	end
+	if flags.needsPower and not flags.powered then
+		return "nopower"
+	end
+	if waiting(state) >= rules.outCap or (flags.stuck and next(state.out) ~= nil) then
+		return "blocked"
+	end
+	local recipe = ready(state, rules)
+	if not recipe then
+		return "waiting"
+	end
+	if rules.usesFuel and state.fuel <= 0 and not fuelToBurn(state, rules, recipe) then
+		return "nofuel"
+	end
+	return "working"
+end
+
+-- Everything a machine with these recipes takes in: ingredients, and fuel if it burns any.
+function ProcessLogic.wanted(
+	recipes: { Recipe },
+	usesFuel: boolean,
+	fuel: { [string]: number }
+): { [string]: boolean }
+	local wanted: { [string]: boolean } = {}
+	for _, recipe in recipes do
+		for id in recipe.ins do
+			wanted[id] = true
+		end
+	end
+	if usesFuel then
+		for id in fuel do
+			wanted[id] = true
+		end
+	end
+	return wanted
+end
+
+local LIMIT = 2 ^ 31 -- a bag never holds this many of one thing
+
+local function isAmount(n: any): boolean
+	return type(n) == "number" and n == n and n % 1 == 0 and n >= 1 and n < LIMIT
+end
+
+-- A player puts something from their bag into the machine's ingredient slots by hand: as many as
+-- were asked for, or as many as they have, or as many as fit, whichever is least. Returns how many
+-- went in. What leaves the bag is exactly what enters the machine.
+function ProcessLogic.deposit(
+	state: State,
+	bag: { [string]: number },
+	itemId: any,
+	n: any,
+	rules: Rules
+): number
+	if type(itemId) ~= "string" or not isAmount(n) then
+		return 0
+	end
+	local moved = math.min(n, bag[itemId] or 0, ProcessLogic.room(state, itemId, rules))
+	if moved < 1 then
+		return 0
+	end
+	take(bag, itemId, moved)
+	state.buf[itemId] = (state.buf[itemId] or 0) + moved
+	return moved
+end
+
+-- A player takes everything of one kind out of a slot ("buf" for ingredients, "out" for products)
+-- into their bag. Returns how many came out.
+function ProcessLogic.withdraw(state: State, bag: { [string]: number }, slot: any, itemId: any): number
+	if type(itemId) ~= "string" or (slot ~= "buf" and slot ~= "out") then
+		return 0
+	end
+	local pile = if slot == "buf" then state.buf else state.out
+	local n = pile[itemId] or 0
+	if n < 1 or (bag[itemId] or 0) + n >= LIMIT then
+		return 0
+	end
+	take(pile, itemId, n)
+	bag[itemId] = (bag[itemId] or 0) + n
+	return n
 end
 
 -- A finished item that is waiting to leave, if there is one.

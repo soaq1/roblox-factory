@@ -3,8 +3,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local IslandGen = require(Shared.IslandGen)
+local Inventory = require(Shared.Inventory)
 local IslandService = require(script.Parent.Parent.IslandService)
 local Kit = require(script.Parent.Parent.MachineKit)
+local Profile = require(script.Parent.Parent.Profile)
 local Tuning = require(script.Parent.Parent.Tuning)
 
 local Plant = {}
@@ -26,13 +28,35 @@ local function show(machine, stage: number)
 	local stages = machine.def.stages
 	machine.stage = stage
 	machine.visual = Kit.visual(machine.model, machine.base, if stages then stages[stage] else machine.id)
+	-- The "gather" prompt is only there while there is something to gather.
+	if machine.prompt then
+		machine.prompt.Enabled = stages ~= nil and stage == #stages
+	end
 end
 
 function Plant.build(machine)
 	machine.age = 0
 	machine.wetUntil = 0
 	show(machine, 1)
-	Kit.body(machine)
+	local body = Kit.body(machine)
+	if machine.def.stages then
+		-- F on a ripe crop gathers it by hand, the way the harvester does: what it bore goes into
+		-- the bag and the plant starts over where it stands.
+		machine.prompt = Kit.prompt(machine, body, "거두기", function(player)
+			if player ~= machine.island.owner then
+				return
+			end
+			local yield = Plant.harvest(machine)
+			if not yield then
+				return
+			end
+			for id, count in yield do
+				Inventory.add(machine.island.bag, id, count)
+			end
+			Profile.push(machine.island)
+		end)
+		machine.prompt.Enabled = false
+	end
 end
 
 function Plant.load(machine, saved)

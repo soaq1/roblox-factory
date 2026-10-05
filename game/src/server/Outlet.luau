@@ -21,6 +21,23 @@ local function facingInput(other, port): boolean
 	return false
 end
 
+-- The cell just outside a mouth: what is there, if anything ({ kind = "block" | "machine", ... }).
+function Outlet.facing(machine, port)
+	local island = machine.island
+	local origin = island.origin
+	return island.cells[Grid.key(
+		Grid.toCell(port.spawn.X, origin.X, CELL),
+		Grid.toCell(port.spawn.Y, origin.Y, CELL),
+		Grid.toCell(port.spawn.Z, origin.Z, CELL)
+	)]
+end
+
+-- Is there a belt or a machine at this mouth for things to go to?
+function Outlet.hasTaker(machine, port): boolean
+	local cell = Outlet.facing(machine, port)
+	return cell ~= nil and cell.kind == "machine" and cell.machine ~= machine
+end
+
 -- Tries to put one item out through a port. Returns true if it left the machine.
 function Outlet.emit(machine, port, id: string): boolean
 	local island = machine.island

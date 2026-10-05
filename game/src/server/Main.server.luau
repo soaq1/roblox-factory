@@ -124,6 +124,8 @@ local function onPlayerAdded(player: Player)
 
 	Profile.ensureTool(island)
 	Profile.push(island)
+	island.extra.ready = true
+	Net.get("Prefs"):FireClient(player, island.prefs)
 	keepCharacter(player, island)
 end
 

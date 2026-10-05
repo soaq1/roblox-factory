@@ -1,6 +1,10 @@
 -- Any machine that turns things into other things: smelter, crusher, press, kiln and the rest.
 -- What it accepts and makes comes from the recipe table, so adding a recipe needs no code.
 --
+-- Inside, the machine has slots: ingredients (and fuel, where it burns any) and finished products.
+-- A belt fills and empties them through the mouths. A player can do the same by hand: F opens the
+-- machine's window, where things go in from the bag and come back out to it.
+--
 -- Electricity: a machine whose definition says it needs power only works while it has it. Any
 -- other machine works without, and if it happens to stand on a powered network it works faster
 -- and gets more out of its fuel.
@@ -10,14 +14,35 @@ local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local ProcessLogic = require(Shared.ProcessLogic)
 local Recipes = require(Shared.Recipes)
+local StatusText = require(Shared.StatusText)
 local Kit = require(script.Parent.Parent.MachineKit)
 local ItemService = require(script.Parent.Parent.ItemService)
 local Outlet = require(script.Parent.Parent.Outlet)
+local Profile = require(script.Parent.Parent.Profile)
+local StatusKit = require(script.Parent.Parent.StatusKit)
+local Watch = require(script.Parent.Parent.Watch)
 
 local Processor = {}
 
 Processor.SPEED_ON_POWER = 1.5 -- how much faster an ordinary machine works on electricity (a placeholder)
 Processor.FUEL_ON_POWER = 0.5 -- the share of its usual fuel it then uses per job (a placeholder)
+
+local function isBoosted(machine): boolean
+	return machine.powered == true and not machine.def.needsPower
+end
+
+-- What the machine is doing, as a code from shared/StatusText.
+local function statusOf(machine): string
+	if machine.unset then
+		return "unset" -- an assembler that has not been told what to make
+	end
+	return ProcessLogic.status(machine.state, machine.rules, {
+		halted = machine.halted == true,
+		needsPower = machine.def.needsPower == true,
+		powered = machine.powered == true,
+		stuck = machine.stuckFor >= StatusKit.STUCK_SECONDS,
+	})
+end
 
 local function describe(machine): string
 	local state = machine.state
@@ -33,17 +58,49 @@ local function describe(machine): string
 	if #parts > 0 then
 		table.insert(lines, table.concat(parts, " · "))
 	end
+	local figures = {}
 	if machine.rules.usesFuel then
-		table.insert(lines, "연료 " .. state.fuel)
+		table.insert(figures, "연료 " .. state.fuel)
 	end
-	if machine.def.needsPower then
-		if not machine.powered then
-			table.insert(lines, "전기 없음")
-		end
-	elseif machine.powered then
-		table.insert(lines, "전기로 가속 중")
+	local rate = StatusKit.rate(machine)
+	if rate > 0 then
+		table.insert(figures, StatusText.rate(rate))
+	end
+	if #figures > 0 then
+		table.insert(lines, table.concat(figures, " · "))
+	end
+	if not machine.unset then
+		local status = StatusText.of(machine.status)
+		table.insert(lines, if isBoosted(machine) then status .. " · 전기로 가속" else status)
 	end
 	return table.concat(lines, "\n")
+end
+
+-- Brings the lamp and the label up to date.
+local function refresh(machine)
+	StatusKit.set(machine, statusOf(machine))
+	StatusKit.say(machine, describe(machine))
+end
+
+-- What the machine's window shows.
+local function snapshot(machine): { [string]: any }
+	local state = machine.state
+	local info: { [string]: any } = {
+		buf = table.clone(state.buf),
+		out = table.clone(state.out),
+		fuel = state.fuel,
+		usesFuel = machine.rules.usesFuel,
+		status = machine.status,
+		rate = StatusKit.rate(machine),
+		boosted = isBoosted(machine),
+	}
+	-- A machine built on this one (the assembler) adds what its own part of the window needs.
+	if machine.info then
+		for key, value in machine.info() do
+			info[key] = value
+		end
+	end
+	return info
 end
 
 function Processor.build(machine)
@@ -66,7 +123,30 @@ function Processor.build(machine)
 	}
 	machine.state = ProcessLogic.new()
 	machine.label = Kit.label(body, machine.def.height)
+	StatusKit.roomy(machine.label)
 	machine.shown = ""
+	StatusKit.attach(machine)
+	Kit.prompt(machine, body, "열기", function(player)
+		Processor.open(machine, player)
+	end)
+	refresh(machine)
+end
+
+-- Opens the machine's window for its owner.
+function Processor.open(machine, player: Player)
+	if player ~= machine.island.owner then
+		return
+	end
+	refresh(machine)
+	Watch.open(machine, player, "machine", snapshot(machine))
+end
+
+-- Brings the lamp, the label and any open window up to date after something changed.
+function Processor.changed(machine)
+	refresh(machine)
+	Watch.push(machine, function()
+		return snapshot(machine)
+	end, true)
 end
 
 -- Changes what the machine makes. Returns whatever was waiting inside that the new recipes have
@@ -94,6 +174,7 @@ end
 
 function Processor.load(machine, saved)
 	machine.state = ProcessLogic.sanitize(saved, machine.rules, Defs.isItem)
+	refresh(machine)
 end
 
 function Processor.save(machine)
@@ -127,18 +208,66 @@ function Processor.tick(machine, dt: number)
 	end
 
 	local ready = ProcessLogic.peekOutput(state)
+	local left = false
 	if ready and #machine.outs > 0 then
 		if Outlet.emit(machine, machine.outs[machine.nextOut], ready) then
 			ProcessLogic.removeOutput(state, ready)
+			StatusKit.count(machine, 1)
+			left = true
 		end
 		machine.nextOut = machine.nextOut % #machine.outs + 1
 	end
+	StatusKit.stuck(machine, ready ~= nil, left, dt)
 
-	local text = describe(machine)
-	if text ~= machine.shown then
-		machine.shown = text
-		machine.label.Text = text
+	refresh(machine)
+	Watch.push(machine, function()
+		return snapshot(machine)
+	end)
+end
+
+-- A machine stopped by a signal gets no tick, so the power system calls this now and then to
+-- keep its lamp, label and window saying so.
+function Processor.whileHalted(machine)
+	refresh(machine)
+	Watch.push(machine, function()
+		return snapshot(machine)
+	end)
+end
+
+-- What the owner does in the machine's window:
+--   "put"   { id, n }     from the bag into the ingredient slots, as many as fit
+--   "take"  { slot, id }  everything of one kind from a slot ("buf" or "out") into the bag
+--   "close"               the window was closed
+function Processor.act(machine, player: Player, action: string, arg: any)
+	if player ~= machine.island.owner then
+		return
 	end
+	if action == "close" then
+		Watch.close(machine, player)
+		return
+	end
+	if type(arg) ~= "table" then
+		return
+	end
+	local island = machine.island
+	local moved = 0
+	if action == "put" then
+		moved = ProcessLogic.deposit(machine.state, island.bag, arg.id, arg.n, machine.rules)
+	elseif action == "take" then
+		moved = ProcessLogic.withdraw(machine.state, island.bag, arg.slot, arg.id)
+		if moved > 0 and arg.slot == "out" then
+			-- taken by hand, but it is still something the machine made and gave up
+			StatusKit.count(machine, moved)
+		end
+	else
+		return
+	end
+	if moved > 0 then
+		Profile.push(island)
+	elseif action == "put" then
+		Profile.hint(player, "이 기계가 받지 않거나 더 들어갈 자리가 없습니다")
+	end
+	Processor.changed(machine)
 end
 
 -- Called when a neighbouring machine hands an item straight over.

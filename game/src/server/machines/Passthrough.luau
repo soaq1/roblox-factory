@@ -5,21 +5,38 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
+local StatusText = require(Shared.StatusText)
 local Kit = require(script.Parent.Parent.MachineKit)
 local ItemService = require(script.Parent.Parent.ItemService)
 local Outlet = require(script.Parent.Parent.Outlet)
+local StatusKit = require(script.Parent.Parent.StatusKit)
 
 local Passthrough = {}
 
-local function describe(machine): string
+-- Brings the lamp and the label up to date: why it has stopped, if it has, and how many a minute
+-- are passing through.
+local function refresh(machine)
+	local code = "working"
+	if machine.halted then
+		code = "halted"
+	elseif machine.def.needsPower and not machine.powered then
+		code = "nopower"
+	elseif machine.stuckFor >= StatusKit.STUCK_SECONDS then
+		code = "blocked"
+	end
+	StatusKit.set(machine, code)
 	local lines = {}
 	if machine.title then
 		table.insert(lines, machine.title)
 	end
-	if machine.def.needsPower and not machine.powered then
-		table.insert(lines, "전기 없음")
+	local rate = StatusKit.rate(machine)
+	if rate > 0 then
+		table.insert(lines, StatusText.rate(rate))
 	end
-	return table.concat(lines, "\n")
+	if code ~= "working" then
+		table.insert(lines, StatusText.of(code))
+	end
+	StatusKit.say(machine, table.concat(lines, "\n"))
 end
 
 function Passthrough.build(machine)
@@ -50,6 +67,7 @@ function Passthrough.build(machine)
 	machine.sorting = false
 	machine.label = Kit.label(machine.body, def.height)
 	machine.shown = ""
+	StatusKit.attach(machine)
 end
 
 function Passthrough.load(machine, saved)
@@ -105,22 +123,27 @@ local function push(machine, id: string): boolean
 	return false
 end
 
-function Passthrough.tick(machine, _dt: number)
-	local text = describe(machine)
-	if text ~= machine.shown then
-		machine.shown = text
-		machine.label.Text = text
-	end
+function Passthrough.tick(machine, dt: number)
 	if #machine.outs == 0 or (machine.def.needsPower and not machine.powered) then
+		refresh(machine)
 		return
 	end
 	if not machine.held and #machine.ins > 0 then
 		pull(machine)
 	end
+	local holding = machine.held ~= nil
+	local left = false
 	if machine.held and push(machine, machine.held) then
 		machine.held = nil
+		left = true
+		StatusKit.count(machine, 1)
 	end
+	StatusKit.stuck(machine, holding, left, dt)
+	refresh(machine)
 end
+
+-- A machine stopped by a signal gets no tick; the power system calls this to keep it saying so.
+Passthrough.whileHalted = refresh
 
 function Passthrough.drops(machine): { [string]: number }
 	return if machine.held then { [machine.held] = 1 } else {}

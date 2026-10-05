@@ -13,14 +13,17 @@ export type Entry = { key: string, count: number }
 
 -- `grid` is a scroller laid out as a grid. `onClick` gets the key of the tile that was pressed.
 -- `decorate`, if given, is called once for each new tile to add anything extra to it.
+-- With `info` true, a right click or long press on a tile opens that thing's information card.
 function TileGrid.new(
 	grid: ScrollingFrame,
 	width: number,
 	height: number,
 	onClick: (key: string) -> (),
-	decorate: ((frame: Frame, key: string) -> ())?
+	decorate: ((frame: Frame, key: string) -> ())?,
+	info: boolean?
 )
 	return setmetatable({
+		info = info == true,
 		grid = grid,
 		width = width,
 		height = height,
@@ -43,7 +46,7 @@ local function build(self, key: string): Frame
 	count.ZIndex = 4
 	UIKit.cover(frame, function()
 		self.onClick(key)
-	end)
+	end, if self.info then key else nil)
 	if self.decorate then
 		self.decorate(frame, key)
 	end

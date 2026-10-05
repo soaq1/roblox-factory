@@ -1,5 +1,7 @@
--- The trade screen (T). With no trade open it lists who can be asked and who has asked; with one
+-- The trade screen. With no trade open it lists who can be asked and who has asked; with one
 -- open it shows both sides' offers and lets the player change their own.
+-- T opens it, unless another player is standing close: then T asks that player instead (see
+-- SocialUI, which takes the key over; the binding here is what is left if that module is absent).
 -- Every change is a request to the server, which sends back the trade as it then stands.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

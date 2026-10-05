@@ -20,6 +20,11 @@ local function onPrefs(player: Player, what: any, a: any, b: any)
 	if not island or not RateLimit.allow(player) then
 		return
 	end
+	if not island.extra.ready then
+		-- Stored data has not been applied yet: answering now would hand out empty settings, and
+		-- taking changes now would have them overwritten. The client asks again.
+		return
+	end
 	if what == "load" then
 		-- The client asks once it is ready to listen, so nothing is sent into the void.
 		Net.get("Prefs"):FireClient(player, island.prefs)

@@ -19,11 +19,9 @@ local PowerService = {}
 
 -- All placeholder numbers.
 PowerService.BEAT = 1 -- seconds between rounds
-PowerService.SETTINGS = {
-	poleLink = 10 * Config.CELL, -- poles this close are joined by a wire
-	poleReach = 5 * Config.CELL, -- a pole feeds machines this close
-	sourceReach = 2.5 * Config.CELL, -- a generator feeds machines this close without any pole
-}
+-- How far power reaches. The numbers live in PowerLogic so the player's reach preview reads the
+-- same ones.
+PowerService.SETTINGS = PowerLogic.settings(Config.CELL)
 PowerService.NEED_WATTS = 20 -- per cell of floor, for machines that cannot run without power
 PowerService.BOOST_WATTS = 10 -- per cell of floor, for ordinary machines that are sped up by it
 

@@ -11,6 +11,7 @@ type Screen = { frame: GuiObject, key: Enum.KeyCode?, onOpen: (() -> ())?, onClo
 
 local screens: { [string]: Screen } = {}
 local keyRuns: { [Enum.KeyCode]: () -> () } = {}
+local changeRuns: { () -> () } = {}
 local gui: ScreenGui? = nil
 
 -- The one ScreenGui everything in this game is drawn in.
@@ -36,6 +37,17 @@ function Screens.register(
 )
 	frame.Visible = false
 	screens[name] = { frame = frame, key = key, onOpen = onOpen, onClose = onClose }
+end
+
+-- Runs `run` whenever a window opens or closes.
+function Screens.onChange(run: () -> ())
+	table.insert(changeRuns, run)
+end
+
+local function changed()
+	for _, run in changeRuns do
+		task.spawn(run)
+	end
 end
 
 -- Runs `run` when a key is pressed outside of chat and text boxes.
@@ -64,6 +76,7 @@ function Screens.close(name: string)
 		if screen.onClose then
 			screen.onClose()
 		end
+		changed()
 	end
 end
 
@@ -89,6 +102,7 @@ function Screens.open(name: string)
 		if screen.onOpen then
 			screen.onOpen()
 		end
+		changed()
 	end
 end
 

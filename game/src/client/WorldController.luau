@@ -6,13 +6,14 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
+local HandInput = require(script.Parent.HandInput)
 local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
+local Settings = require(script.Parent.Settings)
 local SoundPlayer = require(script.Parent.SoundPlayer)
 local UIKit = require(script.Parent.UIKit)
 
@@ -30,12 +31,12 @@ local bar: Frame
 local fill: Frame
 local barToken = 0
 
--- What the cursor is on: "mine" with a rock, "attack" with a monster, or nothing.
+-- What the player points at: "mine" with a rock, "attack" with a monster, or nothing.
 local function aim(): (string?, Instance?)
-	local camera = Workspace.CurrentCamera
+	local ray = HandInput.ray()
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not camera or not character or not root or not root:IsA("BasePart") then
+	if not ray or not character or not root or not root:IsA("BasePart") then
 		return nil, nil
 	end
 	local ignore: { Instance } = { character }
@@ -46,8 +47,6 @@ local function aim(): (string?, Instance?)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.FilterDescendantsInstances = ignore
-	local mouse = UserInputService:GetMouseLocation()
-	local ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
 	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 400, params)
 	if not hit or (hit.Position - root.Position).Magnitude > REACH then
 		return nil, nil
@@ -122,21 +121,18 @@ function WorldController.init(_hotbar)
 		end
 	end)
 
-	UserInputService.InputBegan:Connect(function(input, handledByUi)
-		if handledByUi or input.UserInputType ~= Enum.UserInputType.MouseButton1 then
-			return
-		end
+	HandInput.start()
+	HandInput.onBegan(function()
 		local first = swing()
-		if first then
+		-- Holding keeps swinging, if the player has that switched on.
+		if first and Settings.get("holdToRepeat") then
 			held = true
 			sinceSwing = 0
 			gap = first
 		end
 	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			held = false
-		end
+	HandInput.onEnded(function()
+		held = false
 	end)
 	RunService.RenderStepped:Connect(function(dt)
 		if not held then

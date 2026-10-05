@@ -216,7 +216,13 @@ function MachineService.start()
 		for machine in machines do
 			local tick = machine.mod.tick
 			-- `halted` is set by signal devices to stop a neighbour; `powered` by the power system.
-			if tick and not machine.halted then
+			if machine.halted then
+				-- A machine stopped by a signal does no work, but may still update what it shows.
+				local shown = machine.mod.whileHalted
+				if shown then
+					pcall(shown, machine, step)
+				end
+			elseif tick then
 				local ok, result = pcall(tick, machine, step)
 				if not ok then
 					warn("machine " .. machine.id .. " at " .. machine.key .. " failed: " .. tostring(result))

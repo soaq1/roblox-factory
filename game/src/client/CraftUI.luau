@@ -1,5 +1,7 @@
 -- The crafting screen (C): what can be made by hand, where, and from what. Three tabs: crafting at
 -- workbenches, working materials at a hand station, and raising a workbench's tier.
+-- The first group on a tab lists whatever can be made right now, wherever it is made; a search
+-- box finds a recipe by the name of what it makes.
 -- The screen only shows and asks. Whether something is really made is decided by the server.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,17 +23,28 @@ local player = Players.LocalPlayer
 local Stock = UIKit.Stock
 local ROW = 74
 
+local NOW = "now" -- the name of the group of things that can be made right now
+local SIDE = 190 -- width of the list of groups; narrower on a phone
+
+type Row = { kind: string, index: number } -- kind is "craft" or "hand"; index is into that list
+
 local hotbar
 local groupList: ScrollingFrame
 local rowList: ScrollingFrame
 local nearLabel: TextLabel
+local search: TextBox
 local tabButtons: { [string]: TextButton } = {}
 local groupButtons: { [string]: TextButton } = {}
+local groupTotals: { [string]: number } = {}
 local tab = "craft"
 local group: string? = nil
 local rows: { () -> () } = {} -- one refresh function per row on show
 local benches: { [string]: number } = {}
 local watching = 0
+local openAt: string? = nil -- the group to show when the screen next opens
+-- What the "can be made now" group is showing. A row stays once shown, greyed if it can no
+-- longer be made, so that making something does not pull the list out from under the cursor.
+local nowShown: { craft: { [number]: boolean }, hand: { [number]: boolean } } = { craft = {}, hand = {} }
 
 -- The name of each kind of bench, and the machine that is that bench (for its picture).
 local benchNames: { [string]: string } = { bag = "가방" }
@@ -164,6 +177,10 @@ local function makeRow(order: number, picture: string, title: string): (TextLabe
 	art.Size = UDim2.fromOffset(ROW - 16, ROW - 16)
 	art.Parent = frame
 	UIKit.picture(art, picture)
+	-- Pressing the picture opens what is known about the thing: how it is made, what it goes into.
+	UIKit.cover(art, function()
+		UIKit.info(picture)
+	end)
 
 	local name = UIKit.label(frame, title, 14)
 	name.TextXAlignment = Enum.TextXAlignment.Left
@@ -183,7 +200,7 @@ local function makeRow(order: number, picture: string, title: string): (TextLabe
 	actions.BackgroundTransparency = 1
 	actions.AnchorPoint = Vector2.new(1, 0.5)
 	actions.Position = UDim2.new(1, -8, 0.5, 0)
-	actions.Size = UDim2.fromOffset(172, 30)
+	actions.Size = UDim2.fromOffset(172, 34)
 	actions.Parent = frame
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
@@ -203,7 +220,7 @@ local function actionButton(
 ): TextButton
 	local item = UIKit.button(actions, text, 13)
 	item.BackgroundColor3 = UIKit.BACK
-	item.Size = UDim2.fromOffset(width, 30)
+	item.Size = UDim2.fromOffset(width, 34)
 	item.LayoutOrder = order
 	item.Activated:Connect(run)
 	return item
@@ -360,14 +377,137 @@ local function refreshRows()
 	end
 end
 
--- "기계 작업대 2단계", dimmed when it is not in reach.
+local function setOf(list: { number }): { [number]: boolean }
+	local set = {}
+	for _, index in list do
+		set[index] = true
+	end
+	return set
+end
+
+local function canCraftNow(): { [number]: boolean }
+	return setOf(ScreenLogic.makeable(CraftLogic, Recipes.craft, hotbar.bag, benches))
+end
+
+local function canHandNow(): { [number]: boolean }
+	return setOf(ScreenLogic.makeableHand(CraftLogic, Recipes.hand, hotbar.bag, benches, Recipes.fuel))
+end
+
+local function sortedIndexes(set: { [number]: boolean }): { number }
+	local list = {}
+	for index in set do
+		table.insert(list, index)
+	end
+	table.sort(list)
+	return list
+end
+
+-- The hand recipes of one station.
+local function handOf(station: string): { number }
+	for _, entry in ScreenLogic.groups(Recipes.hand, "station") do
+		if entry.name == station then
+			return entry.indexes
+		end
+	end
+	return {}
+end
+
+-- Does a recipe's product match what is typed in the search box?
+local function found(row: Row): boolean
+	if row.kind == "craft" then
+		return ScreenLogic.matches(Stock.name(Recipes.craft[row.index].out), search.Text)
+	end
+	for key in Recipes.hand[row.index].outs do
+		if ScreenLogic.matches(Stock.name(key), search.Text) then
+			return true
+		end
+	end
+	return false
+end
+
+-- The rows to show: the group that is selected, or, while something is typed in the search box,
+-- every recipe on this tab whose product matches.
+local function wantedRows(): { Row }
+	local list: { Row } = {}
+	local function add(kind: string, indexes: { number })
+		for _, index in indexes do
+			table.insert(list, { kind = kind, index = index })
+		end
+	end
+	local searching = not ScreenLogic.matches("", search.Text)
+	if searching then
+		if tab == "craft" then
+			for index in Recipes.craft do
+				add("craft", { index })
+			end
+		end
+		for index in Recipes.hand do
+			add("hand", { index })
+		end
+		local hits = {}
+		for _, row in list do
+			if found(row) then
+				table.insert(hits, row)
+			end
+		end
+		return hits
+	end
+	if group == NOW then
+		if tab == "craft" then
+			add("craft", sortedIndexes(nowShown.craft))
+		end
+		add("hand", sortedIndexes(nowShown.hand))
+	elseif group and tab == "craft" then
+		for _, entry in ScreenLogic.groups(Recipes.craft, "bench") do
+			if entry.name == group then
+				add("craft", entry.indexes)
+			end
+		end
+		-- The very first things (planks from a log) are hand work that needs no station. They
+		-- are shown with the bag recipes too.
+		if group == "bag" then
+			add("hand", handOf("bag"))
+		end
+	elseif group then
+		add("hand", handOf(group))
+	end
+	return list
+end
+
+-- "기계 작업대  3/41": how many of a group can be made now, out of how many. Dimmed when the bench
+-- is not in reach.
 local function refreshGroups()
+	local craftNow, handNow = canCraftNow(), canHandNow()
 	for name, item in groupButtons do
-		local near = name == "bag"
+		local near = name == NOW
+			or name == "bag"
 			or benches[name] ~= nil
 			or (benches.all ~= nil and table.find(ScreenLogic.WORKBENCHES, name) ~= nil)
 		item.TextColor3 = if near then UIKit.TEXT else UIKit.DIM
 		item.BackgroundColor3 = if name == group then UIKit.LINE else UIKit.PANEL
+		local can = 0
+		if name == NOW then
+			for _ in handNow do
+				can += 1
+			end
+			if tab == "craft" then
+				for _ in craftNow do
+					can += 1
+				end
+			end
+			item.Text = "지금 만들 수 있음  " .. can
+		else
+			if tab == "craft" then
+				for index in craftNow do
+					can += if Recipes.craft[index].bench == name then 1 else 0
+				end
+			else
+				for index in handNow do
+					can += if Recipes.hand[index].station == name then 1 else 0
+				end
+			end
+			item.Text = (benchNames[name] or name) .. "  " .. can .. "/" .. (groupTotals[name] or 0)
+		end
 	end
 	local near = {}
 	for kind in benches do
@@ -381,38 +521,38 @@ local function refreshGroups()
 			.. "스터드 안에서 쓸 수 있습니다"
 end
 
-local function showGroup(name: string, indexes: { number })
-	group = name
+-- Draws the rows for the selected group or the search. `keep` leaves the list scrolled where it is.
+local function render(keep: boolean?)
+	local at = rowList.CanvasPosition
 	rows = {}
 	UIKit.clear(rowList)
-	rowList.CanvasPosition = Vector2.zero
-	for order, index in indexes do
-		if tab == "craft" then
-			craftRow(order, index)
+	for order, row in wantedRows() do
+		if row.kind == "craft" then
+			craftRow(order, row.index)
 		else
-			handRow(order, index)
+			handRow(order, row.index)
 		end
 	end
-	-- The very first things (planks from a log) are hand work that needs no station. They are
-	-- shown with the bag recipes too, so a new player finds them on the screen that opens.
-	if tab == "craft" and name == "bag" then
-		for _, entry in ScreenLogic.groups(Recipes.hand, "station") do
-			if entry.name == "bag" then
-				for order, index in entry.indexes do
-					handRow(#indexes + order, index)
-				end
-			end
-		end
-	end
+	rowList.CanvasPosition = if keep then at else Vector2.zero
 	refreshRows()
 	refreshGroups()
 end
 
-local function showTab(name: string)
+local function showGroup(name: string)
+	group = name
+	if name == NOW then
+		-- A fresh look: only what can be made at this moment.
+		nowShown = { craft = canCraftNow(), hand = canHandNow() }
+	end
+	render()
+end
+
+local function showTab(name: string, first: string?)
 	tab = name
 	group = nil
 	rows = {}
 	groupButtons = {}
+	groupTotals = {}
 	UIKit.clear(groupList)
 	UIKit.clear(rowList)
 	for key, item in tabButtons do
@@ -420,10 +560,11 @@ local function showTab(name: string)
 	end
 
 	if name == "upgrade" then
-		-- No groups: one row for each of the seven workbenches.
+		-- No groups and nothing to search: one row for each of the seven workbenches.
 		groupList.Visible = false
-		rowList.Position = UDim2.fromOffset(0, 64)
-		rowList.Size = UDim2.new(1, 0, 1, -64)
+		search.Visible = false
+		rowList.Position = UDim2.fromOffset(0, 62)
+		rowList.Size = UDim2.new(1, 0, 1, -62)
 		for order, kind in ScreenLogic.WORKBENCHES do
 			upgradeRow(order, kind)
 		end
@@ -433,25 +574,35 @@ local function showTab(name: string)
 	end
 
 	groupList.Visible = true
-	rowList.Position = UDim2.fromOffset(202, 64)
-	rowList.Size = UDim2.new(1, -202, 1, -64)
+	search.Visible = true
+	rowList.Position = UDim2.fromOffset(SIDE + 12, 62)
+	rowList.Size = UDim2.new(1, -(SIDE + 12), 1, -62)
 	local groups = if name == "craft"
 		then ScreenLogic.groups(Recipes.craft, "bench")
 		else ScreenLogic.groups(Recipes.hand, "station")
-	for order, entry in groups do
-		local item =
-			UIKit.button(groupList, (benchNames[entry.name] or entry.name) .. "  " .. #entry.indexes, 13)
+	local function groupButton(order: number, key: string)
+		local item = UIKit.button(groupList, "", 13)
 		item.AutoButtonColor = false
-		item.Size = UDim2.new(1, -6, 0, 30)
+		item.TextTruncate = Enum.TextTruncate.AtEnd
+		item.Size = UDim2.new(1, -6, 0, 34)
 		item.LayoutOrder = order
 		item.Activated:Connect(function()
-			showGroup(entry.name, entry.indexes)
+			-- Choosing a group puts the search away, or the group would not be what is shown.
+			search.Text = ""
+			showGroup(key)
 		end)
-		groupButtons[entry.name] = item
+		groupButtons[key] = item
 	end
-	if groups[1] then
-		showGroup(groups[1].name, groups[1].indexes)
+	groupButton(0, NOW)
+	local wanted = NOW
+	for order, entry in groups do
+		groupTotals[entry.name] = #entry.indexes
+		groupButton(order, entry.name)
+		if entry.name == first then
+			wanted = entry.name
+		end
 	end
+	showGroup(wanted)
 end
 
 -- While the screen is open, notice when the player walks into or out of reach of a bench.
@@ -459,7 +610,8 @@ local function watch()
 	watching += 1
 	local token = watching
 	benches = benchesNow()
-	showTab(tab)
+	showTab(tab, openAt)
+	openAt = nil
 	task.spawn(function()
 		while token == watching and Screens.isOpen("craft") do
 			task.wait(1)
@@ -476,17 +628,71 @@ local function watch()
 	end)
 end
 
+-- The bag, the tiers or the benches in reach changed. The rows stay and show new numbers; the
+-- "can be made now" group also takes in anything that has just become makeable.
+local function update()
+	benches = benchesNow()
+	if group == NOW and tab ~= "upgrade" and ScreenLogic.matches("", search.Text) then
+		local grew = false
+		for index in canHandNow() do
+			grew = grew or not nowShown.hand[index]
+			nowShown.hand[index] = true
+		end
+		if tab == "craft" then
+			for index in canCraftNow() do
+				grew = grew or not nowShown.craft[index]
+				nowShown.craft[index] = true
+			end
+		end
+		if grew then
+			render(true)
+			return
+		end
+	end
+	refreshRows()
+	refreshGroups()
+end
+
+-- Opens the screen at one tab ("craft", "hand" or "upgrade") and one of its groups (a bench kind,
+-- a hand station). With `query` given, the search box is filled in too, which narrows the list to
+-- the recipes that make that thing.
+function CraftUI.reveal(tabName: string, groupName: string?, query: string?)
+	tab = tabName
+	search.Text = ""
+	if Screens.isOpen("craft") then
+		benches = benchesNow()
+		showTab(tab, groupName)
+	else
+		openAt = groupName
+		Screens.open("craft")
+	end
+	if query and tab ~= "upgrade" then
+		search.Text = query
+	end
+end
+
 function CraftUI.init(hotbarUi)
 	hotbar = hotbarUi
-	local _, body = UIKit.window("craft", "조합", 860, 520, Enum.KeyCode.C, watch, function()
-		watching += 1
-	end)
+	-- Laid out smaller on a phone, where the window is then drawn larger to fill the screen.
+	local compact = UIKit.compact()
+	SIDE = if compact then 150 else 190
+	local _, body = UIKit.window(
+		"craft",
+		"조합",
+		if compact then 660 else 860,
+		if compact then 310 else 520,
+		Enum.KeyCode.C,
+		watch,
+		function()
+			watching += 1
+		end
+	)
 
 	local x = 0
 	for _, entry in { { "craft", "조합" }, { "hand", "손 작업" }, { "upgrade", "작업대 단계" } } do
 		local item = UIKit.button(body, entry[2], 15)
 		item.AutoButtonColor = false
-		item.Size = UDim2.fromOffset(110, 30)
+		item.Size = UDim2.fromOffset(110, 32)
 		item.Position = UDim2.fromOffset(x, 0)
 		item.Activated:Connect(function()
 			showTab(entry[1])
@@ -494,6 +700,16 @@ function CraftUI.init(hotbarUi)
 		tabButtons[entry[1]] = item
 		x += 116
 	end
+
+	search = UIKit.input(body, "만들 것 찾기", 14)
+	search.AnchorPoint = Vector2.new(1, 0)
+	search.Position = UDim2.fromScale(1, 0)
+	search.Size = UDim2.fromOffset(if compact then 140 else 220, 32)
+	search:GetPropertyChangedSignal("Text"):Connect(function()
+		if Screens.isOpen("craft") and tab ~= "upgrade" then
+			render()
+		end
+	end)
 
 	nearLabel = UIKit.label(body, "", 12)
 	nearLabel.TextColor3 = UIKit.DIM
@@ -505,12 +721,12 @@ function CraftUI.init(hotbarUi)
 
 	groupList = UIKit.scroller(body, nil, 5)
 	groupList.ScrollBarThickness = 4
-	groupList.Position = UDim2.fromOffset(0, 64)
-	groupList.Size = UDim2.new(0, 190, 1, -64)
+	groupList.Position = UDim2.fromOffset(0, 62)
+	groupList.Size = UDim2.new(0, SIDE, 1, -62)
 
 	rowList = UIKit.scroller(body, nil, 6)
-	rowList.Position = UDim2.fromOffset(202, 64)
-	rowList.Size = UDim2.new(1, -202, 1, -64)
+	rowList.Position = UDim2.fromOffset(SIDE + 12, 62)
+	rowList.Size = UDim2.new(1, -(SIDE + 12), 1, -62)
 
 	-- F on a workbench or a hand station opens this screen at what that one makes.
 	Net.get("MachineInfo").OnClientEvent:Connect(function(message)
@@ -519,25 +735,12 @@ function CraftUI.init(hotbarUi)
 		end
 		local kind = message.info.bench
 		local onHand = kind == "hand_furnace" or kind == "campfire"
-		Screens.open("craft")
-		benches = benchesNow()
-		showTab(if onHand then "hand" else "craft")
-		local groups = if onHand
-			then ScreenLogic.groups(Recipes.hand, "station")
-			else ScreenLogic.groups(Recipes.craft, "bench")
-		for _, entry in groups do
-			if entry.name == kind then
-				showGroup(entry.name, entry.indexes)
-			end
-		end
+		CraftUI.reveal(if onHand then "hand" else "craft", if type(kind) == "string" then kind else nil)
 	end)
 
-	-- The bag or the tiers changed: the same rows, with new numbers.
 	hotbar.onChange(function()
 		if Screens.isOpen("craft") then
-			benches = benchesNow()
-			refreshRows()
-			refreshGroups()
+			update()
 		end
 	end)
 end

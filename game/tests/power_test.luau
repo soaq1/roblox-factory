@@ -423,4 +423,324 @@ test("fuel never goes below nothing when the saving changes mid-way", function()
 	eq(ProcessLogic.sanitize({ fuel = 2.7 }, rules, Defs.isItem).fuel, 2.5)
 end)
 
+-- Putting things into a machine by hand, and taking them out
+local RateLogic = require("../src/shared/RateLogic")
+local StoreLogic = require("../src/shared/StoreLogic")
+local VendingLogic = require("../src/shared/VendingLogic")
+
+local function rulesOf(machine: string)
+	local recipes = Recipes.byMachine[machine]
+	return {
+		recipes = recipes,
+		usesFuel = Recipes.usesFuel[machine] == true,
+		fuel = Recipes.fuel,
+		cap = 16,
+		outCap = 8,
+		caps = ProcessLogic.caps(recipes, 16),
+	}
+end
+local function count(pile: { [string]: number }, key: string): number
+	return pile[key] or 0
+end
+
+test("a hand puts in as many as fit, and exactly that many leave the bag", function()
+	local rules = rulesOf("smelter")
+	local s = ProcessLogic.new()
+	local bag = { ore_fe = 40, coal = 3, bread = 5 }
+	eq(ProcessLogic.deposit(s, bag, "ore_fe", 40, rules), 16)
+	eq(bag.ore_fe, 24)
+	eq(s.buf.ore_fe, 16)
+	-- full: nothing more goes in and nothing leaves the bag
+	eq(ProcessLogic.deposit(s, bag, "ore_fe", 5, rules), 0)
+	eq(bag.ore_fe, 24)
+	-- fuel is taken by a machine that burns it; all three, since that is all there is
+	eq(ProcessLogic.deposit(s, bag, "coal", 99, rules), 3)
+	eq(bag.coal, nil)
+	-- something the machine has no use for stays in the bag
+	eq(ProcessLogic.deposit(s, bag, "bread", 5, rules), 0)
+	eq(bag.bread, 5)
+end)
+test("a hand cannot put in odd amounts or things it does not hold", function()
+	local rules = rulesOf("smelter")
+	local s = ProcessLogic.new()
+	local bag = { ore_fe = 4 }
+	for _, bad in { 0, -1, 1.5, 0 / 0, math.huge, "3" } do
+		eq(ProcessLogic.deposit(s, bag, "ore_fe", bad :: any, rules), 0)
+	end
+	eq(ProcessLogic.deposit(s, bag, "coal", 2, rules), 0)
+	eq(ProcessLogic.deposit(s, bag, 7 :: any, 2, rules), 0)
+	eq(bag.ore_fe, 4)
+	eq(next(s.buf), nil)
+end)
+test("taking from a slot brings all of that kind back to the bag", function()
+	local rules = rulesOf("sawmill")
+	local s = ProcessLogic.new()
+	local bag = { log = 3 }
+	ProcessLogic.deposit(s, bag, "log", 3, rules)
+	for _ = 1, 20 do
+		ProcessLogic.step(s, 0.2, rules)
+	end
+	local made = count(s.out, "plank")
+	assert(made > 0, "the sawmill should have made planks")
+	eq(ProcessLogic.withdraw(s, bag, "out", "plank"), made)
+	eq(bag.plank, made)
+	eq(s.out.plank, nil)
+	local left = count(s.buf, "log")
+	eq(ProcessLogic.withdraw(s, bag, "buf", "log"), left)
+	eq(count(bag, "log"), left)
+	-- nothing there, or no such slot: nothing moves
+	eq(ProcessLogic.withdraw(s, bag, "out", "plank"), 0)
+	eq(ProcessLogic.withdraw(s, bag, "fuel", "log"), 0)
+	eq(ProcessLogic.withdraw(s, bag, "buf", 7 :: any), 0)
+end)
+test("hands and the machine together never make or lose anything", function()
+	math.randomseed(11)
+	local rules = rulesOf("press")
+	for _ = 1, 100 do
+		local s = ProcessLogic.new()
+		local bag = { ingot_fe = math.random(1, 60) }
+		local metal = bag.ingot_fe
+		for _ = 1, 30 do
+			local roll = math.random()
+			if roll < 0.4 then
+				ProcessLogic.deposit(s, bag, "ingot_fe", math.random(1, 20), rules)
+			elseif roll < 0.6 then
+				ProcessLogic.withdraw(s, bag, if math.random() < 0.5 then "buf" else "out", "ingot_fe")
+			elseif roll < 0.8 then
+				ProcessLogic.withdraw(s, bag, "out", "plate_fe")
+			else
+				ProcessLogic.step(s, math.random() * 3, rules)
+			end
+			-- one ingot becomes one plate, so ingots and plates together stay the same
+			local total = count(bag, "ingot_fe")
+				+ count(s.buf, "ingot_fe")
+				+ count(bag, "plate_fe")
+				+ count(s.out, "plate_fe")
+			eq(total, metal)
+		end
+	end
+end)
+test("a machine says why it has stopped", function()
+	local rules = rulesOf("smelter")
+	local s = ProcessLogic.new()
+	eq(ProcessLogic.status(s, rules, {}), "waiting")
+	ProcessLogic.insert(s, "ore_fe", 4, rules)
+	eq(ProcessLogic.status(s, rules, {}), "nofuel")
+	ProcessLogic.insert(s, "coal", 1, rules)
+	eq(ProcessLogic.status(s, rules, {}), "working")
+	eq(ProcessLogic.status(s, rules, { halted = true }), "halted")
+	eq(ProcessLogic.status(s, rules, { needsPower = true }), "nopower")
+	eq(ProcessLogic.status(s, rules, { needsPower = true, powered = true }), "working")
+	-- a signal outranks missing power, since it is the player's own doing
+	eq(ProcessLogic.status(s, rules, { halted = true, needsPower = true }), "halted")
+end)
+test("a full output or a stuck exit reads as blocked", function()
+	local rules = rulesOf("smelter")
+	local s = ProcessLogic.new()
+	ProcessLogic.insert(s, "ore_fe", 16, rules)
+	ProcessLogic.insert(s, "coal", 8, rules)
+	for _ = 1, 400 do
+		ProcessLogic.step(s, 0.2, rules)
+	end
+	eq(ProcessLogic.status(s, rules, {}), "blocked")
+	-- one product waiting and unable to leave is also blocked, even though there is room for more
+	local t = ProcessLogic.new()
+	t.out.ingot_fe = 1
+	eq(ProcessLogic.status(t, rules, { stuck = true }), "blocked")
+	eq(ProcessLogic.status(t, rules, {}), "waiting")
+	-- "stuck" with nothing waiting means nothing
+	eq(ProcessLogic.status(ProcessLogic.new(), rules, { stuck = true }), "waiting")
+end)
+test("a kiln holding only the log it is meant to cook is out of fuel, not waiting", function()
+	local rules = rulesOf("kiln")
+	local s = ProcessLogic.new()
+	ProcessLogic.insert(s, "log", 1, rules)
+	eq(ProcessLogic.status(s, rules, {}), "nofuel")
+	ProcessLogic.insert(s, "log", 1, rules)
+	eq(ProcessLogic.status(s, rules, {}), "working")
+end)
+test("what a machine takes is its ingredients, plus fuel if it burns any", function()
+	local smelter = ProcessLogic.wanted(Recipes.byMachine.smelter, true, Recipes.fuel)
+	eq(smelter.ore_fe, true)
+	eq(smelter.coal, true)
+	eq(smelter.bread, nil)
+	local press = ProcessLogic.wanted(Recipes.byMachine.press, false, Recipes.fuel)
+	eq(press.ingot_fe, true)
+	eq(press.coal, nil)
+	eq(next(ProcessLogic.wanted({}, false, Recipes.fuel)), nil)
+end)
+
+-- Measured output
+test("the rate is what left in the last minute, and old output drops away", function()
+	local meter = RateLogic.new()
+	eq(RateLogic.perMinute(meter, 100), 0)
+	RateLogic.add(meter, 100, 1)
+	RateLogic.add(meter, 103, 2)
+	RateLogic.add(meter, 130, 4)
+	eq(RateLogic.perMinute(meter, 131), 7)
+	-- the first three were more than a minute ago by now
+	eq(RateLogic.perMinute(meter, 170), 4)
+	eq(RateLogic.perMinute(meter, 300), 0)
+	RateLogic.add(meter, 300, 0)
+	RateLogic.add(meter, 300, -3)
+	eq(RateLogic.perMinute(meter, 300), 0)
+end)
+test("a steady machine reads a steady rate", function()
+	local meter = RateLogic.new()
+	for second = 0, 600, 2 do
+		RateLogic.add(meter, second, 1)
+	end
+	local rate = RateLogic.perMinute(meter, 600)
+	assert(rate >= 28 and rate <= 31, "one every two seconds should read about 30 a minute, got " .. rate)
+end)
+
+-- Chests
+test("a chest move carries exactly what it says, in full or not at all", function()
+	local bag, chest = { log = 10, smelter = 2 }, {}
+	eq(StoreLogic.move(bag, chest, "log", 4), 4)
+	eq(bag.log, 6)
+	eq(chest.log, 4)
+	-- asking for more than there is moves all there is
+	eq(StoreLogic.move(bag, chest, "log", 99), 6)
+	eq(bag.log, nil)
+	eq(chest.log, 10)
+	-- machines and blocks are stored the same way
+	eq(StoreLogic.move(bag, chest, "smelter", 1), 1)
+	eq(StoreLogic.move(chest, bag, "log", 2 ^ 30), 10)
+	eq(bag.log, 10)
+	eq(chest.log, nil)
+end)
+test("a chest move refuses nonsense and moves nothing", function()
+	local bag, chest = { log = 10 }, { log = 1 }
+	for _, bad in { 0, -2, 0.5, 0 / 0, math.huge, "4", 2 ^ 31 } do
+		eq(StoreLogic.move(bag, chest, "log", bad :: any), 0)
+	end
+	eq(StoreLogic.move(bag, chest, "banana", 1), 0)
+	eq(StoreLogic.move(bag, chest, 5 :: any, 1), 0)
+	eq(StoreLogic.move(bag, bag, "log", 1), 0)
+	eq(bag.log, 10)
+	eq(chest.log, 1)
+	-- a pile that would overflow takes nothing
+	local huge = { log = 2 ^ 31 - 2 }
+	eq(StoreLogic.move(bag, huge, "log", 5), 0)
+	eq(bag.log, 10)
+end)
+test("moving between a bag and a chest never makes or loses anything", function()
+	math.randomseed(23)
+	local keys = { "log", "ingot_fe", "smelter", "block:planks" }
+	for _ = 1, 200 do
+		local bag, chest = {}, {}
+		local before = {}
+		for _, key in keys do
+			bag[key] = math.random(0, 40)
+			chest[key] = math.random(0, 40)
+			before[key] = bag[key] + chest[key]
+			if bag[key] == 0 then
+				bag[key] = nil
+			end
+			if chest[key] == 0 then
+				chest[key] = nil
+			end
+		end
+		for _ = 1, 20 do
+			local key = keys[math.random(1, #keys)]
+			local roll = math.random()
+			if roll < 0.45 then
+				StoreLogic.move(bag, chest, key, math.random(1, 50))
+			elseif roll < 0.9 then
+				StoreLogic.move(chest, bag, key, math.random(1, 50))
+			else
+				StoreLogic.moveAll(chest, bag)
+			end
+			for _, k in keys do
+				eq(count(bag, k) + count(chest, k), before[k])
+				assert((bag[k] or 1) > 0 and (chest[k] or 1) > 0, "a zero or negative count was left behind")
+			end
+		end
+	end
+end)
+test("emptying a chest moves every kind and counts them", function()
+	local bag, chest = { log = 1 }, { log = 4, coal = 6 }
+	eq(StoreLogic.moveAll(chest, bag), 10)
+	eq(next(chest), nil)
+	eq(bag.log, 5)
+	eq(bag.coal, 6)
+	local kinds, total = StoreLogic.totals(bag)
+	eq(kinds, 2)
+	eq(total, 11)
+end)
+
+-- Power reach, as the preview draws it
+test("the reach numbers the preview uses are the ones the power system uses", function()
+	local s = PowerLogic.settings(3)
+	eq(s.poleLink, PowerLogic.REACH_CELLS.poleLink * 3)
+	eq(s.poleReach, PowerLogic.REACH_CELLS.poleReach * 3)
+	eq(s.sourceReach, PowerLogic.REACH_CELLS.sourceReach * 3)
+end)
+test("the preview joins exactly what the power system joins", function()
+	local s = PowerLogic.settings(3)
+	local function spot(kind: string, x: number)
+		return { x = x, y = 0, z = 0, kind = kind }
+	end
+	-- a pole: other poles within the link distance, generators within its reach
+	local reach, joined = PowerLogic.preview(spot("pole", 0), {
+		spot("pole", s.poleLink),
+		spot("pole", s.poleLink + 1),
+		spot("source", s.poleReach),
+		spot("source", s.poleReach + 1),
+		spot("battery", 1),
+	}, s)
+	eq(reach, s.poleReach)
+	eq(#joined, 2)
+	eq(joined[1], 1)
+	eq(joined[2], 3)
+	-- a generator: poles whose reach it stands in, generators close by
+	reach, joined = PowerLogic.preview(spot("source", 0), {
+		spot("pole", s.poleReach),
+		spot("source", s.sourceReach),
+		spot("source", s.sourceReach + 1),
+	}, s)
+	eq(reach, s.sourceReach)
+	eq(#joined, 2)
+	-- and the solver agrees: a pole and a generator this far apart share a network
+	local result = PowerLogic.solve({
+		{ key = "p", x = 0, y = 0, z = 0, kind = "pole" },
+		{ key = "g", x = s.poleReach, y = 0, z = 0, kind = "source", supply = 100 },
+		{ key = "m", x = -s.poleReach, y = 0, z = 0, kind = "load", demand = 20, need = true },
+	}, s, 1)
+	eq(result.powered.m, true)
+end)
+test("the endless reactor and a battery have no reach ball of their own", function()
+	local s = PowerLogic.settings(3)
+	eq((PowerLogic.preview({ x = 0, y = 0, z = 0, kind = "source", everywhere = true }, {}, s)), 0)
+	eq((PowerLogic.preview({ x = 0, y = 0, z = 0, kind = "battery" }, {}, s)), 0)
+end)
+
+-- The vending machine's sign
+test("a vending machine is off until it has an item and a price", function()
+	local v = VendingLogic.new()
+	eq(VendingLogic.shopState(v, 1000), "off")
+	local bag = { ingot_fe = 10 }
+	local function isKey(key)
+		return key == "ingot_fe"
+	end
+	eq(VendingLogic.configure(v, bag, "ingot_fe", 0, "sell", 64, isKey), false)
+	eq(VendingLogic.shopState(v, 1000), "off")
+	eq(VendingLogic.configure(v, bag, "ingot_fe", 14, "sell", 64, isKey), true)
+	eq(VendingLogic.shopState(v, 1000), "empty")
+	VendingLogic.deposit(v, bag, 3)
+	eq(VendingLogic.shopState(v, 1000), "open")
+end)
+test("a buying machine shows when its owner cannot pay or it has bought enough", function()
+	local v = VendingLogic.new()
+	local function isKey(key)
+		return key == "ingot_fe"
+	end
+	VendingLogic.configure(v, {}, "ingot_fe", 14, "buy", 2, isKey)
+	eq(VendingLogic.shopState(v, 13), "nomoney")
+	eq(VendingLogic.shopState(v, 14), "open")
+	v.stock = 2
+	eq(VendingLogic.shopState(v, 1000), "full")
+end)
+
 T.done()

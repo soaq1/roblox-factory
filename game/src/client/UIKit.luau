@@ -1,10 +1,12 @@
 -- The pieces every screen is built from, so they all look alike.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
 local ModelBuilder = require(Shared:WaitForChild("ModelBuilder"))
+local ScreenLogic = require(Shared:WaitForChild("ScreenLogic"))
 local Stock = require(Shared:WaitForChild("Stock"))(Defs)
 local Screens = require(script.Parent.Screens)
 
@@ -22,6 +24,30 @@ UIKit.BAD = Color3.fromRGB(229, 138, 128)
 
 local toastLabel: TextLabel? = nil
 local toastToken = 0
+local HOLD_SECONDS = 0.45 -- a finger resting this long on a tile is a long press
+local HOLD_SLACK = 12 -- pixels a finger may wander before it counts as a drag instead
+local infoOpener: ((entry: string) -> ())? = nil
+
+-- The size of the area the game's screens are drawn in.
+function UIKit.viewport(): Vector2
+	local size = Screens.gui().AbsoluteSize
+	if size.X > 0 and size.Y > 0 then
+		return size
+	end
+	local camera = Workspace.CurrentCamera
+	return if camera then camera.ViewportSize else Vector2.new(1280, 720)
+end
+
+-- Is this a phone-sized screen? Screens lay themselves out smaller there, and are then drawn
+-- larger, so that text and buttons come out big enough to read and press.
+function UIKit.compact(): boolean
+	local view = UIKit.viewport()
+	return ScreenLogic.isCompact(view.X, view.Y)
+end
+
+function UIKit.touch(): boolean
+	return UserInputService.TouchEnabled
+end
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -225,15 +251,83 @@ function UIKit.tile(parent: Instance, entry: string, width: number, height: numb
 	return frame
 end
 
--- An unseen button covering a frame, for making a whole tile clickable.
-function UIKit.cover(frame: Instance, run: () -> ()): TextButton
+-- Runs `run` on a right click, or when a finger rests on the button without moving. Returns a
+-- function that says whether the press that just ended was such a hold (and forgets it), so the
+-- button's ordinary press can be skipped for it.
+function UIKit.hold(button: GuiButton, run: () -> ()): () -> boolean
+	local token = 0
+	local held = false
+	local start = Vector3.zero
+	button.MouseButton2Click:Connect(run)
+	button.InputBegan:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.Touch then
+			return
+		end
+		token += 1
+		local mine = token
+		held = false
+		start = input.Position
+		task.delay(HOLD_SECONDS, function()
+			if mine == token then
+				held = true
+				run()
+			end
+		end)
+	end)
+	-- A finger that moves is scrolling the list, not asking about the tile.
+	button.InputChanged:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.Touch
+			and (input.Position - start).Magnitude > HOLD_SLACK
+		then
+			token += 1
+		end
+	end)
+	button.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			token += 1
+		end
+	end)
+	return function(): boolean
+		local was = held
+		held = false
+		return was
+	end
+end
+
+-- Sets what opens the information card for a thing. The card's own module calls this.
+function UIKit.onInfo(open: (entry: string) -> ())
+	infoOpener = open
+end
+
+-- Opens the information card for a palette entry or a bag key, if there is a card.
+function UIKit.info(entry: string)
+	if infoOpener and entry ~= "" then
+		infoOpener(entry)
+	end
+end
+
+-- An unseen button covering a frame, for making a whole tile clickable. With `info` given, a right
+-- click or a long press on it opens that thing's information card instead.
+function UIKit.cover(frame: Instance, run: () -> (), info: string?): TextButton
 	local press = Instance.new("TextButton")
 	press.BackgroundTransparency = 1
 	press.Text = ""
 	press.Size = UDim2.fromScale(1, 1)
 	press.ZIndex = 5
 	press.Parent = frame
-	press.Activated:Connect(run)
+	if info then
+		local wasHold = UIKit.hold(press, function()
+			UIKit.info(info)
+		end)
+		press.Activated:Connect(function()
+			if not wasHold() then
+				run()
+			end
+		end)
+	else
+		press.Activated:Connect(run)
+	end
 	return press
 end
 
@@ -255,23 +349,20 @@ function UIKit.window(
 	frame.Size = UDim2.fromOffset(width, height)
 	frame.BackgroundColor3 = UIKit.BACK
 	frame.BorderSizePixel = 0
+	frame.ZIndex = 10 -- above the bar, the menu buttons and the read-outs
 	frame.Parent = Screens.gui()
 	UIKit.round(frame, 12)
-	-- Shrinks the window to fit small screens.
+	-- The window is laid out at the size asked for and then drawn larger or smaller to suit the
+	-- screen. On a phone it takes over the whole screen.
 	local fit = Instance.new("UIScale")
 	fit.Parent = frame
 	local function refit()
-		local camera = Workspace.CurrentCamera
-		if camera then
-			local view = camera.ViewportSize
-			-- leave room for the hotbar below and the read-outs above
-			fit.Scale = math.clamp(math.min((view.X - 40) / width, (view.Y - 190) / height), 0.5, 1)
-		end
+		local view = UIKit.viewport()
+		fit.Scale = ScreenLogic.windowScale(view.X, view.Y, width, height, UIKit.touch())
+		frame.Position = UDim2.fromScale(0.5, if ScreenLogic.isCompact(view.X, view.Y) then 0.5 else 0.45)
 	end
 	refit()
-	if Workspace.CurrentCamera then
-		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refit)
-	end
+	Screens.gui():GetPropertyChangedSignal("AbsoluteSize"):Connect(refit)
 
 	local heading = UIKit.label(frame, title, 16)
 	heading.Name = "Title"
@@ -303,12 +394,16 @@ function UIKit.toast(text: string)
 	if not label then
 		label = UIKit.label(Screens.gui(), "", 15)
 		label.AnchorPoint = Vector2.new(0.5, 0)
-		label.Position = UDim2.new(0.5, 0, 0, 40)
-		label.Size = UDim2.fromOffset(680, 48)
+		-- below the row of menu buttons and the key hint line
+		label.Position = UDim2.new(0.5, 0, 0, 80)
+		label.Size = UDim2.new(1, -24, 0, 48)
 		label.BackgroundTransparency = 0.15
 		label.BackgroundColor3 = UIKit.PANEL
 		label.ZIndex = 20
 		UIKit.round(label, 8)
+		local widest = Instance.new("UISizeConstraint")
+		widest.MaxSize = Vector2.new(680, 48)
+		widest.Parent = label
 		toastLabel = label
 	end
 	toastToken += 1

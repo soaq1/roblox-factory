@@ -169,6 +169,7 @@ function IslandService.setBlock(island: Island, x: number, y: number, z: number,
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
 	part.Transparency = def.transparency
 	part.Position = IslandService.cellCenter(island, x, y, z)
+	part:SetAttribute("Block", id) -- so the client can tell what a placed block is
 	-- Blocks whose top differs from their sides (grass, logs, farmland) get a thin cap.
 	local top = def.top
 	if

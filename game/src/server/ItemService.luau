@@ -205,6 +205,29 @@ function ItemService.nearest(position: Vector3, range: number): BasePart?
 	return best
 end
 
+-- The stack a player standing at `position` picks up: the nearest one lying still, and only if
+-- there is none, the nearest one on the move. A moving item is one riding a belt, and taking
+-- those by accident would empty the player's own factory line.
+function ItemService.pick(position: Vector3, range: number): BasePart?
+	local still: BasePart? = nil
+	local stillDistance = range
+	local moving: BasePart? = nil
+	local movingDistance = range
+	for _, part in Workspace:GetPartBoundsInRadius(position, range, overlap) do
+		if isLive(part) then
+			local distance = (part.Position - position).Magnitude
+			if part.AssemblyLinearVelocity.Magnitude <= REST_SPEED then
+				if distance <= stillDistance then
+					still, stillDistance = part, distance
+				end
+			elseif distance <= movingDistance then
+				moving, movingDistance = part, distance
+			end
+		end
+	end
+	return still or moving
+end
+
 -- Counts what is really there, which also corrects the running total if the engine removed anything.
 -- Touched only fires at the moment two parts meet, when at least one is still moving. This sweep
 -- catches stacks that have since come to rest side by side.

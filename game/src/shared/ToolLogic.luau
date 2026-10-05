@@ -144,6 +144,28 @@ function ToolLogic.blockHits(blockId: string, bag: Bag): number
 	return math.max(1, math.ceil(entry.hardness / ToolLogic.power(rank)))
 end
 
+-- Machines are lifted with a pickaxe, a few swings each, the way a block is. Plants come up at a
+-- touch; belts and other small fittings are lighter than a full machine. Placeholder numbers.
+local MACHINE_HARDNESS = { plant = 1, light = 4, heavy = 8 }
+local LIGHT = { belt = true, ramp = true, chute = true, sign = true, signal = true }
+
+-- How hard a machine is to lift, from its definition.
+function ToolLogic.machineHardness(def: { cost: string?, behavior: string? }): number
+	if def.cost then
+		return MACHINE_HARDNESS.plant
+	elseif def.behavior and LIGHT[def.behavior] then
+		return MACHINE_HARDNESS.light
+	end
+	return MACHINE_HARDNESS.heavy
+end
+
+-- How many swings a machine of that hardness takes with what is in the bag. A pickaxe is the
+-- tool for it; anything else counts as the wrong tool. Always at least one.
+function ToolLogic.machineHits(hardness: number, bag: Bag): number
+	local rank = ToolLogic.best(bag, "pick")
+	return math.max(1, math.ceil(hardness / ToolLogic.power(rank)))
+end
+
 -- The things that can be mined in the hub. `minRank` is the weakest pickaxe that works at all
 -- (0 means bare hands will do). Gold and diamond have no vein core here.
 ToolLogic.NODES = {
