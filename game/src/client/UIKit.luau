@@ -1,5 +1,6 @@
 -- The pieces every screen is built from, so they all look alike.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
@@ -257,9 +258,20 @@ function UIKit.window(
 	frame.Parent = Screens.gui()
 	UIKit.round(frame, 12)
 	-- Shrinks the window to fit small screens.
-	local fit = Instance.new("UISizeConstraint")
-	fit.MaxSize = Vector2.new(width, height)
+	local fit = Instance.new("UIScale")
 	fit.Parent = frame
+	local function refit()
+		local camera = Workspace.CurrentCamera
+		if camera then
+			local view = camera.ViewportSize
+			-- leave room for the hotbar below and the read-outs above
+			fit.Scale = math.clamp(math.min((view.X - 40) / width, (view.Y - 190) / height), 0.5, 1)
+		end
+	end
+	refit()
+	if Workspace.CurrentCamera then
+		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refit)
+	end
 
 	local heading = UIKit.label(frame, title, 16)
 	heading.Name = "Title"

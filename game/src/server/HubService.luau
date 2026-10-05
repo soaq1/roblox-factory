@@ -124,7 +124,7 @@ function HubService.portal(
 	prompt.ObjectText = label
 	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 12
+	prompt.MaxActivationDistance = 7 -- close enough that it is not set off by accident
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = pane
 	prompt.Triggered:Connect(use)

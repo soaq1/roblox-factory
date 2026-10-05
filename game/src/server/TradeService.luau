@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
+local ToolLogic = require(Shared.ToolLogic)
 local TradeLogic = require(Shared.TradeLogic)
 local IslandService = require(script.Parent.IslandService)
 local Profile = require(script.Parent.Profile)
@@ -111,6 +112,11 @@ end
 function TradeService.offer(player: Player, key: any, n: any)
 	local trade, island = open[player], IslandService.get(player)
 	if not trade or not island or not Stock.isKey(key) then
+		return
+	end
+	-- The last tool is not traded away, for the same reason it is not dropped.
+	if ToolLogic.parse(key) and type(n) == "number" and n >= ToolLogic.count(island.bag) then
+		Profile.notify(player, "마지막 도구는 거래에 올릴 수 없습니다")
 		return
 	end
 	local ok, reason = TradeLogic.setOffer(trade.session, whoIn(trade, player), key, n, island.bag)

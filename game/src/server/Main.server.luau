@@ -122,6 +122,7 @@ local function onPlayerAdded(player: Player)
 		end
 	end
 
+	Profile.ensureTool(island)
 	Profile.push(island)
 	keepCharacter(player, island)
 end

@@ -99,9 +99,20 @@ function VisitService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		visiting[player] = nil
 		-- Anyone standing on the island that is about to go is sent home first.
+		local leaving = IslandService.get(player)
 		for visitor, host in visiting do
 			if host == player then
-				goHome(visitor)
+				visiting[visitor] = nil
+				local character = visitor.Character
+				local root = character and character:FindFirstChild("HumanoidRootPart")
+				if
+					leaving
+					and root
+					and root:IsA("BasePart")
+					and IslandService.owns(leaving, root.Position)
+				then
+					goHome(visitor)
+				end
 			end
 		end
 		task.defer(listForAll)

@@ -48,7 +48,7 @@ local function aim(): (string?, Instance?)
 	local mouse = UserInputService:GetMouseLocation()
 	local ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
 	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 400, params)
-	if not hit or (hit.Position - root.Position).Magnitude > REACH + 4 then
+	if not hit or (hit.Position - root.Position).Magnitude > REACH then
 		return nil, nil
 	end
 	if hit.Instance:GetAttribute("Node") then

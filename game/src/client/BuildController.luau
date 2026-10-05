@@ -6,6 +6,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -17,6 +18,7 @@ local Net = require(Shared:WaitForChild("Net"))
 local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
 local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
+local UIKit = require(script.Parent.UIKit)
 
 local BuildController = {}
 
@@ -39,6 +41,8 @@ local SWING_SECONDS = 0.2 -- how often a held left button swings again
 local breaking: Target? = nil
 local sinceSwing = 0
 local dropping = false
+local promptsShown = 0
+local lastHint = 0
 local sinceDrop = 0
 
 local keys = {
@@ -253,6 +257,13 @@ end
 local function use(): Target?
 	local found = if Screens.anyOpen() then nil else target()
 	local what = intent()
+	if found and not what and os.clock() - lastHint > 3 then
+		-- Pointing at something with nothing usable in the hand: say what is missing.
+		lastHint = os.clock()
+		UIKit.toast(
+			"부수려면 곡괭이나 도끼 같은 도구를, 놓으려면 블록이나 기계를 손에 드세요"
+		)
+	end
 	if not found or not what then
 		return nil
 	end
@@ -281,7 +292,11 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 	elseif input.KeyCode == Enum.KeyCode.LeftShift then
 		setRunning(true)
 	elseif input.KeyCode == Enum.KeyCode.F then
-		Net.get("Pickup"):FireServer()
+		-- F also answers whatever prompt is on screen (a portal, a workbench); then it is not a
+		-- pick-up as well.
+		if promptsShown < 1 then
+			Net.get("Pickup"):FireServer()
+		end
 	elseif keys[input.KeyCode] then
 		hotbar.select(keys[input.KeyCode])
 	end
@@ -345,6 +360,12 @@ function BuildController.init(hotbarUi)
 	RunService.RenderStepped:Connect(drawGhost)
 	RunService.RenderStepped:Connect(keepBreaking)
 	RunService.RenderStepped:Connect(keepDropping)
+	ProximityPromptService.PromptShown:Connect(function()
+		promptsShown += 1
+	end)
+	ProximityPromptService.PromptHidden:Connect(function()
+		promptsShown = math.max(0, promptsShown - 1)
+	end)
 end
 
 return BuildController

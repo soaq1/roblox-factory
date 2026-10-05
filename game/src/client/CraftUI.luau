@@ -393,6 +393,17 @@ local function showGroup(name: string, indexes: { number })
 			handRow(order, index)
 		end
 	end
+	-- The very first things (planks from a log) are hand work that needs no station. They are
+	-- shown with the bag recipes too, so a new player finds them on the screen that opens.
+	if tab == "craft" and name == "bag" then
+		for _, entry in ScreenLogic.groups(Recipes.hand, "station") do
+			if entry.name == "bag" then
+				for order, index in entry.indexes do
+					handRow(#indexes + order, index)
+				end
+			end
+		end
+	end
 	refreshRows()
 	refreshGroups()
 end

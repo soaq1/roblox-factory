@@ -58,6 +58,17 @@ function ToolLogic.inHand(bag: Bag, held: any, free: boolean): Bag
 	return {}
 end
 
+-- How many tools of any kind a bag holds.
+function ToolLogic.count(bag: Bag): number
+	local total = 0
+	for key, n in bag do
+		if ToolLogic.parse(key) then
+			total += n
+		end
+	end
+	return total
+end
+
 function ToolLogic.power(rank: number): number
 	return POWER[math.clamp(rank, 0, #ToolLogic.TIERS) + 1]
 end

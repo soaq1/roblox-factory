@@ -8,8 +8,14 @@ local DayCycle = {}
 
 function DayCycle.start()
 	local hoursPerSecond = 24 / (Config.DAY_MINUTES * 60)
+	-- Once a second is smooth enough, and every change is sent to every player.
+	local carried = 0
 	RunService.Heartbeat:Connect(function(dt)
-		Lighting.ClockTime = (Lighting.ClockTime + dt * hoursPerSecond) % 24
+		carried += dt
+		if carried >= 1 then
+			Lighting.ClockTime = (Lighting.ClockTime + carried * hoursPerSecond) % 24
+			carried = 0
+		end
 	end)
 end
 

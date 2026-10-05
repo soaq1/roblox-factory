@@ -66,6 +66,13 @@ function Profile.load(island, bag: any, stored: any)
 	end
 end
 
+-- A player with no tool at all could do nothing, so they are handed the starting pickaxe again.
+function Profile.ensureTool(island)
+	if ToolLogic.count(island.bag) < 1 then
+		Inventory.add(island.bag, "pick_wood", 1)
+	end
+end
+
 function Profile.save(island): { [string]: any }
 	return {
 		mode = island.mode,

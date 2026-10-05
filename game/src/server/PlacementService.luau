@@ -149,6 +149,12 @@ local function drop(player: Player, id: any, x: any, y: any, z: any)
 		Profile.hint(player, "물건은 자기 섬에서만 내려놓을 수 있습니다")
 		return
 	end
+	-- Nothing can be broken without a tool, so the last one is not let go of: without it there
+	-- would be no way to get the wood for another.
+	if island.mode == "survival" and ToolLogic.parse(id) and ToolLogic.count(island.bag) <= 1 then
+		Profile.hint(player, "마지막 도구는 내려놓을 수 없습니다")
+		return
+	end
 	-- Creative mode makes the item from nothing; otherwise it comes out of the bag.
 	if island.mode == "survival" then
 		if not Inventory.remove(island.bag, id, 1) then

@@ -1142,6 +1142,25 @@ return {
 			},
 		},
 		{
+			out = "belt_corner_l",
+			n = 2,
+			bench = "machine",
+			tier = 1,
+			ins = {
+				plate_fe = 2,
+				rod_fe = 2,
+			},
+		},
+		{
+			out = "belt_open",
+			n = 4,
+			bench = "machine",
+			tier = 1,
+			ins = {
+				plate_fe = 2,
+			},
+		},
+		{
 			out = "belt_ramp",
 			n = 1,
 			bench = "machine",
@@ -1942,7 +1961,7 @@ return {
 			bench = "bag",
 			tier = 0,
 			ins = {
-				["block:dirt"] = 1,
+				dirt_clod = 1,
 			},
 		},
 		{

@@ -8245,6 +8245,25 @@ return {
 			},
 		},
 		{
+			out = "belt_corner_l",
+			n = 2,
+			bench = "machine",
+			tier = 1,
+			ins = {
+				plate_fe = 2,
+				rod_fe = 2,
+			},
+		},
+		{
+			out = "belt_open",
+			n = 4,
+			bench = "machine",
+			tier = 1,
+			ins = {
+				plate_fe = 2,
+			},
+		},
+		{
 			out = "belt_ramp",
 			n = 1,
 			bench = "machine",
@@ -9045,7 +9064,7 @@ return {
 			bench = "bag",
 			tier = 0,
 			ins = {
-				["block:dirt"] = 1,
+				dirt_clod = 1,
 			},
 		},
 		{
@@ -10441,6 +10460,17 @@ function ToolLogic.inHand(bag: Bag, held: any, free: boolean): Bag
 	return {}
 end
 
+-- How many tools of any kind a bag holds.
+function ToolLogic.count(bag: Bag): number
+	local total = 0
+	for key, n in bag do
+		if ToolLogic.parse(key) then
+			total += n
+		end
+	end
+	return total
+end
+
 function ToolLogic.power(rank: number): number
 	return POWER[math.clamp(rank, 0, #ToolLogic.TIERS) + 1]
 end
@@ -11345,8 +11375,14 @@ local DayCycle = {}
 
 function DayCycle.start()
 	local hoursPerSecond = 24 / (Config.DAY_MINUTES * 60)
+	-- Once a second is smooth enough, and every change is sent to every player.
+	local carried = 0
 	RunService.Heartbeat:Connect(function(dt)
-		Lighting.ClockTime = (Lighting.ClockTime + dt * hoursPerSecond) % 24
+		carried += dt
+		if carried >= 1 then
+			Lighting.ClockTime = (Lighting.ClockTime + carried * hoursPerSecond) % 24
+			carried = 0
+		end
 	end)
 end
 
@@ -11883,7 +11919,7 @@ function HubService.portal(
 	prompt.ObjectText = label
 	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 12
+	prompt.MaxActivationDistance = 7 -- close enough that it is not set off by accident
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = pane
 	prompt.Triggered:Connect(use)
@@ -13135,6 +13171,7 @@ local function onPlayerAdded(player: Player)
 		end
 	end
 
+	Profile.ensureTool(island)
 	Profile.push(island)
 	keepCharacter(player, island)
 end
@@ -13959,6 +13996,12 @@ local function drop(player: Player, id: any, x: any, y: any, z: any)
 		Profile.hint(player, "물건은 자기 섬에서만 내려놓을 수 있습니다")
 		return
 	end
+	-- Nothing can be broken without a tool, so the last one is not let go of: without it there
+	-- would be no way to get the wood for another.
+	if island.mode == "survival" and ToolLogic.parse(id) and ToolLogic.count(island.bag) <= 1 then
+		Profile.hint(player, "마지막 도구는 내려놓을 수 없습니다")
+		return
+	end
 	-- Creative mode makes the item from nothing; otherwise it comes out of the bag.
 	if island.mode == "survival" then
 		if not Inventory.remove(island.bag, id, 1) then
@@ -14107,11 +14150,13 @@ local function deviceFor(machine): PowerLogic.Device?
 		else
 			device = {
 				kind = "source",
-				supply = machine.supply or 0,
+				supply = if machine.halted then 0 else machine.supply or 0, -- stopped by a signal
 				free = machine.free == true,
 				everywhere = machine.everywhere == true,
 			}
 		end
+	elseif def.behavior == "decor" then
+		return nil -- a machine that does nothing draws nothing
 	elseif def.needsPower then
 		device = { kind = "load", demand = PowerService.NEED_WATTS * def.sx * def.sz, need = true }
 	elseif def.behavior == "processor" then
@@ -14291,6 +14336,13 @@ function Profile.load(island, bag: any, stored: any)
 	end
 	if type(stored.fuel) == "number" and stored.fuel == stored.fuel then
 		island.handFuel = math.clamp(math.floor(stored.fuel), 0, 64)
+	end
+end
+
+-- A player with no tool at all could do nothing, so they are handed the starting pickaxe again.
+function Profile.ensureTool(island)
+	if ToolLogic.count(island.bag) < 1 then
+		Inventory.add(island.bag, "pick_wood", 1)
 	end
 end
 
@@ -14621,6 +14673,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
+local ToolLogic = require(Shared.ToolLogic)
 local TradeLogic = require(Shared.TradeLogic)
 local IslandService = require(script.Parent.IslandService)
 local Profile = require(script.Parent.Profile)
@@ -14722,6 +14775,11 @@ end
 function TradeService.offer(player: Player, key: any, n: any)
 	local trade, island = open[player], IslandService.get(player)
 	if not trade or not island or not Stock.isKey(key) then
+		return
+	end
+	-- The last tool is not traded away, for the same reason it is not dropped.
+	if ToolLogic.parse(key) and type(n) == "number" and n >= ToolLogic.count(island.bag) then
+		Profile.notify(player, "마지막 도구는 거래에 올릴 수 없습니다")
 		return
 	end
 	local ok, reason = TradeLogic.setOffer(trade.session, whoIn(trade, player), key, n, island.bag)
@@ -14925,9 +14983,20 @@ function VisitService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		visiting[player] = nil
 		-- Anyone standing on the island that is about to go is sent home first.
+		local leaving = IslandService.get(player)
 		for visitor, host in visiting do
 			if host == player then
-				goHome(visitor)
+				visiting[visitor] = nil
+				local character = visitor.Character
+				local root = character and character:FindFirstChild("HumanoidRootPart")
+				if
+					leaving
+					and root
+					and root:IsA("BasePart")
+					and IslandService.owns(leaving, root.Position)
+				then
+					goHome(visitor)
+				end
 			end
 		end
 		task.defer(listForAll)
@@ -17610,6 +17679,7 @@ return BagUI
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -17621,6 +17691,7 @@ local Net = require(Shared:WaitForChild("Net"))
 local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
 local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
+local UIKit = require(script.Parent.UIKit)
 
 local BuildController = {}
 
@@ -17643,6 +17714,8 @@ local SWING_SECONDS = 0.2 -- how often a held left button swings again
 local breaking: Target? = nil
 local sinceSwing = 0
 local dropping = false
+local promptsShown = 0
+local lastHint = 0
 local sinceDrop = 0
 
 local keys = {
@@ -17857,6 +17930,13 @@ end
 local function use(): Target?
 	local found = if Screens.anyOpen() then nil else target()
 	local what = intent()
+	if found and not what and os.clock() - lastHint > 3 then
+		-- Pointing at something with nothing usable in the hand: say what is missing.
+		lastHint = os.clock()
+		UIKit.toast(
+			"부수려면 곡괭이나 도끼 같은 도구를, 놓으려면 블록이나 기계를 손에 드세요"
+		)
+	end
 	if not found or not what then
 		return nil
 	end
@@ -17885,7 +17965,11 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 	elseif input.KeyCode == Enum.KeyCode.LeftShift then
 		setRunning(true)
 	elseif input.KeyCode == Enum.KeyCode.F then
-		Net.get("Pickup"):FireServer()
+		-- F also answers whatever prompt is on screen (a portal, a workbench); then it is not a
+		-- pick-up as well.
+		if promptsShown < 1 then
+			Net.get("Pickup"):FireServer()
+		end
 	elseif keys[input.KeyCode] then
 		hotbar.select(keys[input.KeyCode])
 	end
@@ -17949,6 +18033,12 @@ function BuildController.init(hotbarUi)
 	RunService.RenderStepped:Connect(drawGhost)
 	RunService.RenderStepped:Connect(keepBreaking)
 	RunService.RenderStepped:Connect(keepDropping)
+	ProximityPromptService.PromptShown:Connect(function()
+		promptsShown += 1
+	end)
+	ProximityPromptService.PromptHidden:Connect(function()
+		promptsShown = math.max(0, promptsShown - 1)
+	end)
 end
 
 return BuildController
@@ -18351,6 +18441,17 @@ local function showGroup(name: string, indexes: { number })
 			craftRow(order, index)
 		else
 			handRow(order, index)
+		end
+	end
+	-- The very first things (planks from a log) are hand work that needs no station. They are
+	-- shown with the bag recipes too, so a new player finds them on the screen that opens.
+	if tab == "craft" and name == "bag" then
+		for _, entry in ScreenLogic.groups(Recipes.hand, "station") do
+			if entry.name == "bag" then
+				for order, index in entry.indexes do
+					handRow(#indexes + order, index)
+				end
+			end
 		end
 	end
 	refreshRows()
@@ -19135,6 +19236,10 @@ function HotbarUI.init()
 		else
 			Screens.open(if HotbarUI.state.mode == "creative" then "palette" else "bag")
 		end
+	end)
+	-- In creative E is the full list, so the bag keeps a key of its own.
+	Screens.onKey(Enum.KeyCode.B, function()
+		Screens.toggle("bag")
 	end)
 	redrawSelection()
 	handChanged()
@@ -20514,6 +20619,7 @@ return TradeUI
             <string name="Name">UIKit</string>
             <string name="Source"><![CDATA[-- The pieces every screen is built from, so they all look alike.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
@@ -20771,9 +20877,20 @@ function UIKit.window(
 	frame.Parent = Screens.gui()
 	UIKit.round(frame, 12)
 	-- Shrinks the window to fit small screens.
-	local fit = Instance.new("UISizeConstraint")
-	fit.MaxSize = Vector2.new(width, height)
+	local fit = Instance.new("UIScale")
 	fit.Parent = frame
+	local function refit()
+		local camera = Workspace.CurrentCamera
+		if camera then
+			local view = camera.ViewportSize
+			-- leave room for the hotbar below and the read-outs above
+			fit.Scale = math.clamp(math.min((view.X - 40) / width, (view.Y - 190) / height), 0.5, 1)
+		end
+	end
+	refit()
+	if Workspace.CurrentCamera then
+		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refit)
+	end
 
 	local heading = UIKit.label(frame, title, 16)
 	heading.Name = "Title"
@@ -20980,7 +21097,7 @@ local function aim(): (string?, Instance?)
 	local mouse = UserInputService:GetMouseLocation()
 	local ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
 	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 400, params)
-	if not hit or (hit.Position - root.Position).Magnitude > REACH + 4 then
+	if not hit or (hit.Position - root.Position).Magnitude > REACH then
 		return nil, nil
 	end
 	if hit.Instance:GetAttribute("Node") then

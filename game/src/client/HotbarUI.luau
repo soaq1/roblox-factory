@@ -371,6 +371,10 @@ function HotbarUI.init()
 			Screens.open(if HotbarUI.state.mode == "creative" then "palette" else "bag")
 		end
 	end)
+	-- In creative E is the full list, so the bag keeps a key of its own.
+	Screens.onKey(Enum.KeyCode.B, function()
+		Screens.toggle("bag")
+	end)
 	redrawSelection()
 	handChanged()
 	showBag({})

@@ -159,4 +159,10 @@ test("the richer rocks need the right pickaxe in the hand", function()
 	)
 end)
 
+test("tools in a bag are counted, whatever their kind", function()
+	eq(ToolLogic.count({}), 0)
+	eq(ToolLogic.count({ ingot_fe = 9, hammer = 1 }), 0)
+	eq(ToolLogic.count({ pick_wood = 1, axe_iron = 2, log = 5 }), 3)
+end)
+
 T.done()

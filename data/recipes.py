@@ -12,6 +12,8 @@ block_list = json.load(open(os.path.join(ROOT, "art", "catalog", "blocks.json"),
 ITEM = {i["key"]: i["ko"] for i in catalog["items"]}
 # 심은 모습(땅에 꽂힌 묘목, 자라는 밀)은 아이템을 놓은 것이지 따로 만드는 물건이 아니므로 뺌
 MACHINE = {m["key"]: m["ko"] for m in catalog["machines"] if m["fam"] != "식물"}
+# 카탈로그에 카드가 따로 없고 게임에만 있는 것
+MACHINE.update({"belt_corner_l": "코너 벨트 (왼쪽)", "belt_open": "열린 벨트", "extractor_cu": "추출기 (구리 광맥 핵)"})
 BLOCK = {"block:" + b["key"]: b["ko"] + " (블록)" for b in block_list}
 NAMES = {**ITEM, **MACHINE, **BLOCK}
 
@@ -184,6 +186,8 @@ C("wb_all", 1, "machine", 3, ingot_au=200, diamond=50, motor=50, board_adv=50, p
 # transport
 C("belt", 4, "machine", 1, plate_fe=2, rod_fe=2)
 C("belt_corner", 2, "machine", 1, plate_fe=2, rod_fe=2)
+C("belt_corner_l", 2, "machine", 1, plate_fe=2, rod_fe=2, note="왼쪽으로 꺾이는 것")
+C("belt_open", 4, "machine", 1, plate_fe=2, note="난간이 없어 철 막대가 안 듦")
 C("belt_ramp", 1, "machine", 1, plate_fe=3, rod_fe=4)
 C("merger", 1, "machine", 1, plate_fe=3, rod_fe=2)
 C("splitter", 1, "machine", 1, plate_fe=3, rod_fe=2, gear=2)
@@ -270,7 +274,7 @@ C("block:asphalt", 1, "basic", 1, asphalt=4)
 C("block:sand", 1, "basic", 1, sand=4)
 C("block:gravel", 1, "basic", 1, gravel=4)
 C("block:clay", 1, "basic", 1, clay=4)
-C("block:farmland", 1, "bag", 0, note="괭이로 흙을 갈아 만듦", block__dirt=1)
+C("block:farmland", 1, "bag", 0, note="괭이로 흙을 갈아 만듦", dirt_clod=1)
 C("block:block_fe", 1, "basic", 1, ingot_fe=9)
 C("block:block_cu", 1, "basic", 1, ingot_cu=9)
 C("block:block_steel", 1, "basic", 1, ingot_steel=9)

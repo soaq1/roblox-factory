@@ -45,11 +45,13 @@ local function deviceFor(machine): PowerLogic.Device?
 		else
 			device = {
 				kind = "source",
-				supply = machine.supply or 0,
+				supply = if machine.halted then 0 else machine.supply or 0, -- stopped by a signal
 				free = machine.free == true,
 				everywhere = machine.everywhere == true,
 			}
 		end
+	elseif def.behavior == "decor" then
+		return nil -- a machine that does nothing draws nothing
 	elseif def.needsPower then
 		device = { kind = "load", demand = PowerService.NEED_WATTS * def.sx * def.sz, need = true }
 	elseif def.behavior == "processor" then
