@@ -18,6 +18,7 @@ local Net = require(Shared:WaitForChild("Net"))
 local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
 local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
+local SoundPlayer = require(script.Parent.SoundPlayer)
 local UIKit = require(script.Parent.UIKit)
 
 local BuildController = {}
@@ -199,6 +200,7 @@ local function dropHeld()
 		return
 	end
 	HandView.swing()
+	SoundPlayer.play("drop")
 	local found = target()
 	if found then
 		Net.get("Drop"):FireServer(item, found.px, found.py, found.pz)
@@ -269,9 +271,11 @@ local function use(): Target?
 	end
 	HandView.swing()
 	if what == "break" then
+		SoundPlayer.hit(nil)
 		Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 		return found
 	end
+	SoundPlayer.play("place")
 	Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
 	return nil
 end
@@ -295,6 +299,7 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		-- F also answers whatever prompt is on screen (a portal, a workbench); then it is not a
 		-- pick-up as well.
 		if promptsShown < 1 then
+			SoundPlayer.play("pickup")
 			Net.get("Pickup"):FireServer()
 		end
 	elseif keys[input.KeyCode] then
@@ -327,6 +332,7 @@ local function keepBreaking(dt: number)
 		return
 	end
 	HandView.swing()
+	SoundPlayer.hit(nil)
 	Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 end
 

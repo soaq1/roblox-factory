@@ -3,6 +3,8 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
+local SoundPlayer = require(script.Parent.SoundPlayer)
+
 local Screens = {}
 
 type Screen = { frame: GuiObject, key: Enum.KeyCode?, onOpen: (() -> ())?, onClose: (() -> ())? }
@@ -82,6 +84,7 @@ function Screens.open(name: string)
 		end
 	end
 	if not screen.frame.Visible then
+		SoundPlayer.play("open")
 		screen.frame.Visible = true
 		if screen.onOpen then
 			screen.onOpen()

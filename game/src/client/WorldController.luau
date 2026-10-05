@@ -13,6 +13,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
 local HandView = require(script.Parent.HandView)
 local Screens = require(script.Parent.Screens)
+local SoundPlayer = require(script.Parent.SoundPlayer)
 local UIKit = require(script.Parent.UIKit)
 
 local WorldController = {}
@@ -72,6 +73,11 @@ local function swing(): number?
 		return nil
 	end
 	HandView.swing()
+	if action == "mine" then
+		SoundPlayer.hit("stone")
+	else
+		SoundPlayer.play("slime")
+	end
 	Net.get("WorldAct"):FireServer(action, what)
 	return if action == "mine" then MINE_SECONDS else ATTACK_SECONDS
 end
