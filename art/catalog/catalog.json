@@ -184,10 +184,10 @@
    ]
   },
   {
-   "key": "drill",
-   "ko": "채굴 드릴",
+   "key": "extractor_empty",
+   "ko": "빈 추출기",
    "fam": "공급",
-   "recipe": "광맥 위에 놓으면 광석(구리, 철, 석탄, 돌)을 캐냄",
+   "recipe": "돌, 철 주괴, 나무, 몬스터 부품으로 조립. 광맥 핵을 꽂기 전에는 아무것도 나오지 않음",
    "ports": [
     [
      "E",
@@ -199,11 +199,55 @@
     1,
     1
    ],
-   "tris": 984,
+   "tris": 796,
+   "colors": 7,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "extractor_fe",
+   "ko": "추출기 (철 광맥 핵)",
+   "fam": "공급",
+   "recipe": "꽂은 광맥 핵에 맞는 원석을 계속 내보냄",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 956,
    "colors": 8,
    "ins": [],
    "outs": [
-    "ore_cu"
+    "ore_fe"
+   ]
+  },
+  {
+   "key": "extractor_coal",
+   "ko": "추출기 (석탄 광맥 핵)",
+   "fam": "공급",
+   "recipe": "핵만 바꿔 꽂으면 다른 원석이 나옴",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 956,
+   "colors": 8,
+   "ins": [],
+   "outs": [
+    "coal"
    ]
   },
   {
@@ -362,7 +406,7 @@
    "key": "smelter",
    "ko": "제련로",
    "fam": "변환",
-   "recipe": "광석 → 주괴 (구리, 철)",
+   "recipe": "광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함",
    "ports": [
     [
      "W",
@@ -931,6 +975,9 @@
   "barrel_oil",
   "barrel_fuel",
   "crate",
+  "core_fe",
+  "core_coal",
+  "core_cu",
   "motor"
  ]
 }

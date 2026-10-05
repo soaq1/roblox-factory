@@ -38,7 +38,7 @@
 <body>
 <main>
   <h1>공장 기계 카탈로그</h1>
-  <p class="sub">기계와 벨트 31종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
+  <p class="sub">기계와 벨트 33종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
   <div class="hero"><img src="img/_line.png" alt="벨트로 연결한 공장 예시"></div>
   <ul class="legend">
     <li><i style="background:var(--in)"></i>노란 테두리는 입구</li>
@@ -110,15 +110,31 @@
     </figure></div>
   </section>
   <section>
-    <h2>공급 <span class="count">5</span></h2>
+    <h2>공급 <span class="count">7</span></h2>
     <p class="lede">아무것도 넣지 않아도 자원을 내보내는 기계</p>
     <div class="grid">
     <figure class="card">
-      <div class="shot"><img src="img/drill.png" alt="채굴 드릴" loading="lazy"></div>
+      <div class="shot"><img src="img/extractor_empty.png" alt="빈 추출기" loading="lazy"></div>
       <figcaption>
-        <h3>채굴 드릴</h3>
-        <p class="recipe">광맥 위에 놓으면 광석(구리, 철, 석탄, 돌)을 캐냄</p>
-        <p class="meta">1×1칸 · 출구 1 · 삼각형 984</p>
+        <h3>빈 추출기</h3>
+        <p class="recipe">돌, 철 주괴, 나무, 몬스터 부품으로 조립. 광맥 핵을 꽂기 전에는 아무것도 나오지 않음</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 796</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/extractor_fe.png" alt="추출기 (철 광맥 핵)" loading="lazy"></div>
+      <figcaption>
+        <h3>추출기 (철 광맥 핵)</h3>
+        <p class="recipe">꽂은 광맥 핵에 맞는 원석을 계속 내보냄</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 956</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/extractor_coal.png" alt="추출기 (석탄 광맥 핵)" loading="lazy"></div>
+      <figcaption>
+        <h3>추출기 (석탄 광맥 핵)</h3>
+        <p class="recipe">핵만 바꿔 꽂으면 다른 원석이 나옴</p>
+        <p class="meta">1×1칸 · 출구 1 · 삼각형 956</p>
       </figcaption>
     </figure>
     <figure class="card">
@@ -178,7 +194,7 @@
       <div class="shot"><img src="img/smelter.png" alt="제련로" loading="lazy"></div>
       <figcaption>
         <h3>제련로</h3>
-        <p class="recipe">광석 → 주괴 (구리, 철)</p>
+        <p class="recipe">광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함</p>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,056</p>
       </figcaption>
     </figure>
@@ -327,7 +343,7 @@
     </figure></div>
   </section>
   <section>
-    <h2>아이템 <span class="count">28</span></h2>
+    <h2>아이템 <span class="count">31</span></h2>
     <p class="lede">벨트 위를 굴러다니는 물체들</p>
     <div class="items"><img src="img/_items.png" alt="아이템 모음"></div>
   </section>

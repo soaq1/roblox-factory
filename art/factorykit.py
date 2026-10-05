@@ -32,9 +32,9 @@ PAL = {
     "wood": "#c99c61", "wood_dark": "#a87d47", "wood_light": "#e3c58f",
     "brick": "#b5553c", "brick_dark": "#9c4631", "mortar": "#d6d0c6",
     "wheat": "#cdb850", "wheat_head": "#ecd465", "cream": "#efe2c8", "bread": "#d39a55",
-    "pcb": "#2f9e5b", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
+    "pcb": "#2f9e5b", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
 }
-EMIT = {"glow": 3.0, "spark": 1.5}
+EMIT = {"glow": 3.0, "spark": 1.5, "core_fe": 0.9, "core_cu": 0.9, "core_coal": 0.15}
 _mats = {}
 
 
@@ -465,27 +465,43 @@ def _storage(m, T):
 
 
 # ---- 공급 ----
-@machine("drill", "채굴 드릴", "공급", "광맥 위에 놓으면 광석(구리, 철, 석탄, 돌)을 캐냄",
-         ports=(E_OUT,), outs=("ore_cu",), ortho=5.0, tz=1.0)
-def _drill(m, T):
-    vent(m)
+def extractor_top(m, T, core):
+    """Socket and claws on the deck. With a vein core fitted, the crystal floats in the claws."""
+    y = window(m, core or "hole")
+    for x in (-0.10, 0.0, 0.10):
+        m.box((0.03, 0.02, 0.26), (x, y, 0.50), "dark")
     bolts(m)
-    m.cyl(0.29, 0.04, (0, 0, T + 0.02), "mid", seg=10)
-    m.cyl(0.23, 0.01, (0, 0, T + 0.043), "hole", seg=10)
-    fz = gantry(m, T, 0.98)
-    for s in (-1, 1):
-        m.box((0.74, 0.04, 0.04), (0, s * 0.37, T + 0.50), "mid")
-        m.box((0.04, 0.74, 0.04), (s * 0.37, 0, T + 0.50), "mid")
-    m.box((0.48, 0.48, 0.30), (0, 0, fz - 0.17), "body", bevel=0.05)
-    m.box((0.54, 0.54, 0.07), (0, 0, fz + 0.06), "light", bevel=0.015)
-    m.cyl(0.07, 0.10, (0.12, 0.12, fz + 0.14), "mid", seg=6)
-    z = fz - 0.32
-    m.cyl(0.05, 0.22, (0, 0, z - 0.11), "mid", seg=8)
-    z -= 0.22
-    for h, r_top, r_bot, mk in ((0.15, 0.22, 0.15, "red"), (0.13, 0.17, 0.10, "mid"),
-                                (0.12, 0.12, 0.02, "red")):
-        m.cyl(r_bot, h, (0, 0, z - h / 2), mk, seg=8, r2=r_top)
-        z -= h
+    m.cyl(0.38, 0.06, (0, 0, T + 0.03), "light", seg=8)
+    m.cyl(0.23, 0.05, (0, 0, T + 0.075), "dark", seg=8)
+    m.cyl(0.16, 0.012, (0, 0, T + 0.102), core or "hole", seg=8)
+    for k in range(4):
+        a = k * math.pi / 2 + math.pi / 4
+        with m.at((math.cos(a) * 0.31, math.sin(a) * 0.31, T + 0.06), a):
+            m.box((0.10, 0.11, 0.34), (0, 0, 0.17), "body", bevel=0.02)
+            m.box((0.08, 0.08, 0.28), (-0.08, 0, 0.455), "light", rot=(0, rad(-35), 0))
+            m.cyl(0.04, 0.13, (0, 0, 0.34), "dark", seg=6, axis="Y")
+    if core:
+        crystal(m, (0, 0, T + 0.64), 0.17, core)
+        for k, (r, dz, s_) in enumerate(((0.33, 0.20, 0.05), (0.30, -0.02, 0.04), (0.34, 0.10, 0.035))):
+            a = 0.6 + k * 2.2
+            crystal(m, (math.cos(a) * r, math.sin(a) * r, T + 0.64 + dz), s_, core)
+
+
+def crystal(m, loc, r, mk):
+    x, y, z = loc
+    m.cyl(r, r * 1.8, (x, y, z + r * 0.9), mk, seg=6, r2=0.004)
+    m.cyl(0.004, r * 1.1, (x, y, z - r * 0.55), mk, seg=6, r2=r)
+
+
+machine("extractor_empty", "빈 추출기", "공급",
+        "돌, 철 주괴, 나무, 몬스터 부품으로 조립. 광맥 핵을 꽂기 전에는 아무것도 나오지 않음",
+        ports=(E_OUT,), ortho=4.9, tz=0.9)(lambda m, T: extractor_top(m, T, None))
+machine("extractor_fe", "추출기 (철 광맥 핵)", "공급", "꽂은 광맥 핵에 맞는 원석을 계속 내보냄",
+        ports=(E_OUT,), outs=("ore_fe",), ortho=4.9, tz=0.9)(lambda m, T: extractor_top(m, T, "core_fe"))
+machine("extractor_coal", "추출기 (석탄 광맥 핵)", "공급", "핵만 바꿔 꽂으면 다른 원석이 나옴",
+        ports=(E_OUT,), outs=("coal",), ortho=4.9, tz=0.9)(lambda m, T: extractor_top(m, T, "core_coal"))
+machine("extractor_cu", "추출기 (구리 광맥 핵)", "공급", "", ports=(E_OUT,), show=False)(
+    lambda m, T: extractor_top(m, T, "core_cu"))
 
 
 @machine("logger", "벌목기", "공급", "주변 나무를 베어 통나무를 내보냄",
@@ -579,7 +595,7 @@ def _washer(m, T):
                0.045, "water", seg=6)
 
 
-@machine("smelter", "제련로", "변환", "광석 → 주괴 (구리, 철)",
+@machine("smelter", "제련로", "변환", "광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함",
          ports=(W_IN, E_OUT), ins=("ore_cu",), outs=("ingot_cu",), ortho=4.9, tz=0.95)
 def _smelter(m, T):
     y = window(m, "glow")
@@ -1007,6 +1023,8 @@ def build_items():
     it("barrel_oil", bar("oil", "red"))
     it("barrel_fuel", bar("red", "dark"))
     it("crate", lambda m: crate(m, (0, 0, 0), s=0.26))
+    for key in ("core_fe", "core_coal", "core_cu"):
+        it(key, lambda m, key=key: crystal(m, (0, 0, 0.14), 0.11, key))
     it("motor", lambda m: (m.cyl(0.10, 0.24, (0, 0, 0.11), "steel", seg=8, axis="X"),
                            m.cyl(0.11, 0.06, (0, 0, 0.11), "copper", seg=8, axis="X"),
                            m.cyl(0.03, 0.34, (0, 0, 0.11), "light", seg=6, axis="X"),
@@ -1134,7 +1152,7 @@ if "line" in ARGS:
         place(ITEMS[name], B + Vector((x, y, 0.30)), rng.uniform(0, 1.5))
 
     # top row, flowing east
-    put("drill", -4, 2)
+    put("extractor_cu", -4, 2)
     put("belt", -3, 2)
     put("crusher", -2, 2)
     put("belt", -1, 2)
