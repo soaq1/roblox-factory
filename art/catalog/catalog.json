@@ -945,6 +945,880 @@
     "coal"
    ],
    "outs": []
+  },
+  {
+   "key": "funnel",
+   "ko": "깔때기",
+   "fam": "물리 장치",
+   "recipe": "위에서 떨어지는 아이템을 받아 벨트로 내보냄. 높낮이만 맞추면 동력이 필요 없음",
+   "ports": [
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 536,
+   "colors": 8,
+   "ins": [],
+   "outs": [
+    "ore_fe"
+   ]
+  },
+  {
+   "key": "chute",
+   "ko": "낙하 통로",
+   "fam": "물리 장치",
+   "recipe": "높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감",
+   "ports": [],
+   "size": [
+    2,
+    1
+   ],
+   "tris": 144,
+   "colors": 4,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "blower",
+   "ko": "송풍기",
+   "fam": "물리 장치",
+   "recipe": "바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 288,
+   "colors": 7,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "lift",
+   "ko": "수직 승강기",
+   "fam": "물리 장치",
+   "recipe": "아이템을 두 칸 위로 올림",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 740,
+   "colors": 9,
+   "ins": [
+    "ore_fe"
+   ],
+   "outs": []
+  },
+  {
+   "key": "launcher",
+   "ko": "발사기",
+   "fam": "물리 장치",
+   "recipe": "아이템을 포물선으로 쏘아 보냄. 벨트 없이 먼 곳이나 높은 곳으로 보낼 수 있음",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 672,
+   "colors": 10,
+   "ins": [
+    "ingot_cu"
+   ],
+   "outs": []
+  },
+  {
+   "key": "pusher",
+   "ko": "밀대",
+   "fam": "물리 장치",
+   "recipe": "신호가 오면 지나가는 아이템을 옆으로 밀어냄",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 624,
+   "colors": 10,
+   "ins": [
+    "stone"
+   ],
+   "outs": [
+    "stone",
+    "ore_fe"
+   ]
+  },
+  {
+   "key": "sensor",
+   "ko": "감지기",
+   "fam": "판단 장치",
+   "recipe": "벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 360,
+   "colors": 7,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "gate",
+   "ko": "여닫이 문",
+   "fam": "판단 장치",
+   "recipe": "신호에 따라 벨트를 막거나 엶",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 324,
+   "colors": 7,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "counter",
+   "ko": "계수기",
+   "fam": "판단 장치",
+   "recipe": "지나간 아이템을 세고, 정한 수가 차면 신호를 냄",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 440,
+   "colors": 8,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "switch",
+   "ko": "스위치",
+   "fam": "판단 장치",
+   "recipe": "손으로 켜고 끄는 신호",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 180,
+   "colors": 6,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "logic",
+   "ko": "논리 회로함",
+   "fam": "판단 장치",
+   "recipe": "신호 둘을 받아 조건이 맞으면 신호를 내보냄 (그리고, 또는, 아니면)",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 280,
+   "colors": 9,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "beacon",
+   "ko": "신호등",
+   "fam": "판단 장치",
+   "recipe": "신호를 받으면 켜짐. 공장 상태를 멀리서 확인",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 252,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "timer",
+   "ko": "타이머",
+   "fam": "판단 장치",
+   "recipe": "정해 둔 간격마다 신호를 냄",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 248,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "campfire",
+   "ko": "모닥불",
+   "fam": "손 작업",
+   "recipe": "가장 처음 쓰는 불. 재료와 땔감을 직접 넣고 기다림",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 280,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "hand_furnace",
+   "ko": "손 화덕",
+   "fam": "손 작업",
+   "recipe": "돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 292,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_basic",
+   "ko": "기본 작업대",
+   "fam": "손 작업",
+   "recipe": "건축 블록, 일반 물건, 다른 작업대를 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 236,
+   "colors": 6,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_tool",
+   "ko": "도구 작업대",
+   "fam": "손 작업",
+   "recipe": "곡괭이, 무기, 갑옷을 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 312,
+   "colors": 9,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_part",
+   "ko": "부품 작업대",
+   "fam": "손 작업",
+   "recipe": "판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 756,
+   "colors": 8,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_machine",
+   "ko": "기계 작업대",
+   "fam": "손 작업",
+   "recipe": "벨트, 기계, 추출기를 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 588,
+   "colors": 11,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_cook",
+   "ko": "조리대",
+   "fam": "손 작업",
+   "recipe": "음식을 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 496,
+   "colors": 10,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_elec",
+   "ko": "전기 작업대",
+   "fam": "손 작업",
+   "recipe": "감지기, 스위치, 논리 회로 같은 전기 부품을 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 544,
+   "colors": 13,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_furn",
+   "ko": "가구 작업대",
+   "fam": "손 작업",
+   "recipe": "가구와 꾸미기 물건을 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 396,
+   "colors": 8,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "wb_all",
+   "ko": "통합 작업대",
+   "fam": "손 작업",
+   "recipe": "모든 분류의 물건을 한곳에서 만듦. 아주 비싼 후반 설비",
+   "ports": [],
+   "size": [
+    2,
+    1
+   ],
+   "tris": 1024,
+   "colors": 15,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "chest",
+   "ko": "상자",
+   "fam": "손 작업",
+   "recipe": "물건을 넣어 두는 보관함",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 124,
+   "colors": 4,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "vending",
+   "ko": "자판기",
+   "fam": "포장·판매",
+   "recipe": "물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 500,
+   "colors": 13,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "briquetter",
+   "ko": "압축기",
+   "fam": "변환",
+   "recipe": "톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 952,
+   "colors": 10,
+   "ins": [
+    "sawdust"
+   ],
+   "outs": [
+    "briquette"
+   ]
+  },
+  {
+   "key": "oilpress",
+   "ko": "착유기",
+   "fam": "변환",
+   "recipe": "기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 976,
+   "colors": 12,
+   "ins": [
+    "seed"
+   ],
+   "outs": [
+    "oilcan"
+   ]
+  },
+  {
+   "key": "lathe",
+   "ko": "선반",
+   "fam": "변환",
+   "recipe": "철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 908,
+   "colors": 10,
+   "ins": [
+    "ingot_fe"
+   ],
+   "outs": [
+    "gear"
+   ]
+  },
+  {
+   "key": "alloy",
+   "ko": "합금로",
+   "fam": "조합",
+   "recipe": "두 가지 금속을 함께 녹여 합금 주괴로 만듦",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "S",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 740,
+   "colors": 9,
+   "ins": [
+    "ingot_cu",
+    "ingot_fe"
+   ],
+   "outs": [
+    "ingot_alloy"
+   ]
+  },
+  {
+   "key": "caster",
+   "ko": "주조기",
+   "fam": "변환",
+   "recipe": "철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 776,
+   "colors": 10,
+   "ins": [
+    "ingot_fe"
+   ],
+   "outs": [
+    "frame"
+   ]
+  },
+  {
+   "key": "loom",
+   "ko": "직조기",
+   "fam": "변환",
+   "recipe": "목화 → 천",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 804,
+   "colors": 13,
+   "ins": [],
+   "outs": [
+    "cloth"
+   ]
+  },
+  {
+   "key": "gemcutter",
+   "ko": "보석 절삭기",
+   "fam": "변환",
+   "recipe": "다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 936,
+   "colors": 13,
+   "ins": [
+    "diamond"
+   ],
+   "outs": [
+    "blade"
+   ]
+  },
+  {
+   "key": "recycler",
+   "ko": "분해기",
+   "fam": "변환",
+   "recipe": "기계나 부품을 넣으면 들어간 재료의 일부를 되돌려 받음",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 804,
+   "colors": 8,
+   "ins": [
+    "gear"
+   ],
+   "outs": [
+    "ingot_fe",
+    "coil"
+   ]
+  },
+  {
+   "key": "painter",
+   "ko": "도색기",
+   "fam": "변환",
+   "recipe": "블록 + 염료 → 색을 입힌 블록",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 932,
+   "colors": 10,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "magsep",
+   "ko": "자석 분리기",
+   "fam": "운반",
+   "recipe": "철이 든 것만 옆으로 끌어내고 나머지는 통과시킴",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 776,
+   "colors": 9,
+   "ins": [
+    "crushed"
+   ],
+   "outs": [
+    "stone",
+    "ore_fe"
+   ]
+  },
+  {
+   "key": "sieve",
+   "ko": "체질기",
+   "fam": "변환",
+   "recipe": "자갈이나 모래를 걸러 아주 적은 양의 광물을 얻음. 광맥 핵이 없어도 됨",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ],
+    [
+     "S",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 760,
+   "colors": 9,
+   "ins": [
+    "gravel"
+   ],
+   "outs": [
+    "sand",
+    "ore_fe"
+   ]
+  },
+  {
+   "key": "sprinkler",
+   "ko": "물뿌리개",
+   "fam": "공급",
+   "recipe": "주변 밭에 물을 줘서 작물이 빨리 자람",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 284,
+   "colors": 6,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "seeder",
+   "ko": "파종기",
+   "fam": "공급",
+   "recipe": "수확이 끝난 자리에 씨앗을 다시 심음",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 524,
+   "colors": 9,
+   "ins": [
+    "seed"
+   ],
+   "outs": []
+  },
+  {
+   "key": "incinerator",
+   "ko": "소각로",
+   "fam": "동력",
+   "recipe": "필요 없는 것을 태워 없앰. 전력이 조금 나옴",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ]
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 684,
+   "colors": 10,
+   "ins": [
+    "sawdust"
+   ],
+   "outs": []
+  },
+  {
+   "key": "windturbine",
+   "ko": "풍력 터빈",
+   "fam": "동력",
+   "recipe": "바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 180,
+   "colors": 5,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "solar",
+   "ko": "태양광 패널",
+   "fam": "동력",
+   "recipe": "낮 동안 전력을 만듦",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 144,
+   "colors": 4,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "battery",
+   "ko": "축전지",
+   "fam": "동력",
+   "recipe": "남는 전력을 모아 두었다가 모자랄 때 내보냄",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 272,
+   "colors": 7,
+   "ins": [],
+   "outs": []
   }
  ],
  "items": [
@@ -978,6 +1852,16 @@
   "core_fe",
   "core_coal",
   "core_cu",
+  "sawdust",
+  "gravel",
+  "seed",
+  "briquette",
+  "oilcan",
+  "cloth",
+  "diamond",
+  "blade",
+  "frame",
+  "ingot_alloy",
   "motor"
  ]
 }

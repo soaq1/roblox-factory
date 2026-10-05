@@ -32,7 +32,7 @@ PAL = {
     "wood": "#c99c61", "wood_dark": "#a87d47", "wood_light": "#e3c58f",
     "brick": "#b5553c", "brick_dark": "#9c4631", "mortar": "#d6d0c6",
     "wheat": "#cdb850", "wheat_head": "#ecd465", "cream": "#efe2c8", "bread": "#d39a55",
-    "pcb": "#2f9e5b", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
+    "pcb": "#2f9e5b", "solar": "#2c4a78", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
 }
 EMIT = {"glow": 3.0, "spark": 1.5, "core_fe": 0.9, "core_cu": 0.9, "core_coal": 0.15}
 _mats = {}
@@ -962,6 +962,724 @@ def _generator(m, T):
     m.box((0.04, 0.04, 0.10), (0.26, -0.36, T + 0.05), "mid")
 
 
+# ============================ PHYSICS DEVICES ============================
+@machine("funnel", "깔때기", "물리 장치", "위에서 떨어지는 아이템을 받아 벨트로 내보냄. 높낮이만 맞추면 동력이 필요 없음",
+         ports=(E_OUT,), outs=("ore_fe",), ortho=4.9, tz=0.9)
+def _funnel(m, T):
+    vent(m)
+    bolts(m)
+    top = hopper(m, 0, 0, T, w=0.90, h=0.52)
+    for s in (-1, 1):
+        m.box((1.00, 0.06, 0.05), (0, s * 0.47, top), "accent")
+        m.box((0.06, 1.00, 0.05), (s * 0.47, 0, top), "accent")
+
+
+@machine("chute", "낙하 통로", "물리 장치", "높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감",
+         chassis_on=False, size=(2, 1), ortho=4.4, tz=0.6)
+def _chute(m, T):
+    m.prism([(-1, 1.24), (1, 0.24), (1, 0.30), (-1, 1.30)], -0.34, 0.34, "Y", "light")
+    for lo, hi in ((0.34, 0.42), (-0.42, -0.34)):
+        m.prism([(-1, 1.24), (1, 0.24), (1, 0.48), (-1, 1.48)], lo, hi, "Y", "body")
+    for x in (-0.85, -0.15):
+        hgt = 1.24 - (x + 1) / 2
+        for s in (-1, 1):
+            m.box((0.08, 0.08, hgt), (x, s * 0.36, hgt / 2), "mid")
+            m.box((0.16, 0.16, 0.04), (x, s * 0.36, 0.02), "dark")
+    m.box((0.10, 0.84, 0.20), (0.95, 0, 0.12), "dark")
+
+
+@machine("blower", "송풍기", "물리 장치", "바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림",
+         chassis_on=False, ortho=3.6, tz=0.6)
+def _blower(m, T):
+    m.box((0.96, 0.96, 0.12), (0, 0, 0.06), "dark", bevel=0.02)
+    for y in (-0.30, 0.30):
+        m.box((0.50, 0.10, 0.30), (0, y, 0.25), "mid")
+    cz = 0.74
+    m.cyl(0.44, 0.50, (0.05, 0, cz), "body", seg=12, axis="X")
+    m.cyl(0.37, 0.52, (0.05, 0, cz), "hole", seg=12, axis="X")
+    for k in range(3):
+        m.box((0.04, 0.70, 0.13), (0.30, 0, cz), "light", rot=(rad(k * 60), 0, 0))
+    m.cyl(0.09, 0.08, (0.32, 0, cz), "red", seg=8, axis="X")
+    m.box((0.34, 0.44, 0.44), (-0.33, 0, cz - 0.05), "mid", bevel=0.04)
+    arrow(m, 0.36, 0, 0.12, 0, "out", s=0.10)
+
+
+@machine("lift", "수직 승강기", "물리 장치", "아이템을 두 칸 위로 올림",
+         ports=(W_IN,), ins=("ore_fe",), ortho=7.8, tz=1.7)
+def _lift(m, T):
+    vent(m)
+    bolts(m)
+    m.box((0.60, 0.60, 1.10), (0, 0, T + 0.55), "mid", bevel=0.03)
+    m.box((0.30, 0.02, 0.96), (0, -0.305, T + 0.55), "hole")
+    for i in range(4):
+        m.box((0.20, 0.07, 0.10), (0, -0.33, T + 0.16 + i * 0.26), "light")
+    with m.at((0, 0, 2.0)):
+        m.box((0.88, 0.88, 0.80), (0, 0, 0.50), "body", bevel=0.05)
+        m.box((0.98, 0.98, 0.07), (0, 0, 0.935), "dark", bevel=0.02)
+        port(m, "E", "out")
+        m.cyl(0.16, 0.10, (0, 0, 1.02), "red", seg=8)
+
+
+@machine("launcher", "발사기", "물리 장치", "아이템을 포물선으로 쏘아 보냄. 벨트 없이 먼 곳이나 높은 곳으로 보낼 수 있음",
+         ports=(W_IN,), ins=("ingot_cu",), ortho=5.2, tz=1.0)
+def _launcher(m, T):
+    gauge(m)
+    bolts(m)
+    m.cyl(0.30, 0.12, (0, 0, T + 0.06), "mid", seg=10)
+    a = rad(50)
+    d = Vector((math.sin(a), 0, math.cos(a)))
+    c = Vector((0.02, 0, T + 0.16))
+    m.cyl(0.19, 0.80, c + d * 0.40, "body", seg=10, rot=(0, a, 0))
+    m.cyl(0.21, 0.07, c + d * 0.80, "out", seg=10, rot=(0, a, 0))
+    m.cyl(0.14, 0.02, c + d * 0.845, "hole", seg=10, rot=(0, a, 0))
+    for t in (0.14, 0.26, 0.38):
+        m.cyl(0.215, 0.05, c + d * t, "red", seg=10, rot=(0, a, 0))
+    for y in (-0.26, 0.26):
+        m.box((0.10, 0.07, 0.36), (0.02, y, T + 0.24), "dark", taper=0.6)
+
+
+@machine("pusher", "밀대", "물리 장치", "신호가 오면 지나가는 아이템을 옆으로 밀어냄",
+         ports=(W_IN, E_OUT, S_OUT), ins=("stone",), outs=("stone", "ore_fe"))
+def _pusher(m, T):
+    m.box((0.36, 0.40, 0.26), (0, 0.24, T + 0.13), "body", bevel=0.03)
+    for x in (-0.10, 0.0, 0.10):
+        m.box((0.05, 0.41, 0.262), (x, 0.24, T + 0.13), "accent" if x else "dark")
+    m.cyl(0.05, 0.36, (0, -0.10, T + 0.13), "light", seg=8, axis="Y")
+    m.box((0.46, 0.06, 0.22), (0, -0.30, T + 0.12), "red", bevel=0.015)
+    stack_lamp(m, 0.36, 0.36, T, "spark")
+
+
+# ============================ LOGIC DEVICES ============================
+@machine("sensor", "감지기", "판단 장치", "벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음",
+         chassis_on=False, ortho=3.6, tz=0.5)
+def _sensor(m, T):
+    belt_straight(m)
+    for s in (-1, 1):
+        m.box((0.06, 0.06, 0.86), (0, s * 0.52, 0.43), "mid")
+    m.box((0.11, 1.12, 0.09), (0, 0, 0.88), "dark", bevel=0.015)
+    m.box((0.24, 0.24, 0.16), (0, 0, 0.77), "body", bevel=0.03)
+    m.cyl(0.08, 0.04, (0, 0, 0.68), "dark", seg=8)
+    m.cyl(0.055, 0.05, (0, 0, 0.675), "water_light", seg=8)
+    stack_lamp(m, 0, 0.52, 0.90, "spark")
+
+
+@machine("gate", "여닫이 문", "판단 장치", "신호에 따라 벨트를 막거나 엶",
+         chassis_on=False, ortho=3.6, tz=0.5)
+def _gate(m, T):
+    belt_straight(m)
+    for s in (-1, 1):
+        m.box((0.10, 0.06, 0.80), (0, s * 0.52, 0.40), "mid")
+    m.box((0.14, 1.12, 0.10), (0, 0, 0.84), "dark", bevel=0.015)
+    m.box((0.05, 0.70, 0.34), (0, 0, 0.60), "red")
+    for y in (-0.20, 0.0, 0.20):
+        m.box((0.052, 0.07, 0.34), (0, y, 0.60), "light")
+    m.cyl(0.07, 0.22, (0, 0, 1.00), "light", seg=8)
+    m.cyl(0.09, 0.05, (0, 0, 0.91), "mid", seg=8)
+
+
+@machine("counter", "계수기", "판단 장치", "지나간 아이템을 세고, 정한 수가 차면 신호를 냄",
+         chassis_on=False, ortho=3.6, tz=0.5)
+def _counter(m, T):
+    belt_straight(m)
+    m.box((0.07, 0.07, 0.70), (0.0, -0.53, 0.35), "mid")
+    m.box((0.40, 0.10, 0.26), (0.0, -0.53, 0.80), "dark", bevel=0.02)
+    m.box((0.32, 0.02, 0.18), (0.0, -0.585, 0.80), "hole")
+    for i, x in enumerate((-0.10, 0.0, 0.10)):
+        for z in (0.86, 0.80, 0.74):
+            m.box((0.06, 0.02, 0.02), (x, -0.598, z), "spark")
+        m.box((0.02, 0.02, 0.07), (x + 0.035, -0.598, 0.83), "spark")
+        m.box((0.02, 0.02, 0.07), (x - 0.035, -0.598, 0.77 if i % 2 else 0.83), "spark")
+    m.cyl(0.06, 0.04, (0, -0.30, 0.36), "red", seg=8, axis="Y")
+    m.box((0.04, 0.26, 0.04), (0, -0.42, 0.40), "mid")
+
+
+@machine("switch", "스위치", "판단 장치", "손으로 켜고 끄는 신호",
+         chassis_on=False, ortho=2.6, tz=0.3)
+def _switch(m, T):
+    m.box((0.50, 0.50, 0.06), (0, 0, 0.03), "dark", bevel=0.015)
+    m.box((0.34, 0.28, 0.34), (0, 0, 0.23), "body", bevel=0.04)
+    m.box((0.06, 0.20, 0.02), (0, 0, 0.405), "hole")
+    m.cyl(0.025, 0.30, (0, 0.05, 0.52), "light", seg=6, rot=(rad(-25), 0, 0))
+    m.ico(0.06, (0, 0.115, 0.655), "red")
+    m.cyl(0.04, 0.03, (0.11, -0.141, 0.26), "out", seg=6, axis="Y")
+    m.cyl(0.04, 0.03, (-0.11, -0.141, 0.26), "dark", seg=6, axis="Y")
+
+
+@machine("logic", "논리 회로함", "판단 장치", "신호 둘을 받아 조건이 맞으면 신호를 내보냄 (그리고, 또는, 아니면)",
+         chassis_on=False, ortho=2.9, tz=0.25)
+def _logic(m, T):
+    m.box((0.80, 0.60, 0.06), (0, 0, 0.03), "dark", bevel=0.015)
+    m.box((0.70, 0.50, 0.30), (0, 0, 0.21), "body", bevel=0.04)
+    m.box((0.52, 0.34, 0.02), (0, 0, 0.365), "pcb")
+    for (x, y, w, h) in ((-0.12, 0.08, 0.22, 0.02), (-0.12, -0.08, 0.22, 0.02),
+                         (0.10, 0.0, 0.20, 0.02), (0.0, 0.0, 0.02, 0.18)):
+        m.box((w, h, 0.012), (x, y, 0.378), "gold")
+    m.box((0.10, 0.12, 0.04), (0.0, 0.0, 0.39), "hole")
+    for y in (-0.12, 0.12):
+        m.cyl(0.05, 0.08, (-0.38, y, 0.20), "accent", seg=6, axis="X")
+    m.cyl(0.05, 0.08, (0.38, 0, 0.20), "out", seg=6, axis="X")
+    for i, mk in enumerate(("glow", "spark", "out")):
+        m.cyl(0.025, 0.03, (-0.16 + i * 0.16, -0.255, 0.24), mk, seg=6, axis="Y")
+
+
+@machine("beacon", "신호등", "판단 장치", "신호를 받으면 켜짐. 공장 상태를 멀리서 확인",
+         chassis_on=False, ortho=3.4, tz=0.75)
+def _beacon(m, T):
+    m.cyl(0.24, 0.08, (0, 0, 0.04), "dark", seg=8)
+    m.cyl(0.05, 0.80, (0, 0, 0.48), "mid", seg=8)
+    for i, mk in enumerate(("out", "spark", "red")):
+        z = 0.95 + i * 0.19
+        m.cyl(0.12, 0.15, (0, 0, z), mk, seg=8)
+        m.cyl(0.13, 0.03, (0, 0, z - 0.09), "dark", seg=8)
+    m.cyl(0.13, 0.06, (0, 0, 1.44), "dark", seg=8, r2=0.05)
+
+
+@machine("timer", "타이머", "판단 장치", "정해 둔 간격마다 신호를 냄",
+         chassis_on=False, ortho=2.8, tz=0.3)
+def _timer(m, T):
+    m.box((0.56, 0.44, 0.06), (0, 0, 0.03), "dark", bevel=0.015)
+    m.box((0.48, 0.32, 0.50), (0, 0, 0.31), "body", bevel=0.05)
+    m.cyl(0.19, 0.03, (0, -0.165, 0.33), "dark", seg=12, axis="Y")
+    m.cyl(0.16, 0.035, (0, -0.167, 0.33), "white", seg=12, axis="Y")
+    m.box((0.02, 0.015, 0.12), (0, -0.19, 0.38), "dark")
+    m.box((0.09, 0.015, 0.02), (0.04, -0.19, 0.33), "red")
+    m.cyl(0.06, 0.06, (0, 0, 0.59), "red", seg=8)
+    m.cyl(0.04, 0.06, (0.26, 0, 0.25), "out", seg=6, axis="X")
+
+
+# ============================ HAND WORK ============================
+@machine("campfire", "모닥불", "손 작업", "가장 처음 쓰는 불. 재료와 땔감을 직접 넣고 기다림",
+         chassis_on=False, ortho=2.6, tz=0.15)
+def _campfire(m, T):
+    for k in range(8):
+        a = k * math.pi / 4
+        m.ico(0.10, (math.cos(a) * 0.32, math.sin(a) * 0.32, 0.06), "stone" if k % 2 else "stone_dark",
+              squash=0.7, jitter=0.15)
+    for k in range(3):
+        m.cyl(0.055, 0.50, (0, 0, 0.08 + k * 0.03), "wood_dark", seg=6, axis="X", rot=k * math.pi / 3)
+    m.ico(0.14, (0, 0, 0.24), "glow", squash=1.5, jitter=0.1)
+    m.ico(0.09, (0.03, 0.02, 0.34), "spark", squash=1.6, jitter=0.1)
+    m.ico(0.07, (-0.08, 0.04, 0.20), "glow", squash=1.3)
+
+
+@machine("hand_furnace", "손 화덕", "손 작업", "돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦",
+         chassis_on=False, ortho=3.6, tz=0.6)
+def _hand_furnace(m, T):
+    m.box((0.92, 0.92, 0.14), (0, 0, 0.07), "stone_dark", bevel=0.03)
+    m.box((0.82, 0.82, 0.70), (0, 0, 0.49), "stone", bevel=0.05, taper=0.92)
+    m.box((0.86, 0.86, 0.09), (0, 0, 0.885), "stone_dark", bevel=0.03)
+    m.box((0.40, 0.03, 0.30), (0, -0.405, 0.40), "hole")
+    m.box((0.30, 0.035, 0.18), (0, -0.41, 0.36), "glow")
+    m.box((0.50, 0.06, 0.07), (0, -0.41, 0.585), "brick")
+    for x in (-0.25, 0.25):
+        m.box((0.07, 0.06, 0.34), (x, -0.41, 0.40), "brick")
+    m.box((0.56, 0.14, 0.05), (0, -0.46, 0.20), "stone_dark")
+    m.box((0.34, 0.34, 0.40), (0, 0.14, 1.13), "brick", taper=0.8, bevel=0.03)
+    m.box((0.36, 0.36, 0.07), (0, 0.14, 1.36), "stone_dark", bevel=0.02)
+
+
+def bench(m, top="wood", w=0.96, d=0.78):
+    m.box((w, d, 0.10), (0, 0, 0.72), top, bevel=0.02)
+    for x in (-(w / 2 - 0.08), w / 2 - 0.08):
+        for y in (-(d / 2 - 0.08), d / 2 - 0.08):
+            m.box((0.10, 0.10, 0.67), (x, y, 0.335), "wood_dark")
+    m.box((w - 0.16, 0.05, 0.08), (0, -(d / 2 - 0.08), 0.30), "wood_dark")
+    m.box((w, 0.05, 0.56), (0, d / 2 - 0.025, 1.05), "wood_dark")
+    m.box((w + 0.04, 0.09, 0.05), (0, d / 2 - 0.025, 1.35), "wood")
+    return 0.77, d / 2 - 0.06
+
+
+def p_hammer(m, x, y, z, rz=0.0):
+    with m.at((x, y, z), rz):
+        m.box((0.24, 0.03, 0.03), (0, 0, 0.015), "wood_light")
+        m.box((0.06, 0.12, 0.06), (0.11, 0, 0.03), "mid")
+
+
+def p_anvil(m, x, y, z):
+    with m.at((x, y, z)):
+        m.box((0.26, 0.18, 0.06), (0, 0, 0.03), "dark")
+        m.box((0.14, 0.12, 0.10), (0, 0, 0.11), "dark")
+        m.box((0.34, 0.16, 0.08), (0, 0, 0.20), "dark", bevel=0.015)
+        m.cyl(0.05, 0.16, (0.25, 0, 0.20), "dark", seg=6, axis="X", r2=0.012)
+        m.box((0.14, 0.06, 0.03), (-0.02, 0, 0.255), "glow")
+
+
+def p_vise(m, x, y, z):
+    with m.at((x, y, z)):
+        m.box((0.20, 0.16, 0.05), (0, 0, 0.025), "dark")
+        m.box((0.05, 0.16, 0.15), (-0.06, 0, 0.125), "mid")
+        m.box((0.05, 0.16, 0.15), (0.05, 0, 0.125), "mid")
+        m.cyl(0.02, 0.22, (0.15, 0, 0.11), "light", seg=6, axis="X")
+        m.box((0.02, 0.14, 0.02), (0.26, 0, 0.11), "red")
+        m.box((0.06, 0.10, 0.02), (-0.005, 0, 0.19), "copper")
+
+
+def p_pot(m, x, y, z):
+    with m.at((x, y, z)):
+        m.cyl(0.13, 0.04, (0, 0, 0.02), "dark", seg=8)
+        m.cyl(0.10, 0.012, (0, 0, 0.042), "glow", seg=8)
+        m.cyl(0.14, 0.16, (0, 0, 0.13), "dark", seg=10)
+        m.cyl(0.12, 0.012, (0, 0, 0.212), "cream", seg=10)
+        for s in (-1, 1):
+            m.box((0.05, 0.03, 0.02), (s * 0.16, 0, 0.17), "mid")
+
+
+def p_pcb(m, x, y, z):
+    with m.at((x, y, z)):
+        m.box((0.26, 0.20, 0.02), (0, 0, 0.01), "pcb")
+        m.box((0.16, 0.02, 0.012), (-0.02, 0.05, 0.024), "gold")
+        m.box((0.02, 0.12, 0.012), (0.05, -0.02, 0.024), "gold")
+        m.box((0.07, 0.07, 0.03), (-0.05, -0.04, 0.03), "hole")
+
+
+def p_mini_machine(m, x, y, z):
+    with m.at((x, y, z)):
+        m.box((0.32, 0.32, 0.04), (0, 0, 0.02), "dark")
+        m.box((0.28, 0.28, 0.22), (0, 0, 0.15), "body", bevel=0.03)
+        m.box((0.32, 0.32, 0.03), (0, 0, 0.275), "dark")
+        m.box((0.02, 0.18, 0.14), (0.145, 0, 0.13), "out")
+        m.box((0.022, 0.12, 0.09), (0.146, 0, 0.12), "hole")
+
+
+@machine("wb_basic", "기본 작업대", "손 작업", "건축 블록, 일반 물건, 다른 작업대를 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_basic(m, T):
+    z, wy = bench(m)
+    for i in range(3):
+        m.box((0.34, 0.12, 0.035), (-0.22, -0.08, z + 0.018 + i * 0.037), "wood_light" if i % 2 else "wood")
+    p_hammer(m, 0.18, -0.10, z, rad(20))
+    m.box((0.36, 0.012, 0.12), (-0.12, wy, 1.10), "light")
+    m.box((0.10, 0.03, 0.13), (0.11, wy, 1.10), "wood")
+    m.box((0.03, 0.02, 0.30), (0.32, wy, 1.08), "accent")
+    m.box((0.16, 0.02, 0.03), (0.26, wy, 0.94), "accent")
+
+
+@machine("wb_tool", "도구 작업대", "손 작업", "곡괭이, 무기, 갑옷을 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_tool(m, T):
+    z, wy = bench(m, top="mid")
+    p_anvil(m, -0.14, -0.06, z)
+    p_hammer(m, 0.26, -0.16, z, rad(-30))
+    m.box((0.03, 0.02, 0.46), (-0.26, wy, 1.06), "wood_light", rot=(0, rad(20), 0))
+    m.box((0.30, 0.03, 0.05), (-0.18, wy, 1.28), "iron", rot=(0, rad(20), 0))
+    m.box((0.05, 0.015, 0.36), (0.20, wy, 1.10), "light")
+    m.box((0.16, 0.025, 0.03), (0.20, wy, 0.91), "gold")
+    m.box((0.035, 0.025, 0.09), (0.20, wy, 0.86), "wood_dark")
+
+
+@machine("wb_part", "부품 작업대", "손 작업", "판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_part(m, T):
+    z, wy = bench(m, top="mid")
+    p_vise(m, -0.24, -0.08, z)
+    m.gear(0.12, 0.04, (0.12, -0.16, z + 0.02), "iron", teeth=8, axis="Z")
+    for i in range(3):
+        m.box((0.20, 0.16, 0.02), (0.28, 0.10, z + 0.01 + i * 0.022), "copper")
+    for i in range(3):
+        m.cyl(0.02, 0.30, (-0.02 + i * 0.045, 0.16, z + 0.02), "iron", seg=6, axis="Y")
+    m.gear(0.13, 0.03, (-0.24, wy, 1.08), "dark", teeth=8, axis="Y")
+    m.gear(0.09, 0.03, (-0.05, wy, 1.16), "mid", teeth=6, axis="Y")
+    m.box((0.24, 0.02, 0.04), (0.26, wy, 1.12), "light")
+    m.box((0.04, 0.02, 0.18), (0.16, wy, 1.05), "light")
+
+
+@machine("wb_machine", "기계 작업대", "손 작업", "벨트, 기계, 추출기를 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_machine(m, T):
+    z, wy = bench(m, top="mid")
+    p_mini_machine(m, -0.18, -0.06, z)
+    m.box((0.26, 0.04, 0.02), (0.24, -0.18, z + 0.01), "mid", rot=rad(25))
+    m.box((0.07, 0.08, 0.02), (0.34, -0.13, z + 0.01), "mid", rot=rad(25))
+    m.gear(0.08, 0.03, (0.26, 0.10, z + 0.015), "iron", teeth=6, axis="Z")
+    m.box((0.50, 0.012, 0.34), (-0.16, wy, 1.08), "steel")
+    for (dx, dz, w, h) in ((0, 0.09, 0.36, 0.012), (0, -0.09, 0.36, 0.012), (-0.18, 0, 0.012, 0.19),
+                           (0.18, 0, 0.012, 0.19), (0.04, 0, 0.012, 0.19)):
+        m.box((w, 0.014, h), (-0.16 + dx, wy - 0.002, 1.08 + dz), "light")
+    m.gear(0.13, 0.03, (0.30, wy, 1.10), "accent", teeth=8, axis="Y")
+
+
+@machine("wb_cook", "조리대", "손 작업", "음식을 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_cook(m, T):
+    z, wy = bench(m, top="stone")
+    p_pot(m, -0.24, 0.02, z)
+    m.box((0.28, 0.20, 0.02), (0.20, -0.10, z + 0.01), "wood_light")
+    m.box((0.16, 0.09, 0.07), (0.16, -0.08, z + 0.055), "bread", bevel=0.025)
+    m.box((0.14, 0.02, 0.012), (0.30, -0.14, z + 0.03), "light", rot=rad(30))
+    m.box((0.06, 0.025, 0.02), (0.22, -0.185, z + 0.03), "dark", rot=rad(30))
+    for x, r in ((-0.26, 0.10), (-0.04, 0.08)):
+        m.cyl(r, 0.025, (x, wy, 1.12), "dark", seg=10, axis="Y")
+        m.box((0.03, 0.02, 0.14), (x, wy, 1.12 - r - 0.06), "dark")
+    m.box((0.03, 0.02, 0.24), (0.22, wy, 1.10), "light")
+    m.cyl(0.045, 0.03, (0.22, wy, 0.97), "light", seg=8, axis="Y")
+
+
+@machine("wb_elec", "전기 작업대", "손 작업", "감지기, 스위치, 논리 회로 같은 전기 부품을 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_elec(m, T):
+    z, wy = bench(m, top="mid")
+    p_pcb(m, -0.20, -0.08, z)
+    m.cyl(0.09, 0.08, (0.22, 0.08, z + 0.04), "copper", seg=10)
+    m.cyl(0.04, 0.09, (0.22, 0.08, z + 0.04), "hole", seg=8)
+    m.box((0.08, 0.06, 0.05), (0.12, -0.20, z + 0.025), "dark")
+    m.cyl(0.015, 0.24, (0.20, -0.20, z + 0.09), "light", seg=6, axis="X", rot=(0, rad(-20), 0))
+    m.cyl(0.02, 0.05, (0.32, -0.20, z + 0.045), "red", seg=6, axis="X", rot=(0, rad(-20), 0))
+    m.cyl(0.14, 0.03, (-0.22, wy, 1.10), "dark", seg=12, axis="Y")
+    m.cyl(0.11, 0.035, (-0.22, wy - 0.002, 1.10), "white", seg=12, axis="Y")
+    m.box((0.012, 0.014, 0.09), (-0.20, wy - 0.024, 1.12), "red", rot=(0, rad(35), 0))
+    for i, mk in enumerate(("out", "spark", "red")):
+        m.cyl(0.03, 0.03, (0.08 + i * 0.11, wy, 1.18), mk, seg=6, axis="Y")
+    m.box((0.30, 0.02, 0.10), (0.19, wy, 1.00), "hole")
+    for x in (-0.36, 0.36):
+        m.cyl(0.03, 0.10, (x, 0.36, 1.42), "white", seg=6)
+        m.cyl(0.018, 0.04, (x, 0.36, 1.48), "copper", seg=6)
+
+
+@machine("wb_furn", "가구 작업대", "손 작업", "가구와 꾸미기 물건을 만듦",
+         chassis_on=False, ortho=3.8, tz=0.7)
+def _wb_furn(m, T):
+    z, wy = bench(m)
+    with m.at((-0.20, -0.04, z)):
+        m.box((0.22, 0.22, 0.03), (0, 0, 0.16), "wood_light")
+        for x in (-0.09, 0.09):
+            for y in (-0.09, 0.09):
+                m.box((0.03, 0.03, 0.16), (x, y, 0.08), "wood_light")
+        m.box((0.22, 0.03, 0.20), (0, 0.095, 0.27), "wood_light")
+    m.box((0.20, 0.07, 0.06), (0.22, -0.14, z + 0.03), "wood_dark", bevel=0.01)
+    m.box((0.05, 0.05, 0.06), (0.26, -0.14, z + 0.09), "wood")
+    for (x, y) in ((0.10, 0.04), (0.20, 0.10), (0.30, 0.02)):
+        m.ico(0.035, (x, y, z + 0.02), "cream", squash=0.5, jitter=0.2)
+    m.cyl(0.07, 0.34, (-0.20, wy, 1.16), "red", seg=8, axis="X")
+    m.cyl(0.07, 0.34, (-0.20, wy, 1.00), "water", seg=8, axis="X")
+    m.box((0.22, 0.02, 0.28), (0.26, wy, 1.08), "gold")
+    m.box((0.16, 0.024, 0.22), (0.26, wy, 1.08), "glass")
+
+
+@machine("wb_all", "통합 작업대", "손 작업", "모든 분류의 물건을 한곳에서 만듦. 아주 비싼 후반 설비",
+         chassis_on=False, size=(2, 1), ortho=5.0, tz=0.75)
+def _wb_all(m, T):
+    z, wy = bench(m, top="mid", w=1.92)
+    m.box((1.96, 0.82, 0.03), (0, 0, 0.655), "gold")
+    m.box((1.96, 0.09, 0.03), (0, wy + 0.035, 1.39), "gold")
+    p_anvil(m, -0.68, -0.06, z)
+    p_vise(m, -0.26, -0.10, z)
+    p_mini_machine(m, 0.14, -0.04, z)
+    p_pcb(m, 0.50, -0.14, z)
+    p_pot(m, 0.74, 0.08, z)
+    m.gear(0.20, 0.04, (0, wy, 1.08), "gold", teeth=10, axis="Y")
+    m.cyl(0.07, 0.05, (0, wy - 0.01, 1.08), "red", seg=8, axis="Y")
+    m.box((0.36, 0.012, 0.12), (-0.62, wy, 1.12), "light")
+    m.box((0.10, 0.03, 0.13), (-0.39, wy, 1.12), "wood")
+    m.box((0.05, 0.015, 0.36), (0.44, wy, 1.10), "light")
+    m.box((0.16, 0.025, 0.03), (0.44, wy, 0.91), "gold")
+    m.cyl(0.10, 0.025, (0.72, wy, 1.12), "dark", seg=10, axis="Y")
+    m.box((0.03, 0.02, 0.14), (0.72, wy, 0.96), "dark")
+    for x in (-0.90, 0.90):
+        stack_lamp(m, x, 0.33, 1.38, "spark")
+
+
+@machine("chest", "상자", "손 작업", "물건을 넣어 두는 보관함",
+         chassis_on=False, ortho=2.9, tz=0.3)
+def _chest(m, T):
+    m.box((0.84, 0.62, 0.44), (0, 0, 0.22), "wood", bevel=0.02)
+    m.box((0.88, 0.66, 0.20), (0, 0, 0.54), "wood_dark", bevel=0.04)
+    for x in (-0.30, 0.30):
+        m.box((0.07, 0.68, 0.66), (x, 0, 0.33), "mid")
+    m.box((0.10, 0.03, 0.12), (0, -0.325, 0.42), "gold")
+
+
+# ============================ TRADE ============================
+@machine("vending", "자판기", "포장·판매",
+         "물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음",
+         chassis_on=False, ortho=4.6, tz=0.9)
+def _vending(m, T):
+    m.box((0.92, 0.70, 0.12), (0, 0, 0.06), "dark", bevel=0.02)
+    m.box((0.86, 0.62, 1.40), (0, 0, 0.82), "body", bevel=0.05)
+    m.box((0.58, 0.02, 0.70), (-0.10, -0.315, 1.02), "glass")
+    frame_strips(m, -0.10, -0.31, 1.02, 0.58, 0.70)
+    m.box((0.58, 0.03, 0.02), (-0.10, -0.325, 1.02), "light")
+    m.box((0.16, 0.03, 0.07), (-0.24, -0.33, 0.80), "copper")
+    m.box((0.12, 0.03, 0.12), (0.02, -0.33, 0.82), "iron")
+    m.box((0.14, 0.03, 0.10), (-0.22, -0.33, 1.14), "wood")
+    m.gear(0.07, 0.03, (0.04, -0.33, 1.18), "gold", teeth=6, axis="Y")
+    m.box((0.16, 0.02, 0.44), (0.30, -0.315, 1.10), "hole")
+    for i, h in enumerate((0.06, 0.10, 0.14)):
+        m.box((0.03, 0.02, h), (0.26 + i * 0.04, -0.325, 1.16 + h / 2), "gold")
+    m.box((0.10, 0.02, 0.02), (0.30, -0.325, 1.00), "spark")
+    m.box((0.50, 0.03, 0.16), (-0.10, -0.315, 0.36), "hole")
+    for i in range(5):
+        m.box((0.184, 0.30, 0.04), (-0.368 + i * 0.184, -0.40, 1.56), "red" if i % 2 == 0 else "white",
+              rot=(rad(-18), 0, 0))
+    m.cyl(0.03, 0.14, (0, 0, 1.59), "mid", seg=6)
+    m.cyl(0.14, 0.05, (0, 0, 1.76), "gold", seg=10, axis="Y")
+
+
+# ============================ MORE FACTORIES ============================
+@machine("briquetter", "압축기", "변환", "톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨",
+         ports=(W_IN, E_OUT), ins=("sawdust",), outs=("briquette",), ortho=4.9, tz=0.95)
+def _briquetter(m, T):
+    vent(m)
+    bolts(m)
+    for x in (-0.26, 0.26):
+        m.cyl(0.045, 0.62, (x, 0, T + 0.31), "light", seg=8)
+    m.box((0.70, 0.30, 0.10), (0, 0, T + 0.64), "body", bevel=0.02)
+    m.cyl(0.05, 0.50, (0, 0, T + 0.60), "mid", seg=8)
+    m.box((0.30, 0.30, 0.08), (0, 0, T + 0.34), "dark")
+    m.gear(0.20, 0.04, (0, 0, T + 0.88), "red", teeth=6, axis="Z")
+    m.box((0.36, 0.36, 0.22), (0, 0, T + 0.11), "mid", bevel=0.02)
+    for i, (x, y) in enumerate(((0.36, -0.36), (0.36, -0.24), (0.36, -0.30))):
+        m.box((0.10, 0.10, 0.06), (x, y, T + 0.03 + (0.06 if i == 2 else 0)), "coal", bevel=0.01)
+
+
+@machine("oilpress", "착유기", "변환", "기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료",
+         ports=(W_IN, E_OUT), ins=("seed",), outs=("oilcan",))
+def _oilpress(m, T):
+    gauge(m, x=-0.17)
+    bolts(m)
+    m.cyl(0.17, 0.62, (0.02, 0.06, T + 0.30), "body", seg=10, axis="X")
+    for x in (-0.18, 0.02, 0.22):
+        m.cyl(0.185, 0.05, (x, 0.06, T + 0.30), "mid", seg=10, axis="X")
+    for x in (-0.24, 0.28):
+        m.box((0.08, 0.30, 0.20), (x, 0.06, T + 0.10), "dark")
+    hopper(m, -0.22, 0.06, T + 0.44, w=0.34, h=0.18, fill="wheat_head")
+    m.gear(0.15, 0.04, (0.37, 0.06, T + 0.30), "red", teeth=6, axis="X")
+    m.pipe([(0.10, -0.06, T + 0.22), (0.10, -0.26, T + 0.22), (0.10, -0.30, T + 0.18),
+            (0.10, -0.30, T + 0.14)], 0.03, "light", seg=6)
+    barrel(m, (0.10, -0.30, T), "wheat", r=0.10, h=0.12, band="mid")
+
+
+@machine("lathe", "선반", "변환", "철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄",
+         ports=(W_IN, E_OUT), ins=("ingot_fe",), outs=("gear",))
+def _lathe(m, T):
+    vent(m)
+    bolts(m)
+    m.box((0.84, 0.30, 0.10), (0, 0, T + 0.05), "mid", bevel=0.02)
+    m.box((0.24, 0.36, 0.36), (-0.30, 0, T + 0.28), "body", bevel=0.04)
+    m.cyl(0.12, 0.08, (-0.14, 0, T + 0.30), "dark", seg=8, axis="X")
+    m.cyl(0.045, 0.44, (0.10, 0, T + 0.30), "iron", seg=8, axis="X")
+    m.box((0.12, 0.20, 0.26), (0.36, 0, T + 0.23), "body", bevel=0.03)
+    m.box((0.10, 0.12, 0.12), (0.08, -0.16, T + 0.20), "red")
+    m.box((0.03, 0.10, 0.03), (0.08, -0.08, T + 0.28), "light")
+    m.gear(0.10, 0.03, (-0.43, 0, T + 0.30), "dark", teeth=6, axis="X")
+    for i in range(3):
+        m.cyl(0.03, 0.06, (0.20 + i * 0.07, 0.30, T + 0.03), "iron", seg=6)
+
+
+@machine("alloy", "합금로", "조합", "두 가지 금속을 함께 녹여 합금 주괴로 만듦",
+         ports=(W_IN, S_IN, E_OUT), ins=("ingot_cu", "ingot_fe"), outs=("ingot_alloy",), ortho=4.9, tz=0.9)
+def _alloy(m, T):
+    for y in (-0.30, 0.34):
+        m.box((0.12, 0.08, 0.46), (-0.05, y, T + 0.23), "mid", taper=0.7)
+    m.cyl(0.04, 0.74, (-0.05, 0.02, T + 0.42), "dark", seg=6, axis="Y")
+    a = rad(18)
+    m.cyl(0.22, 0.36, (-0.05, 0.02, T + 0.40), "dark", seg=8, r2=0.27, rot=(0, a, 0))
+    m.cyl(0.21, 0.02, (-0.05 + math.sin(a) * 0.185, 0.02, T + 0.40 + math.cos(a) * 0.185), "glow",
+          seg=8, rot=(0, a, 0))
+    m.box((0.30, 0.26, 0.07), (0.30, 0.02, T + 0.035), "dark", bevel=0.01)
+    for y in (-0.05, 0.09):
+        m.box((0.20, 0.08, 0.02), (0.30, y, T + 0.075), "glow")
+    stack(m, -0.36, 0.36, T, h=0.60, r=0.07)
+
+
+@machine("caster", "주조기", "변환", "철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남",
+         ports=(W_IN, E_OUT), ins=("ingot_fe",), outs=("frame",), ortho=4.9, tz=0.9)
+def _caster(m, T):
+    window(m, "glow", w=0.30, h=0.20)
+    bolts(m)
+    m.box((0.80, 0.40, 0.08), (0, -0.10, T + 0.04), "mid", bevel=0.015)
+    for i, x in enumerate((-0.26, 0.0, 0.26)):
+        m.box((0.20, 0.28, 0.10), (x, -0.10, T + 0.13), "dark", bevel=0.015)
+        m.box((0.14, 0.20, 0.02), (x, -0.10, T + 0.185), "glow" if i < 2 else "iron")
+    m.box((0.10, 0.10, 0.62), (0.0, 0.36, T + 0.31), "mid")
+    m.box((0.08, 0.52, 0.08), (0.0, 0.12, T + 0.60), "dark")
+    m.cyl(0.11, 0.16, (0.0, -0.10, T + 0.48), "dark", seg=8)
+    m.cyl(0.09, 0.012, (0.0, -0.10, T + 0.565), "glow", seg=8)
+    m.box((0.03, 0.03, 0.20), (0.0, -0.10, T + 0.30), "glow")
+
+
+@machine("loom", "직조기", "변환", "목화 → 천",
+         ports=(W_IN, E_OUT), outs=("cloth",), ortho=4.9, tz=0.9)
+def _loom(m, T):
+    vent(m)
+    bolts(m)
+    for y in (-0.36, 0.36):
+        m.box((0.70, 0.06, 0.08), (0, y, T + 0.04), "wood_dark")
+        for x in (-0.30, 0.30):
+            m.box((0.07, 0.06, 0.62), (x, y, T + 0.31), "wood")
+        m.box((0.70, 0.06, 0.07), (0, y, T + 0.60), "wood_dark")
+    for i in range(9):
+        m.box((0.56, 0.012, 0.012), (0, -0.28 + i * 0.07, T + 0.40), "cream")
+    m.cyl(0.07, 0.66, (0.30, 0, T + 0.34), "red", seg=8, axis="Y")
+    m.cyl(0.05, 0.66, (-0.30, 0, T + 0.44), "cream", seg=8, axis="Y")
+    m.box((0.05, 0.70, 0.26), (0.02, 0, T + 0.44), "wood_light")
+    m.box((0.16, 0.05, 0.03), (0.14, 0.10, T + 0.42), "wood_dark")
+
+
+@machine("gemcutter", "보석 절삭기", "변환", "다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료",
+         ports=(W_IN, E_OUT), ins=("diamond",), outs=("blade",), ortho=4.9, tz=0.9)
+def _gemcutter(m, T):
+    gauge(m, x=-0.17)
+    bolts(m)
+    m.cyl(0.20, 0.06, (0.0, 0.0, T + 0.03), "light", seg=10)
+    crystal(m, (0, 0, T + 0.14), 0.10, "water_light")
+    m.box((0.12, 0.12, 0.54), (-0.30, 0.28, T + 0.27), "mid")
+    m.box((0.46, 0.07, 0.07), (-0.13, 0.15, T + 0.54), "dark", rot=rad(-38))
+    m.gear(0.13, 0.02, (0.04, 0.02, T + 0.46), "light", teeth=10, axis="Z")
+    m.cyl(0.03, 0.10, (0.04, 0.02, T + 0.51), "red", seg=6)
+    m.box((0.03, 0.03, 0.30), (0.30, -0.24, T + 0.15), "mid")
+    m.cyl(0.11, 0.02, (0.30, -0.28, T + 0.36), "dark", seg=10, rot=(rad(60), 0, 0))
+    m.cyl(0.085, 0.025, (0.30, -0.28, T + 0.36), "glass", seg=10, rot=(rad(60), 0, 0))
+    stack_lamp(m, 0.36, 0.36, T, "spark")
+
+
+@machine("recycler", "분해기", "변환", "기계나 부품을 넣으면 들어간 재료의 일부를 되돌려 받음",
+         ports=(W_IN, E_OUT, S_OUT), ins=("gear",), outs=("ingot_fe", "coil"))
+def _recycler(m, T):
+    top = hopper(m, -0.06, 0.08, T, w=0.72, h=0.34)
+    for y in (0.0, 0.16):
+        m.gear(0.10, 0.46, (-0.06, y, top - 0.02), "red", teeth=6, axis="X")
+    for k in range(3):
+        a = k * 2 * math.pi / 3
+        arrow(m, 0.37 + math.cos(a) * 0.07, -0.37 + math.sin(a) * 0.07, T, a + math.pi / 2 + 0.4, "out", s=0.055)
+
+
+@machine("painter", "도색기", "변환", "블록 + 염료 → 색을 입힌 블록",
+         ports=(W_IN, E_OUT), ortho=4.9, tz=0.9)
+def _painter(m, T):
+    vent(m)
+    bolts(m)
+    for i, mk in enumerate(("red", "accent", "water")):
+        x = -0.26 + i * 0.26
+        m.cyl(0.10, 0.30, (x, 0.30, T + 0.15), "light", seg=8)
+        m.cyl(0.085, 0.04, (x, 0.30, T + 0.31), mk, seg=8)
+        m.pipe([(x, 0.30, T + 0.33), (x, 0.30, T + 0.58), (x * 0.4, 0.14, T + 0.66),
+                (x * 0.2, -0.04, T + 0.66)], 0.025, mk, seg=6)
+    for s in (-1, 1):
+        m.box((0.06, 0.06, 0.62), (s * 0.40, -0.06, T + 0.31), "mid")
+    m.box((0.86, 0.07, 0.07), (0, -0.06, T + 0.63), "dark")
+    m.box((0.22, 0.18, 0.12), (0, -0.06, T + 0.60), "body", bevel=0.02)
+    m.cyl(0.03, 0.10, (0, -0.06, T + 0.50), "dark", seg=6, r2=0.05)
+    m.box((0.28, 0.28, 0.24), (0, -0.10, T + 0.12), "water")
+
+
+@machine("magsep", "자석 분리기", "운반", "철이 든 것만 옆으로 끌어내고 나머지는 통과시킴",
+         ports=(W_IN, E_OUT, S_OUT), ins=("crushed",), outs=("stone", "ore_fe"), ortho=4.9, tz=0.9)
+def _magsep(m, T):
+    for y in (-0.22, 0.22):
+        m.box((0.16, 0.14, 0.34), (0, y, T + 0.41), "red", bevel=0.02)
+        m.box((0.16, 0.14, 0.10), (0, y, T + 0.19), "light", bevel=0.02)
+    m.box((0.16, 0.58, 0.14), (0, 0, T + 0.65), "red", bevel=0.02)
+    for s in (-1, 1):
+        m.box((0.07, 0.07, 0.78), (s * 0.30, 0.40, T + 0.39), "mid")
+    m.box((0.72, 0.08, 0.08), (0, 0.40, T + 0.78), "dark")
+    m.box((0.08, 0.44, 0.08), (0, 0.20, T + 0.76), "dark")
+    m.cyl(0.20, 0.04, (0, 0, T + 0.02), "dark", seg=10)
+    stack_lamp(m, 0.38, -0.38, T, "out")
+
+
+@machine("sieve", "체질기", "변환", "자갈이나 모래를 걸러 아주 적은 양의 광물을 얻음. 광맥 핵이 없어도 됨",
+         ports=(W_IN, E_OUT, S_OUT), ins=("gravel",), outs=("sand", "ore_fe"))
+def _sieve(m, T):
+    a = rad(12)
+    for x in (-0.32, 0.32):
+        for y in (-0.30, 0.30):
+            h = 0.27 if x < 0 else 0.14
+            m.cyl(0.035, h, (x, y, T + h / 2), "red", seg=6)
+    m.box((0.82, 0.74, 0.10), (0, 0, T + 0.27), "body", rot=(0, a, 0), bevel=0.02)
+    m.box((0.70, 0.62, 0.02), (0, 0, T + 0.33), "hole", rot=(0, a, 0))
+    for i in range(6):
+        x = -0.30 + i * 0.12
+        m.box((0.02, 0.62, 0.012), (x, 0, T + 0.345 - math.sin(a) * x), "light", rot=(0, a, 0))
+    for i in range(4):
+        m.box((0.70, 0.02, 0.012), (0, -0.24 + i * 0.16, T + 0.345), "light", rot=(0, a, 0))
+    m.box((0.20, 0.20, 0.18), (-0.26, 0.0, T + 0.50), "mid", bevel=0.03)
+    m.cyl(0.06, 0.06, (-0.26, -0.11, T + 0.50), "red", seg=8, axis="Y")
+
+
+@machine("sprinkler", "물뿌리개", "공급", "주변 밭에 물을 줘서 작물이 빨리 자람",
+         chassis_on=False, ortho=3.0, tz=0.4)
+def _sprinkler(m, T):
+    m.cyl(0.18, 0.08, (0, 0, 0.04), "dark", seg=8)
+    m.cyl(0.05, 0.60, (0, 0, 0.38), "light", seg=8)
+    m.cyl(0.08, 0.06, (0, 0, 0.20), "water", seg=8)
+    m.box((0.44, 0.07, 0.07), (0, 0, 0.70), "mid", rot=rad(30))
+    m.cyl(0.07, 0.10, (0, 0, 0.70), "red", seg=8)
+    for k in range(8):
+        a = k * math.pi / 4 + 0.3
+        r = 0.34 + 0.08 * (k % 2)
+        m.ico(0.035, (math.cos(a) * r, math.sin(a) * r, 0.62 - 0.12 * (k % 2)), "water_light", squash=1.3)
+
+
+@machine("seeder", "파종기", "공급", "수확이 끝난 자리에 씨앗을 다시 심음",
+         ports=(W_IN,), ins=("seed",), ortho=4.9, tz=0.8)
+def _seeder(m, T):
+    hopper(m, 0, 0.08, T, w=0.60, h=0.30, fill="wheat")
+    bolts(m)
+    m.box((0.10, 0.50, 0.08), (0, -0.62, 0.62), "dark")
+    m.box((0.52, 0.08, 0.08), (0, -0.86, 0.62), "mid")
+    for x in (-0.20, 0.0, 0.20):
+        m.cyl(0.035, 0.40, (x, -0.86, 0.40), "light", seg=6)
+        m.cyl(0.01, 0.12, (x, -0.86, 0.14), "red", seg=6, r2=0.05)
+
+
+@machine("incinerator", "소각로", "동력", "필요 없는 것을 태워 없앰. 전력이 조금 나옴",
+         ports=(W_IN,), ins=("sawdust",), ortho=5.6, tz=1.15)
+def _incinerator(m, T):
+    y = window(m, "glow")
+    for x in (-0.12, 0.0, 0.12):
+        m.box((0.03, 0.02, 0.26), (x, y, 0.50), "dark")
+    bolts(m)
+    m.box((0.66, 0.66, 0.44), (0, 0.04, T + 0.22), "brick", bevel=0.03)
+    for z in (0.14, 0.30):
+        m.box((0.67, 0.67, 0.02), (0, 0.04, T + z), "mortar")
+    m.box((0.70, 0.70, 0.06), (0, 0.04, T + 0.47), "dark", bevel=0.015)
+    m.box((0.26, 0.03, 0.16), (0, -0.30, T + 0.20), "hole")
+    m.box((0.20, 0.035, 0.10), (0, -0.305, T + 0.18), "glow")
+    stack(m, 0, 0.10, T + 0.50, h=0.95, r=0.11, glow=True)
+
+
+@machine("windturbine", "풍력 터빈", "동력", "바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함",
+         chassis_on=False, ortho=7.6, tz=1.5)
+def _windturbine(m, T):
+    m.box((0.70, 0.70, 0.12), (0, 0, 0.06), "dark", bevel=0.02)
+    m.cyl(0.13, 2.30, (0, 0, 1.27), "light", seg=8, r2=0.07)
+    m.box((0.22, 0.42, 0.20), (0, 0.04, 2.48), "body", bevel=0.04)
+    hub = (0, -0.22, 2.48)
+    m.cyl(0.07, 0.10, hub, "red", seg=8, axis="Y")
+    with m.at(hub):
+        for k in range(3):
+            a = rad(10 + k * 120)
+            m.box((0.11, 0.03, 0.90), (math.sin(a) * 0.50, 0, math.cos(a) * 0.50), "white",
+                  rot=(0, a, 0), taper=0.4)
+
+
+@machine("solar", "태양광 패널", "동력", "낮 동안 전력을 만듦",
+         chassis_on=False, ortho=3.2, tz=0.45)
+def _solar(m, T):
+    m.box((0.40, 0.40, 0.06), (0, 0, 0.03), "dark", bevel=0.015)
+    m.cyl(0.05, 0.50, (0, 0, 0.30), "mid", seg=8)
+    t = (rad(28), 0, 0)
+    m.box((0.98, 0.80, 0.05), (0, 0, 0.62), "light", rot=t)
+    m.box((0.90, 0.72, 0.02), (0, -0.014, 0.646), "solar", rot=t)
+    for i in range(1, 4):
+        m.box((0.012, 0.72, 0.008), (-0.45 + i * 0.225, -0.019, 0.657), "light", rot=t)
+    m.box((0.90, 0.012, 0.008), (0, -0.019, 0.657), "light", rot=t)
+
+
+@machine("battery", "축전지", "동력", "남는 전력을 모아 두었다가 모자랄 때 내보냄",
+         chassis_on=False, ortho=3.4, tz=0.45)
+def _battery(m, T):
+    m.box((0.92, 0.72, 0.10), (0, 0, 0.05), "dark", bevel=0.02)
+    m.box((0.84, 0.64, 0.66), (0, 0, 0.43), "body", bevel=0.05)
+    m.box((0.88, 0.68, 0.08), (0, 0, 0.56), "mid")
+    for x, mk in ((-0.22, "red"), (0.22, "dark")):
+        m.cyl(0.07, 0.10, (x, 0, 0.81), "copper", seg=8)
+        m.cyl(0.085, 0.04, (x, 0, 0.78), mk, seg=8)
+    m.box((0.50, 0.02, 0.20), (0, -0.325, 0.34), "hole")
+    for i in range(4):
+        m.box((0.09, 0.025, 0.14), (-0.18 + i * 0.12, -0.33, 0.34), "out" if i < 3 else "dark")
+
+
 # ============================ ITEMS ============================
 def build_items():
     items = {}
@@ -1025,6 +1743,21 @@ def build_items():
     it("crate", lambda m: crate(m, (0, 0, 0), s=0.26))
     for key in ("core_fe", "core_coal", "core_cu"):
         it(key, lambda m, key=key: crystal(m, (0, 0, 0.14), 0.11, key))
+    it("sawdust", pile("wood_light"))
+    it("gravel", pile("stone_dark"))
+    it("seed", pile("wheat"))
+    it("briquette", lambda m: m.box((0.20, 0.14, 0.10), (0, 0, 0.05), "coal", bevel=0.02))
+    it("oilcan", bar("wheat", "mid"))
+    it("cloth", lambda m: (m.box((0.26, 0.20, 0.05), (0, 0, 0.025), "cream", bevel=0.015),
+                           m.box((0.27, 0.05, 0.052), (0, 0, 0.026), "red")))
+    it("diamond", lambda m: crystal(m, (0, 0, 0.12), 0.09, "water_light"))
+    it("blade", lambda m: (m.gear(0.12, 0.02, (0, 0, 0.01), "water_light", teeth=10, axis="Z"),
+                           m.cyl(0.04, 0.03, (0, 0, 0.015), "mid", seg=6)))
+    it("frame", lambda m: (m.box((0.26, 0.26, 0.05), (0, 0, 0.025), "iron"),
+                           m.box((0.26, 0.26, 0.05), (0, 0, 0.215), "iron"),
+                           [m.box((0.05, 0.05, 0.24), (x, y, 0.12), "iron")
+                            for x in (-0.105, 0.105) for y in (-0.105, 0.105)]))
+    it("ingot_alloy", ingot("gold_dark"))
     it("motor", lambda m: (m.cyl(0.10, 0.24, (0, 0, 0.11), "steel", seg=8, axis="X"),
                            m.cyl(0.11, 0.06, (0, 0, 0.11), "copper", seg=8, axis="X"),
                            m.cyl(0.03, 0.34, (0, 0, 0.11), "light", seg=6, axis="X"),
@@ -1128,13 +1861,13 @@ if "thumbs" in ARGS:
               s["ortho"] * 0.74, (640, 640), True)
         print("THUMB", s["key"])
     items_row = list(ITEMS)
-    per = (len(items_row) + 1) // 2
+    per = (len(items_row) + 2) // 3
     for i, name in enumerate(items_row):
         r, c = divmod(i, per)
         u = (c - (per - 1) / 2) * 0.46
-        v = (0.5 - r) * 0.95
+        v = (1 - r) * 0.95
         place(ITEMS[name], (u - v, -80 + u + v, 0))
-    shoot(os.path.join(OUT, "img", "_items.png"), (0, -80, 0.1), 10.6, (2000, 520), True)
+    shoot(os.path.join(OUT, "img", "_items.png"), (0, -80, 0.1), 10.6, (2000, 720), True)
     meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
             for s in shown]
     json.dump({"machines": meta, "items": items_row}, open(os.path.join(OUT, "catalog.json"), "w"),
