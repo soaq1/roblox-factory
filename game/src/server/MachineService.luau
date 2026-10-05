@@ -12,11 +12,55 @@ local Kit = require(script.Parent.MachineKit)
 
 local MachineService = {}
 
+-- Which file in server/machines runs each kind of behaviour.
+local MODULES = {
+	belt = "Belt",
+	extractor = "Extractor",
+	processor = "Processor",
+	passthrough = "Passthrough",
+	chest = "Chest",
+	bench = "Bench",
+	sapling = "Plant",
+	crop = "Plant",
+	decor = "Decor",
+}
+
 local machines: { [any]: boolean } = {}
 local total = 0
 
-local function moduleFor(name: string)
+local function moduleFor(behavior: string)
+	local name = MODULES[behavior] or "Decor"
 	return require(script.Parent.machines:FindFirstChild(name) :: ModuleScript) :: any
+end
+
+-- The keys of every cell a machine would cover, or nil if any of them is taken or out of range.
+function MachineService.freeCells(
+	island: IslandService.Island,
+	id: string,
+	x: number,
+	y: number,
+	z: number,
+	dir: number
+): { string }?
+	local def = Defs.Machines[id]
+	if not def then
+		return nil
+	end
+	-- The anchor cell comes first; tall machines also keep the cells above them.
+	local keys = {}
+	for layer = 0, def.sy - 1 do
+		for _, cell in Grid.footprint(x, z, dir, def.sx, def.sz) do
+			if not Grid.inBounds(cell[1], y + layer, cell[2], Config.MAX_COORD) then
+				return nil
+			end
+			local key = Grid.key(cell[1], y + layer, cell[2])
+			if island.cells[key] then
+				return nil
+			end
+			table.insert(keys, key)
+		end
+	end
+	return keys
 end
 
 function MachineService.create(
@@ -29,8 +73,8 @@ function MachineService.create(
 	saved: any?
 )
 	local def = Defs.Machines[id]
-	local key = Grid.key(x, y, z)
-	if not def or island.cells[key] then
+	local keys = MachineService.freeCells(island, id, x, y, z, dir)
+	if not def or not keys then
 		return nil
 	end
 	local model = Instance.new("Model")
@@ -40,19 +84,23 @@ function MachineService.create(
 	model:SetAttribute("CellY", y)
 	model:SetAttribute("CellZ", z)
 
+	local cx, cz = Grid.footprintCentre(dir, def.sx, def.sz)
+	local center = IslandService.cellCenter(island, x, y, z)
+		+ Vector3.new(cx * Config.CELL, 0, cz * Config.CELL)
 	local machine = {
 		id = id,
 		def = def,
-		mod = moduleFor(def.module),
+		mod = moduleFor(def.behavior),
 		island = island,
-		key = key,
+		key = Grid.key(x, y, z),
+		keys = keys,
 		x = x,
 		y = y,
 		z = z,
 		dir = dir,
 		model = model,
-		center = IslandService.cellCenter(island, x, y, z),
-		base = Kit.base(IslandService.cellCenter(island, x, y, z), dir),
+		center = center,
+		base = Kit.base(center, dir),
 	}
 	-- Parent first: a conveyor's velocity is only reliable once the part is in the world.
 	model.Parent = island.machinesFolder
@@ -63,7 +111,9 @@ function MachineService.create(
 
 	machines[machine] = true
 	total += 1
-	island.cells[key] = { kind = "machine", id = id, machine = machine }
+	for _, key in keys do
+		island.cells[key] = { kind = "machine", id = id, machine = machine }
+	end
 	return machine
 end
 
@@ -80,7 +130,9 @@ function MachineService.remove(machine, dropContents: boolean)
 			end
 		end
 	end
-	machine.island.cells[machine.key] = nil
+	for _, key in machine.keys do
+		machine.island.cells[key] = nil
+	end
 	machine.model:Destroy()
 end
 
@@ -90,6 +142,16 @@ function MachineService.removeIsland(island: IslandService.Island)
 			MachineService.remove(machine, false)
 		end
 	end
+end
+
+function MachineService.onIsland(island: IslandService.Island): { any }
+	local list = {}
+	for machine in machines do
+		if machine.island == island then
+			table.insert(list, machine)
+		end
+	end
+	return list
 end
 
 function MachineService.saveState(machine): any?
@@ -113,12 +175,26 @@ function MachineService.start()
 		-- After a long stall, run one beat rather than trying to catch up all at once.
 		local step = math.min(carried, Config.MACHINE_TICK * 3)
 		carried = 0
+		local finished = {}
 		for machine in machines do
 			local tick = machine.mod.tick
 			if tick then
-				local ok, err = pcall(tick, machine, step)
+				local ok, result = pcall(tick, machine, step)
 				if not ok then
-					warn("machine " .. machine.id .. " at " .. machine.key .. " failed: " .. tostring(err))
+					warn("machine " .. machine.id .. " at " .. machine.key .. " failed: " .. tostring(result))
+				elseif result == true then
+					table.insert(finished, machine)
+				end
+			end
+		end
+		-- A machine that says it is done (a sapling that has grown) is removed, then gets to leave
+		-- something behind.
+		for _, machine in finished do
+			MachineService.remove(machine, false)
+			if machine.mod.finish then
+				local ok, err = pcall(machine.mod.finish, machine)
+				if not ok then
+					warn("machine " .. machine.id .. " could not finish: " .. tostring(err))
 				end
 			end
 		end

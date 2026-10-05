@@ -116,6 +116,9 @@ function ItemService.spawn(itemId: string, count: number, position: Vector3): Ba
 	nextUid += 1
 	local part = Instance.new("Part")
 	part.Name = itemId
+	if def.ball then
+		part.Shape = Enum.PartType.Ball
+	end
 	part.Size = Vector3.new(def.size[1], def.size[2], def.size[3])
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
 	part.Material = Enum.Material.SmoothPlastic

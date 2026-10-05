@@ -10,7 +10,8 @@ catalog = json.load(open(os.path.join(ROOT, "art", "catalog", "catalog.json"), e
 block_list = json.load(open(os.path.join(ROOT, "art", "catalog", "blocks.json"), encoding="utf-8"))
 
 ITEM = {i["key"]: i["ko"] for i in catalog["items"]}
-MACHINE = {m["key"]: m["ko"] for m in catalog["machines"]}
+# 심은 모습(땅에 꽂힌 묘목, 자라는 밀)은 아이템을 놓은 것이지 따로 만드는 물건이 아니므로 뺌
+MACHINE = {m["key"]: m["ko"] for m in catalog["machines"] if m["fam"] != "식물"}
 BLOCK = {"block:" + b["key"]: b["ko"] + " (블록)" for b in block_list}
 NAMES = {**ITEM, **MACHINE, **BLOCK}
 
@@ -193,6 +194,7 @@ C("extractor_empty", 1, "machine", 1, stone=40, ingot_fe=30, plank=10, monster_p
   note="확정된 구성: 돌, 철 주괴, 나무, 몬스터 부품 하나")
 C("extractor_fe", 1, "bag", 0, extractor_empty=1, core_fe=1, note="핵을 꽂음")
 C("extractor_coal", 1, "bag", 0, extractor_empty=1, core_coal=1, note="핵을 꽂음")
+C("extractor_cu", 1, "bag", 0, extractor_empty=1, core_cu=1, note="핵을 꽂음")
 C("logger", 1, "machine", 1, frame=1, gear=2, plate_fe=4)
 C("harvester", 1, "machine", 1, frame=1, gear=2, plank=10)
 C("seeder", 1, "machine", 1, frame=1, gear=1, plank=6)

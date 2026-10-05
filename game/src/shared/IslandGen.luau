@@ -17,20 +17,22 @@ local function wobble(x: number, z: number): number
 	return 0.55 * math.sin(x * 1.3 + z * 0.7) + 0.35 * math.cos(z * 1.9 - x * 0.4)
 end
 
-local function tree(out: { Block }, x: number, z: number, height: number)
-	for y = 1, height do
+-- A tree whose lowest log sits at (x, base, z).
+function IslandGen.tree(out: { Block }, x: number, base: number, z: number, height: number)
+	local top = base + height - 1
+	for y = base, top do
 		table.insert(out, { x = x, y = y, z = z, id = "log" })
 	end
 	for dy = 0, 1 do
 		for dx = -1, 1 do
 			for dz = -1, 1 do
 				if not (dx == 0 and dz == 0 and dy == 0) then
-					table.insert(out, { x = x + dx, y = height + dy, z = z + dz, id = "leaves" })
+					table.insert(out, { x = x + dx, y = top + dy, z = z + dz, id = "leaves" })
 				end
 			end
 		end
 	end
-	table.insert(out, { x = x, y = height + 2, z = z, id = "leaves" })
+	table.insert(out, { x = x, y = top + 2, z = z, id = "leaves" })
 end
 
 function IslandGen.generate(): { Block }
@@ -45,8 +47,8 @@ function IslandGen.generate(): { Block }
 			end
 		end
 	end
-	tree(out, -4, -3, 3)
-	tree(out, 4, 3, 4)
+	IslandGen.tree(out, -4, 1, -3, 3)
+	IslandGen.tree(out, 4, 1, 3, 4)
 	return out
 end
 

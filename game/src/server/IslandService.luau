@@ -21,6 +21,10 @@ export type Island = {
 	spawn: SpawnLocation,
 	cells: { [string]: Cell },
 	bag: { [string]: number },
+	mode: string, -- "creative" or "survival"
+	coins: number,
+	tiers: { [string]: number }, -- workbench kind -> tier, for kinds raised above 1
+	handFuel: number, -- heat left over from the last fire lit for hand work
 	canSave: boolean,
 }
 
@@ -75,6 +79,10 @@ function IslandService.create(player: Player): Island
 		spawn = pad,
 		cells = {},
 		bag = {},
+		mode = Config.START_MODE,
+		coins = Config.START_COINS,
+		tiers = {},
+		handFuel = 0,
 		-- Stays false until the island has finished loading, so a half-built island is never saved
 		-- over the real one.
 		canSave = false,
@@ -128,7 +136,28 @@ function IslandService.setBlock(island: Island, x: number, y: number, z: number,
 	part.Size = BLOCK_SIZE
 	part.Material = Enum.Material.SmoothPlastic
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
+	part.Transparency = def.transparency
 	part.Position = IslandService.cellCenter(island, x, y, z)
+	-- Blocks whose top differs from their sides (grass, logs, farmland) get a thin cap.
+	local top = def.top
+	if
+		math.abs(top[1] - def.color[1])
+			+ math.abs(top[2] - def.color[2])
+			+ math.abs(top[3] - def.color[3])
+		> 60
+	then
+		local cap = Instance.new("Part")
+		cap.Name = "Cap"
+		cap.Anchored = true
+		cap.CanCollide = false
+		cap.CanQuery = false
+		cap.CanTouch = false
+		cap.Size = Vector3.new(CELL + 0.02, 0.45, CELL + 0.02)
+		cap.Material = Enum.Material.SmoothPlastic
+		cap.Color = Color3.fromRGB(top[1], top[2], top[3])
+		cap.Position = part.Position + Vector3.new(0, CELL / 2 - 0.22, 0)
+		cap.Parent = part
+	end
 	part.Parent = island.blocksFolder
 	island.cells[key] = { kind = "block", id = id, part = part }
 	return true

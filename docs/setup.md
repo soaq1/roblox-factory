@@ -27,7 +27,7 @@
 
    Claude가 `CLAUDE.md`와 설계 문서를 읽고, 필요한 도구(Rokit, Rojo 등)를 설치하고, 게임 파일을 만들어 줍니다.
 
-4. 만들어진 `game/build/roblox-factory.rbxlx`를 로블록스 스튜디오에서 열고 실행 버튼을 누릅니다.
+4. `game/build/roblox-factory.rbxlx`를 로블록스 스튜디오에서 열고 실행 버튼을 누릅니다. 이 파일은 저장소에 들어 있어서 3번을 건너뛰고 바로 열어 봐도 됩니다.
 
 5. 화면에 무엇이 보이는지, 출력 창에 빨간 글씨가 있는지를 Claude에게 알려 줍니다.
 

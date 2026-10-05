@@ -7,7 +7,13 @@ Codec.VERSION = 1
 
 export type BlockEntry = { x: number, y: number, z: number, id: string }
 export type MachineEntry = { id: string, x: number, y: number, z: number, d: number, s: any }
-export type Island = { blocks: { BlockEntry }, machines: { MachineEntry }, bag: { [string]: number } }
+export type Island = {
+	blocks: { BlockEntry },
+	machines: { MachineEntry },
+	bag: { [string]: number },
+	-- Coins, workbench tiers and play mode. Stored as given and checked by whoever reads it back.
+	profile: { [string]: any }?,
+}
 export type Checks = {
 	isBlock: (any) -> boolean,
 	isMachine: (any) -> boolean,
@@ -66,7 +72,7 @@ function Codec.encode(island: Island): { [string]: any }
 		table.insert(machines, { i = m.id, x = m.x, y = m.y, z = m.z, d = m.d, s = m.s })
 	end
 
-	return { v = Codec.VERSION, b = blocks, m = machines, g = island.bag }
+	return { v = Codec.VERSION, b = blocks, m = machines, g = island.bag, p = island.profile }
 end
 
 -- Returns the island and how many entries were dropped as unreadable.
@@ -132,6 +138,9 @@ function Codec.decode(raw: any, checks: Checks): (Island?, number)
 
 	if type(raw.g) == "table" then
 		island.bag = raw.g
+	end
+	if type(raw.p) == "table" then
+		island.profile = raw.p
 	end
 	return island, skipped
 end

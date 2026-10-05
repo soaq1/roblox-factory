@@ -12,6 +12,7 @@ local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
 local IslandService = require(script.Parent.IslandService)
 local MachineService = require(script.Parent.MachineService)
+local Profile = require(script.Parent.Profile)
 
 local SaveService = {}
 
@@ -86,13 +87,15 @@ function SaveService.load(player: Player): LoadResult
 end
 
 local function snapshot(island: IslandService.Island): { [string]: any }
-	local data: Codec.Island = { blocks = {}, machines = {}, bag = table.clone(island.bag) }
+	local data: Codec.Island =
+		{ blocks = {}, machines = {}, bag = table.clone(island.bag), profile = Profile.save(island) }
 	for key, cell in island.cells do
 		local x, y, z = Grid.parseKey(key)
 		if x and y and z then
 			if cell.kind == "block" then
 				table.insert(data.blocks, { x = x, y = y, z = z, id = cell.id })
-			else
+			elseif cell.machine.key == key then
+				-- a machine that covers several cells is saved once, at its anchor cell
 				table.insert(data.machines, {
 					id = cell.id,
 					x = x,

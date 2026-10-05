@@ -3,16 +3,19 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Defs = require(Shared.Defs)
-local Inventory = require(Shared.Inventory)
 local IslandGen = require(Shared.IslandGen)
 local Net = require(Shared.Net)
+local Commands = require(script.Parent.Commands)
+local CraftService = require(script.Parent.CraftService)
 local DebugService = require(script.Parent.DebugService)
+local GameCommands = require(script.Parent.GameCommands)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
 local PlacementService = require(script.Parent.PlacementService)
+local Profile = require(script.Parent.Profile)
 local SaveService = require(script.Parent.SaveService)
+local TradeService = require(script.Parent.TradeService)
 
 local BATCH = 400 -- blocks built before letting the server breathe
 local FALL_DEPTH = 90 -- studs below the island at which a falling player is brought back
@@ -37,7 +40,7 @@ local function buildSaved(player: Player, island: IslandService.Island, saved): 
 	for _, m in saved.machines do
 		MachineService.create(island, m.id, m.x, m.y, m.z, m.d, m.s)
 	end
-	island.bag = Inventory.sanitize(saved.bag, Defs.isItem)
+	Profile.load(island, saved.bag, saved.profile)
 	return true
 end
 
@@ -116,7 +119,7 @@ local function onPlayerAdded(player: Player)
 		end
 	end
 
-	Net.get("Bag"):FireClient(player, island.bag)
+	Profile.push(island)
 	keepCharacter(player, island)
 end
 
@@ -133,11 +136,15 @@ local function onPlayerRemoving(player: Player)
 	IslandService.destroy(player)
 end
 
+Commands.start()
 ItemService.start()
 MachineService.start()
 PlacementService.start()
+CraftService.start()
+TradeService.start()
 SaveService.start()
 DebugService.start()
+GameCommands.start()
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)

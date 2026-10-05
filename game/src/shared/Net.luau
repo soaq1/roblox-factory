@@ -2,7 +2,22 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local NAMES = { "Place", "Break", "Pickup", "Notify", "Bag" }
+local NAMES = {
+	-- client to server
+	"Place",
+	"Break",
+	"Pickup",
+	"Drop",
+	"Craft",
+	"Hand",
+	"Upgrade",
+	"TradeAct",
+	-- server to client
+	"Notify",
+	"Bag",
+	"State",
+	"Trade",
+}
 
 local folder: Folder
 if RunService:IsServer() then

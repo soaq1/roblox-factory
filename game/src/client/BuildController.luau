@@ -95,32 +95,41 @@ local function target(): Target?
 		return nil
 	end
 
-	local bx, by, bz
+	-- The cell that was hit, and the step from it to the neighbour a new thing would go into.
+	local inside = hit.Position - hit.Normal * 0.1
+	local hx = Grid.toCell(inside.X, at.X, CELL)
+	local hy = Grid.toCell(inside.Y, at.Y, CELL)
+	local hz = Grid.toCell(inside.Z, at.Z, CELL)
+	local sx, sy, sz = axisStep(hit.Normal)
+	local bx, by, bz = hx, hy, hz
 	local model = hit.Instance:FindFirstAncestorOfClass("Model")
-	if model and model:GetAttribute("Machine") then
-		-- Machine parts are smaller than a cell, so read the cell from the machine itself.
+	local def = model and Defs.Machines[model:GetAttribute("Machine") :: any]
+	if model and def then
+		-- A machine is broken by its anchor cell, whichever part of it was hit. Its shape does not
+		-- fill its cells exactly, so the hit height is fitted to the layers the machine keeps.
 		bx = model:GetAttribute("CellX") :: number
 		by = model:GetAttribute("CellY") :: number
 		bz = model:GetAttribute("CellZ") :: number
-	else
-		local inside = hit.Position - hit.Normal * 0.1
-		bx = Grid.toCell(inside.X, at.X, CELL)
-		by = Grid.toCell(inside.Y, at.Y, CELL)
-		bz = Grid.toCell(inside.Z, at.Z, CELL)
+		if sy > 0 then
+			hy = by + def.sy - 1
+		elseif sy < 0 then
+			hy = by
+		else
+			hy = math.clamp(hy, by, by + def.sy - 1)
+		end
 	end
-	local sx, sy, sz = axisStep(hit.Normal)
-	local found: Target = { bx = bx, by = by, bz = bz, px = bx + sx, py = by + sy, pz = bz + sz }
+	local found: Target = { bx = bx, by = by, bz = bz, px = hx + sx, py = hy + sy, pz = hz + sz }
 	if (cellCenter(at, found.px, found.py, found.pz) - root.Position).Magnitude > Config.REACH then
 		return nil
 	end
 	return found
 end
 
-local function isOccupied(center: Vector3): boolean
+local function isOccupied(box: CFrame, size: Vector3): boolean
 	local params = OverlapParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.FilterDescendantsInstances = ignoreList()
-	return #Workspace:GetPartBoundsInBox(CFrame.new(center), Vector3.new(CELL, CELL, CELL) * 0.9, params) > 0
+	return #Workspace:GetPartBoundsInBox(box, size - Vector3.new(0.4, 0.4, 0.4), params) > 0
 end
 
 local function makeGhost()
@@ -157,12 +166,22 @@ local function drawGhost()
 		return
 	end
 	local center = cellCenter(at, found.px, found.py, found.pz)
-	ghost.CFrame = CFrame.new(center)
-	ghost.Color = if isOccupied(center) then BLOCKED else FREE
+	local def = Defs.Machines[hotbar.selected()]
+	local box, size = CFrame.new(center), Vector3.new(CELL, CELL, CELL)
+	if def then
+		-- A machine's outline covers every cell it will take. The aimed cell is its back-left corner.
+		local cx, cz = Grid.footprintCentre(dir, def.sx, def.sz)
+		box = CFrame.new(center + Vector3.new(cx * CELL, (def.sy - 1) * CELL / 2, cz * CELL))
+			* CFrame.Angles(0, -dir * math.pi / 2, 0)
+		size = Vector3.new(def.sx * CELL, def.sy * CELL, def.sz * CELL)
+	end
+	ghost.Size = size * 0.98
+	ghost.CFrame = box
+	ghost.Color = if isOccupied(box, size) then BLOCKED else FREE
 	ghost.Transparency = 0.6
-	if Defs.isMachine(hotbar.selected()) then
+	if def then
 		-- The arrow points the way things will come out.
-		arrow.CFrame = CFrame.new(center) * CFrame.Angles(0, -dir * math.pi / 2, 0) * CFrame.new(0.7, 1.6, 0)
+		arrow.CFrame = box * CFrame.new(size.X / 2 - 0.8, size.Y / 2 + 0.1, 0)
 		arrow.Transparency = 0
 	else
 		arrow.Transparency = 1
@@ -202,8 +221,15 @@ local function onInputEnded(input: InputObject)
 		return
 	end
 	local found = target()
-	if found then
-		Net.get("Place"):FireServer(hotbar.selected(), found.px, found.py, found.pz, dir)
+	if not found then
+		return
+	end
+	local entry = hotbar.selected()
+	local item = Defs.itemOf(entry)
+	if item then
+		Net.get("Drop"):FireServer(item, found.px, found.py, found.pz)
+	else
+		Net.get("Place"):FireServer(entry, found.px, found.py, found.pz, dir)
 	end
 end
 

@@ -1,25 +1,25 @@
--- Shared pieces machines are assembled from. Stand-in shapes until the real models are imported.
--- A machine is built in its own frame: +X is forward (where things come out), Y is up,
--- and the origin is the centre of its cell.
+-- Shared pieces machines are assembled from.
+-- A machine is built in its own frame: +X is forward (where things come out), Y is up, +Z is the
+-- right-hand side, and the origin is the centre of its footprint at the height of a cell's centre.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local ModelBuilder = require(Shared.ModelBuilder)
+
 local MachineKit = {}
+
+local CELL = Config.CELL
 
 local function rgb(r: number, g: number, b: number): Color3
 	return Color3.fromRGB(r, g, b)
 end
 
 MachineKit.COLORS = {
-	body = rgb(194, 190, 183),
 	light = rgb(228, 225, 219),
-	mid = rgb(143, 139, 133),
 	dark = rgb(72, 70, 67),
 	belt = rgb(43, 42, 41),
 	mark = rgb(110, 107, 102),
-	hole = rgb(20, 21, 22),
-	inPort = rgb(240, 180, 41),
-	outPort = rgb(53, 184, 166),
-	glow = rgb(255, 90, 31),
-	wood = rgb(201, 156, 97),
-	woodDark = rgb(168, 125, 71),
 }
 local C = MachineKit.COLORS
 
@@ -71,32 +71,99 @@ function MachineKit.detail(
 	return part
 end
 
--- The short belt at a machine's mouth. `x` is where it sits along the machine; it always pushes forward.
-function MachineKit.lip(model: Instance, base: CFrame, x: number, length: number, speed: number): Part
-	MachineKit.part(model, base, Vector3.new(length, 0.6, 2.7), Vector3.new(x, -1.2, 0), C.dark)
-	for _, z in { -1.3, 1.3 } do
-		MachineKit.part(model, base, Vector3.new(length, 0.6, 0.25), Vector3.new(x, -0.6, z), C.light)
-	end
-	return MachineKit.conveyor(
-		model,
-		base,
-		Vector3.new(length, 0.2, 2.35),
-		Vector3.new(x, -0.8, 0),
-		Vector3.new(speed, 0, 0)
-	)
+-- The look of a catalogue model, built from basic parts.
+function MachineKit.visual(model: Instance, base: CFrame, id: string): Folder?
+	return ModelBuilder.build(model, base, id)
 end
 
--- The coloured bar and dark opening that mark a mouth. Yellow is in, teal is out.
-function MachineKit.mouth(model: Instance, base: CFrame, x: number, isInput: boolean)
-	local out = if x >= 0 then 0.03 else -0.03
-	MachineKit.detail(model, base, Vector3.new(0.06, 0.9, 2.2), Vector3.new(x + out, -0.25, 0), C.hole)
-	MachineKit.detail(
-		model,
-		base,
-		Vector3.new(0.08, 0.28, 2.3),
-		Vector3.new(x + out, 0.38, 0),
-		if isInput then C.inPort else C.outPort
-	)
+-- One unseen box the size of the machine. It is what players and items bump into, and what the
+-- build cursor hits.
+function MachineKit.body(machine): Part
+	local def = machine.def
+	local height = math.max(def.height, 1)
+	local part = Instance.new("Part")
+	part.Name = "Body"
+	part.Anchored = true
+	part.Transparency = 1
+	part.CanCollide = not def.walkThrough
+	part.Size = Vector3.new(def.sx * CELL - 0.1, height, def.sz * CELL - 0.1)
+	part.CFrame = machine.base * CFrame.new(0, -CELL / 2 + height / 2, 0)
+	part.Parent = machine.model
+	machine.model:SetAttribute("Solid", true)
+	return part
+end
+
+local SIDES = {
+	E = Vector3.new(1, 0, 0),
+	W = Vector3.new(-1, 0, 0),
+	S = Vector3.new(0, 0, 1),
+	N = Vector3.new(0, 0, -1),
+}
+
+export type Port = { kind: string, box: CFrame, size: Vector3, spawn: Vector3 }
+
+-- Where things enter and leave. `box` is the space just outside a mouth: for an input, an item
+-- resting there is taken in; for an output, it must be empty before the next item comes out.
+function MachineKit.ports(machine): { Port }
+	local def = machine.def
+	local ports = {}
+	for _, port in def.ports do
+		local outward = SIDES[port.side]
+		local alongX = port.side == "E" or port.side == "W"
+		local half = (if alongX then def.sx else def.sz) * CELL / 2
+		local lateral = if alongX
+			then Vector3.new(0, 0, -port.off * CELL)
+			else Vector3.new(port.off * CELL, 0, 0)
+		local edge = outward * half + lateral
+		table.insert(ports, {
+			kind = port.kind,
+			-- from the ground up to a little above belt height, so items on a belt or on the floor both count
+			box = machine.base * CFrame.new(edge + outward * 0.45 + Vector3.new(0, -0.55, 0)),
+			size = if alongX then Vector3.new(0.9, 1.9, 2.2) else Vector3.new(2.2, 1.9, 0.9),
+			spawn = (machine.base * CFrame.new(edge + outward * 0.75 + Vector3.new(0, -0.15, 0))).Position,
+		})
+	end
+	return ports
+end
+
+function MachineKit.inputs(ports: { Port }): { Port }
+	local list = {}
+	for _, port in ports do
+		if port.kind == "in" then
+			table.insert(list, port)
+		end
+	end
+	return list
+end
+
+function MachineKit.outputs(ports: { Port }): { Port }
+	local list = {}
+	for _, port in ports do
+		if port.kind == "out" then
+			table.insert(list, port)
+		end
+	end
+	return list
+end
+
+-- A small read-out above the machine, visible from close by.
+function MachineKit.label(part: BasePart, height: number): TextLabel
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(190, 70)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, height / 2 + 1.2, 0)
+	gui.MaxDistance = 30
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.3
+	label.Font = Enum.Font.GothamMedium
+	label.TextSize = 14
+	label.TextYAlignment = Enum.TextYAlignment.Bottom
+	label.Text = ""
+	label.Parent = gui
+	gui.Parent = part
+	return label
 end
 
 return MachineKit

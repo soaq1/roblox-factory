@@ -1576,6 +1576,17 @@
    "note": "핵을 꽂음"
   },
   {
+   "out": "extractor_cu",
+   "n": 1,
+   "bench": "bag",
+   "tier": 0,
+   "ins": {
+    "extractor_empty": 1,
+    "core_cu": 1
+   },
+   "note": "핵을 꽂음"
+  },
+  {
    "out": "logger",
    "n": 1,
    "bench": "machine",

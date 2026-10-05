@@ -482,6 +482,14 @@ for i, (key, ko, cat, top, side, bottom) in enumerate(BLOCKS):
     aim(cam, O + Vector((14, -14, 12.5)), O)
     scene.render.filepath = os.path.join(IMG, key + ".png")
     bpy.ops.render.render(write_still=True)
-    meta.append(dict(key=key, ko=ko, cat=cat))
+    def average(g):
+        total = [0.0, 0.0, 0.0]
+        for row in g:
+            for c in row:
+                for i, v in enumerate(hexrgb(c)):
+                    total[i] += v
+        return [round(v / (R * R) * 255) for v in total]
+
+    meta.append(dict(key=key, ko=ko, cat=cat, colour=average(side), top=average(top)))
 json.dump(meta, open(os.path.join(OUT, "blocks.json"), "w"), ensure_ascii=False, indent=1)
 print("BLOCKS done", len(meta))

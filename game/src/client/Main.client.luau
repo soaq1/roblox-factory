@@ -10,6 +10,11 @@ pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 end)
 
+-- The palette draws machine models, so everything shared has to have arrived first.
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
+
 HotbarUI.init()
 BuildController.init(HotbarUI)
 DebugUI.init()

@@ -1813,6 +1813,66 @@
    "outs": []
   },
   {
+   "key": "plant_sapling",
+   "ko": "묘목 (심은 것)",
+   "fam": "식물",
+   "recipe": "잔디나 흙 위에 심으면 시간이 지나 나무가 됨",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 72,
+   "colors": 3,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "crop_wheat_1",
+   "ko": "밀 (싹)",
+   "fam": "식물",
+   "recipe": "경작지에 씨앗을 심은 직후",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 204,
+   "colors": 2,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "crop_wheat_2",
+   "ko": "밀 (자라는 중)",
+   "fam": "식물",
+   "recipe": "절반쯤 자람",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 204,
+   "colors": 2,
+   "ins": [],
+   "outs": []
+  },
+  {
+   "key": "crop_wheat_3",
+   "ko": "밀 (다 자람)",
+   "fam": "식물",
+   "recipe": "거두면 밀과 씨앗이 나옴",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 396,
+   "colors": 3,
+   "ins": [],
+   "outs": []
+  },
+  {
    "key": "coreforge",
    "ko": "핵 제련소",
    "fam": "궁극의 장치",

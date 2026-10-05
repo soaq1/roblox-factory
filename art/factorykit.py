@@ -34,7 +34,7 @@ PAL = {
     "wheat": "#cdb850", "wheat_head": "#ecd465", "cream": "#efe2c8", "bread": "#d39a55",
     "pcb": "#2f9e5b", "diamond": "#86e3ea", "clay": "#b9a79a", "charcoal": "#3b3632", "tar": "#1e1b22",
     "slag": "#6e6a70", "cotton": "#f4f2ee", "dough": "#ead9b0", "asphalt": "#4b4b50", "dirt": "#9a6a44",
-    "leaf": "#4f9f4d", "leaf_light": "#7cc468", "copper_light": "#f2a878",
+    "leaf": "#4f9f4d", "leaf_light": "#7cc468", "dirt_dark": "#7d5437", "copper_light": "#f2a878",
     "core_stone": "#c9cdd2", "core_gold": "#ffd24a", "core_dia": "#8ff0f5", "monster": "#9a62e0", "solar": "#2c4a78", "core_fe": "#a9c4e2", "core_coal": "#4b4654", "core_cu": "#f2a06a", "slurry": "#9aa6ad", "white": "#f2f0ea", "floor": "#d9dcdf",
 }
 EMIT = {"glow": 3.0, "spark": 1.5, "core_fe": 0.9, "core_cu": 0.9, "core_coal": 0.15, "core_gold": 0.9, "core_dia": 1.1, "core_stone": 0.4, "monster": 0.9}
@@ -191,6 +191,94 @@ class Model:
         return me
 
 
+# ---- primitive log -------------------------------------------------------------------------
+# Alongside the mesh, every model keeps a list of the simple shapes it was built from
+# (boxes, cylinders, balls). The game rebuilds machines from these with Roblox's basic parts.
+PRIMS = {}
+
+
+def _rot(rot):
+    return Matrix.Rotation(rot, 4, "Z") if isinstance(rot, (int, float)) else Euler(rot, "XYZ").to_matrix().to_4x4()
+
+
+def _log(self, shape, size, local, mk):
+    if getattr(self, "mute", 0):
+        return
+    if not hasattr(self, "prims"):
+        self.prims = []
+    self.prims.append((shape, tuple(size), self.stack[-1] @ local, mk))
+
+
+Model._log = _log
+_box, _cyl, _gear, _ico, _prism, _pipe, _done = (Model.box, Model.cyl, Model.gear, Model.ico, Model.prism,
+                                                 Model.pipe, Model.done)
+
+
+def _box_logged(self, size, loc, mk, bevel=0.0, taper=1.0, rot=0.0):
+    k = (1 + taper) / 2
+    self._log("b", (size[0] * k, size[1] * k, size[2]), Matrix.Translation(Vector(loc)) @ _rot(rot), mk)
+    _box(self, size, loc, mk, bevel, taper, rot)
+
+
+def _cyl_logged(self, r, depth, loc, mk, seg=8, axis="Z", r2=None, rot=0.0):
+    radius = r if r2 is None else (r + r2) / 2
+    self._log("c", (depth, radius * 2, radius * 2), Matrix.Translation(Vector(loc)) @ _rot(rot) @ AXIS[axis], mk)
+    _cyl(self, r, depth, loc, mk, seg, axis, r2, rot)
+
+
+def _gear_logged(self, r, depth, loc, mk, teeth=8, axis="X", rot=0.0):
+    self._log("c", (depth, r * 1.9, r * 1.9), Matrix.Translation(Vector(loc)) @ _rot(rot) @ AXIS[axis], mk)
+    _gear(self, r, depth, loc, mk, teeth, axis, rot)
+
+
+def _ico_logged(self, r, loc, mk, squash=1.0, jitter=0.0):
+    d = r * 2 * (2 + squash) / 3
+    self._log("s", (d, d, d), Matrix.Translation(Vector(loc)), mk)
+    _ico(self, r, loc, mk, squash, jitter)
+
+
+def _prism_logged(self, pts, lo, hi, axis, mk):
+    a = [p[0] for p in pts]
+    b = [p[1] for p in pts]
+    ca, cb, cl = (min(a) + max(a)) / 2, (min(b) + max(b)) / 2, (lo + hi) / 2
+    sa, sb, sl = max(a) - min(a), max(b) - min(b), abs(hi - lo)
+    if axis == "X":
+        size, centre = (sl, sa, sb), (cl, ca, cb)
+    elif axis == "Y":
+        size, centre = (sa, sl, sb), (ca, cl, cb)
+    else:
+        size, centre = (sa, sb, sl), (ca, cb, cl)
+    self._log("b", size, Matrix.Translation(Vector(centre)), mk)
+    _prism(self, pts, lo, hi, axis, mk)
+
+
+def _pipe_logged(self, pts, r, mk, seg=8):
+    vs = [Vector(p) for p in pts]
+    for a, b in zip(vs, vs[1:]):
+        d = b - a
+        if d.length > 1e-6:
+            turn = d.to_track_quat("Z", "Y").to_matrix().to_4x4()
+            self._log("c", (d.length + r, r * 2, r * 2), Matrix.Translation((a + b) / 2) @ turn, mk)
+    _pipe(self, pts, r, mk, seg)
+
+
+def _done_logged(self):
+    PRIMS[self.name] = getattr(self, "prims", [])
+    return _done(self)
+
+
+Model.box, Model.cyl, Model.gear, Model.ico = _box_logged, _cyl_logged, _gear_logged, _ico_logged
+Model.prism, Model.pipe, Model.done = _prism_logged, _pipe_logged, _done_logged
+
+
+@contextmanager
+def muted(m):
+    """Build geometry without logging it, for shapes that are logged by hand instead."""
+    m.mute = getattr(m, "mute", 0) + 1
+    yield
+    m.mute -= 1
+
+
 def place(mesh, loc, rz=0.0, mirror_x=False, mirror_y=False):
     ob = bpy.data.objects.new(mesh.name, mesh)
     ob.location = loc
@@ -221,9 +309,15 @@ def port(m, side, kind, off=0.0, sx=1, sy=1):
                  (hw, 0.02), (0.36, 0.02), (0.36, 0.66), (-0.36, 0.66), (-0.36, 0.02)]
         lip = [(-0.36, 0.30), (-0.36, 0.66), (0.36, 0.66), (0.36, 0.30),
                (0.31, 0.30), (0.31, 0.61), (-0.31, 0.61), (-0.31, 0.30)]
-        m.prism([(y + o, z) for y, z in frame], d - 0.10, d, "X", "light")
-        m.prism([(y + o, z) for y, z in lip], d - 0.06, d - 0.01, "X",
-                "accent" if kind == "in" else "out")
+        lip_colour = "accent" if kind == "in" else "out"
+        with muted(m):
+            m.prism([(y + o, z) for y, z in frame], d - 0.10, d, "X", "light")
+            m.prism([(y + o, z) for y, z in lip], d - 0.06, d - 0.01, "X", lip_colour)
+        for side_y in (-0.415, 0.415):
+            m._log("b", (0.10, 0.11, 0.78), Matrix.Translation((d - 0.05, o + side_y, 0.41)), "light")
+            m._log("b", (0.05, 0.05, 0.36), Matrix.Translation((d - 0.035, o + side_y * 0.807, 0.48)), lip_colour)
+        m._log("b", (0.10, 0.94, 0.14), Matrix.Translation((d - 0.05, o, 0.73)), "light")
+        m._log("b", (0.05, 0.72, 0.05), Matrix.Translation((d - 0.035, o, 0.635)), lip_colour)
         m.box((0.012, 0.72, 0.36), (d - 0.054, o, 0.48), "hole")
         m.box((0.10, 0.72, 0.22), (d - 0.05, o, 0.13), "dark")
         m.box((0.10, 0.68, 0.06), (d - 0.05, o, 0.27), "belt")
@@ -492,8 +586,11 @@ def extractor_top(m, T, core):
 
 def crystal(m, loc, r, mk):
     x, y, z = loc
-    m.cyl(r, r * 1.8, (x, y, z + r * 0.9), mk, seg=6, r2=0.004)
-    m.cyl(0.004, r * 1.1, (x, y, z - r * 0.55), mk, seg=6, r2=r)
+    with muted(m):
+        m.cyl(r, r * 1.8, (x, y, z + r * 0.9), mk, seg=6, r2=0.004)
+        m.cyl(0.004, r * 1.1, (x, y, z - r * 0.55), mk, seg=6, r2=r)
+    m._log("b", (r * 1.5, r * 1.5, r * 1.5),
+           Matrix.Translation((x, y, z + r * 0.4)) @ Euler((rad(45), rad(35.26), 0), "XYZ").to_matrix().to_4x4(), mk)
 
 
 machine("extractor_empty", "빈 추출기", "공급",
@@ -1702,6 +1799,36 @@ def _pole(m, T):
     m.prism([(x, 1.45 + z) for x, z in bolt], -0.262, -0.25, "Y", "spark")
 
 
+# ============================ PLANTS ============================
+@machine("plant_sapling", "묘목 (심은 것)", "식물", "잔디나 흙 위에 심으면 시간이 지나 나무가 됨",
+         chassis_on=False, ortho=2.4, tz=0.3)
+def _plant_sapling(m, T):
+    m.box((0.07, 0.07, 0.40), (0, 0, 0.20), "wood_dark")
+    m.ico(0.20, (0, 0, 0.50), "leaf", squash=0.9, jitter=0.1)
+    m.ico(0.13, (0.10, 0.06, 0.66), "leaf_light", squash=0.9, jitter=0.1)
+    m.ico(0.11, (-0.10, -0.04, 0.38), "leaf_light", squash=0.9, jitter=0.1)
+
+
+def _wheat(m, height, ripe):
+    m.box((0.96, 0.96, 0.03), (0, 0, 0.015), "dirt_dark")
+    for ix in range(4):
+        for iy in range(4):
+            x = -0.36 + ix * 0.24 + rng.uniform(-0.03, 0.03)
+            y = -0.36 + iy * 0.24 + rng.uniform(-0.03, 0.03)
+            h = height * rng.uniform(0.85, 1.1)
+            m.box((0.035, 0.035, h), (x, y, 0.03 + h / 2), "wheat" if ripe else "leaf_light")
+            if ripe:
+                m.box((0.08, 0.08, 0.16), (x, y, 0.03 + h + 0.06), "wheat_head", taper=0.5)
+
+
+machine("crop_wheat_1", "밀 (싹)", "식물", "경작지에 씨앗을 심은 직후", chassis_on=False, ortho=2.6,
+        tz=0.15)(lambda m, T: _wheat(m, 0.12, False))
+machine("crop_wheat_2", "밀 (자라는 중)", "식물", "절반쯤 자람", chassis_on=False, ortho=2.6,
+        tz=0.2)(lambda m, T: _wheat(m, 0.32, False))
+machine("crop_wheat_3", "밀 (다 자람)", "식물", "거두면 밀과 씨앗이 나옴", chassis_on=False, ortho=2.6,
+        tz=0.3)(lambda m, T: _wheat(m, 0.50, True))
+
+
 # ============================ ULTIMATE DEVICES ============================
 def tilted_ring(m, center, radius, tube, euler, mk, seg=14):
     rot = Euler(euler, "XYZ").to_matrix()
@@ -2280,6 +2407,67 @@ if "export" in ARGS:
         index["items"][s["key"]] = dict(export_mesh(ITEMS[s["key"]], "items", s["key"]), name=s["ko"])
     json.dump(index, open(os.path.join(EXPORT, "models.json"), "w"), ensure_ascii=False, indent=1)
     print("EXPORT done", len(index["machines"]), len(index["items"]))
+
+# ============================ GAME DATA ============================
+# The primitive lists, converted to Roblox axes (Y up) and studs, for game/tools/gen_data.py.
+if "gamedata" in ARGS:
+    S = 3.0  # studs per cell
+    TO_RBX = Matrix(((1, 0, 0), (0, 0, 1), (0, -1, 0)))
+    TURN_X_TO_Y = Matrix(((0, -1, 0), (1, 0, 0), (0, 0, 1)))  # Roblox cylinders lie along X
+    used = []
+
+    def colour_index(mk):
+        if mk not in used:
+            used.append(mk)
+        return used.index(mk)
+
+    def convert(prims):
+        out = []
+        for shape, size, mx, mk in prims:
+            rot = TO_RBX @ mx.to_3x3().normalized() @ TO_RBX.transposed()
+            pos = TO_RBX @ mx.to_translation() * S
+            if shape == "b":
+                dims = (size[0] * S, size[2] * S, size[1] * S)
+            elif shape == "c":
+                rot = rot @ TURN_X_TO_Y
+                dims = (size[0] * S, size[1] * S, size[2] * S)
+            else:
+                dims = (size[0] * S,) * 3
+            if min(dims) < 0.02:
+                continue
+            row = [{"b": 0, "c": 1, "s": 2}[shape], *dims, pos.x, pos.y - S / 2, pos.z]
+            row += [rot[i][j] for i in range(3) for j in range(3)]
+            out.append([round(v, 3) for v in row] + [colour_index(mk)])
+        return out
+
+    game = {"machines": {}, "items": {}}
+    for s in SPECS:
+        prims = PRIMS[s["key"]]
+        top = max((mx.to_translation().z + size[2] / 2 for _, size, mx, _ in prims), default=1.0)
+        game["machines"][s["key"]] = {
+            "name": s["ko"], "family": s["fam"], "note": s["recipe"], "cells": list(s["size"]),
+            "ports": [[side, kind, off] for side, kind, off in s["ports"]],
+            "height": round(top * S, 2), "chassis": s["chassis"], "prims": convert(prims),
+        }
+    for s in ITEM_SPECS:
+        prims = PRIMS["item_" + s["key"]]
+        lo = [min(mx.to_translation()[i] - size[i] / 2 for _, size, mx, _ in prims) for i in range(3)]
+        hi = [max(mx.to_translation()[i] + size[i] / 2 for _, size, mx, _ in prims) for i in range(3)]
+        volume = {}
+        for shape, size, mx, mk in prims:
+            volume[mk] = volume.get(mk, 0) + size[0] * size[1] * size[2]
+        main = max(volume, key=volume.get)
+        game["items"][s["key"]] = {
+            "name": s["ko"], "category": s["cat"], "colour": colour_index(main),
+            "size": [round(max(0.5, min(1.6, (hi[i] - lo[i]) * S)), 2) for i in (0, 2, 1)],
+            "ball": all(shape == "s" for shape, _, _, _ in prims),
+        }
+    game["palette"] = [{"key": mk, "hex": PAL[mk], "neon": mk in EMIT} for mk in used]
+    out_dir = os.path.join(os.path.dirname(HERE), "game", "tools")
+    os.makedirs(out_dir, exist_ok=True)
+    json.dump(game, open(os.path.join(out_dir, "modeldata.json"), "w"), ensure_ascii=False)
+    print("GAMEDATA done", len(game["machines"]), len(game["items"]), len(used), "colours",
+          sum(len(m["prims"]) for m in game["machines"].values()), "parts")
 
 meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
         for s in SPECS if s["show"]]

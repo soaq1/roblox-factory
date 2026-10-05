@@ -48,4 +48,26 @@ function Grid.toWorld(c: number, origin: number, cell: number): number
 	return origin + c * cell
 end
 
+-- The cells a machine of sx by sz cells covers when its anchor is at (x, z) and it faces `dir`.
+-- The anchor is the machine's back-left cell; turning the machine swings the rest around it.
+function Grid.footprint(x: number, z: number, dir: number, sx: number, sz: number): { { number } }
+	local fx, fz = Grid.dirVec(dir)
+	local rx, rz = Grid.dirVec(dir + 1)
+	local cells = {}
+	for i = 0, sx - 1 do
+		for j = 0, sz - 1 do
+			table.insert(cells, { x + i * fx + j * rx, z + i * fz + j * rz })
+		end
+	end
+	return cells
+end
+
+-- Offset, in cells, from the anchor cell's centre to the centre of the whole footprint.
+function Grid.footprintCentre(dir: number, sx: number, sz: number): (number, number)
+	local fx, fz = Grid.dirVec(dir)
+	local rx, rz = Grid.dirVec(dir + 1)
+	local i, j = (sx - 1) / 2, (sz - 1) / 2
+	return i * fx + j * rx, i * fz + j * rz
+end
+
 return Grid

@@ -8,11 +8,15 @@ return {
 
 	BELT_SPEED = 5, -- studs per second
 	EXTRACT_INTERVAL = 2.0, -- seconds between items from one extractor
-	SMELT_TIME = 3.0, -- seconds per ingot
-	FUEL_PER_COAL = 4, -- ingots one coal can smelt
-	SMELTER_MAX_FUEL = 16,
-	SMELTER_MAX_ORE = 8,
-	SMELTER_MAX_OUT = 4,
+	MACHINE_BUFFER = 16, -- most of one ingredient a machine holds
+	MACHINE_OUT = 8, -- finished items a machine holds before it pauses
+	START_COINS = 10000, -- what a new player begins with (a placeholder amount)
+	START_MODE = "creative", -- "creative": everything is free; "survival": only what is in the bag
+	ALLOW_MODE_SWITCH = true, -- the /mode command; a test convenience, to be removed before release
+	BENCH_RANGE = 15, -- studs from a workbench within which it can be used
+	DROP_COUNT = 8, -- loose items dropped per click from the creative palette
+	SAPLING_SECONDS = 45, -- time for a sapling to become a tree
+	CROP_SECONDS = 60, -- time for a crop to ripen
 
 	MAX_STACK = 64, -- items one loose stack can hold
 	MAX_LOOSE_ITEMS = 600, -- loose stacks allowed before the oldest are cleared
