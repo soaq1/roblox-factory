@@ -5,6 +5,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
+local ModelBuilder = require(Shared.ModelBuilder)
 
 local ItemService = {}
 
@@ -121,7 +122,26 @@ function ItemService.spawn(itemId: string, count: number, position: Vector3): Ba
 	part.Material = Enum.Material.SmoothPlastic
 	part.CustomPhysicalProperties = PHYSICS
 	part.Position = position
-	if def.ball then
+	local source = ModelBuilder.template("i_" .. itemId)
+	if source then
+		-- The box does the colliding, because a plain box rides a belt predictably. What is seen
+		-- is the item's own shape, fixed to the box and weighing nothing.
+		part.Transparency = 1
+		local look = source:Clone()
+		look.Name = "Look"
+		look.Anchored = false
+		look.CanCollide = false
+		look.CanQuery = false
+		look.CanTouch = false
+		look.Massless = true
+		look.Material = Enum.Material.SmoothPlastic
+		look.CFrame = part.CFrame * ModelBuilder.FIX
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = part
+		weld.Part1 = look
+		weld.Parent = look
+		look.Parent = part
+	elseif def.ball then
 		-- Looks round, but still collides as a box: a real ball would roll, and a rolling ball
 		-- travels along a belt at a fraction of the belt's speed.
 		local round = Instance.new("SpecialMesh")

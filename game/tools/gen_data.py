@@ -269,6 +269,15 @@ for key, prims in shapes.items():
                      "-- machine's footprint, one cell above the ground being y = 1.5.\n") + "return { " + body + " }\n"
     open(os.path.join(model_dir, key + ".luau"), "w", encoding="utf-8").write(text)
 
+# Where the middle of each imported mesh lies, in studs, from the middle of its model's footprint
+# on the ground. Written by art/factorykit.py -- meshes.
+mesh_info_path = os.path.join(ROOT, "art", "export", "game", "models_info.json")
+mesh_info = json.load(open(mesh_info_path)) if os.path.exists(mesh_info_path) else {}
+centres = {name: e["center"] for name, e in mesh_info.items() if name[:2] in ("m_", "i_")}
+open(os.path.join(SHARED, "MeshInfo.luau"), "w", encoding="utf-8").write(
+    HEADER + "--!nocheck\n-- The middle of each real mesh: x, y, z in studs from the middle of the model's footprint on\n"
+    "-- the ground. Empty if the meshes have not been exported.\nreturn " + lua(centres) + "\n")
+
 # What each machine does in the game, for the catalogue page to show.
 json.dump({k: dict(behavior=m["behavior"], hidden=m["hidden"]) for k, m in machines.items()},
           open(os.path.join(ROOT, "art", "catalog", "game.json"), "w"), ensure_ascii=False, indent=0)

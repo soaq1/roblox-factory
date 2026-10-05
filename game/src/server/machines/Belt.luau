@@ -3,6 +3,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage:WaitForChild("Shared").Config)
 local Kit = require(script.Parent.Parent.MachineKit)
+local ModelBuilder = require(ReplicatedStorage:WaitForChild("Shared").ModelBuilder)
 
 local Belt = {}
 local C = Kit.COLORS
@@ -67,6 +68,16 @@ function Belt.build(machine)
 		Kit.part(model, base, Vector3.new(0.3, 0.6, 0.3), Vector3.new(-1.35, -0.6, side * 1.35), C.light)
 		chevron(model, base, -0.6, 0, 0)
 		chevron(model, base, 0, side * 0.6, side * math.pi / 2)
+	end
+	-- With a real belt mesh to show, the parts built above keep doing the carrying and the
+	-- stopping but are no longer seen.
+	if ModelBuilder.hasMesh(machine.id) then
+		for _, part in model:GetChildren() do
+			if part:IsA("BasePart") then
+				part.Transparency = 1
+			end
+		end
+		Kit.visual(model, base, machine.id)
 	end
 end
 

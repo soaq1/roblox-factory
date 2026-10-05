@@ -8,6 +8,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local ModelBuilder = require(Shared.ModelBuilder)
 local TreeGen = require(Shared.TreeGen)
 
 local Tree = {}
@@ -47,6 +48,19 @@ local function piece(parent: Instance, solid: boolean): Part
 	return part
 end
 
+-- A copy of an imported mesh set up like `piece`.
+local function dress(source: MeshPart, parent: Instance, solid: boolean): BasePart
+	local part = source:Clone()
+	part.Anchored = true
+	part.Material = Enum.Material.SmoothPlastic
+	part.CanCollide = solid
+	part.CanQuery = solid
+	part.CanTouch = false
+	part.CastShadow = true
+	part.Parent = parent
+	return part
+end
+
 function Tree.build(machine)
 	machine.model:SetAttribute("Solid", true)
 end
@@ -61,22 +75,44 @@ function Tree.load(machine, saved)
 	local visual = Instance.new("Folder")
 	visual.Name = "Visual"
 
+	local stick = ModelBuilder.template("t_limb")
 	for _, limb in tree.limbs do
 		local a = foot + Vector3.new(limb.ax, limb.ay, limb.az)
 		local b = foot + Vector3.new(limb.bx, limb.by, limb.bz)
-		local part = piece(visual, limb.trunk)
+		local length = (b - a).Magnitude + limb.r * 0.6
+		-- a cylinder, and the stick mesh as modelled, lie along their own X
+		local along = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.pi / 2, 0)
+		local part: BasePart
+		if stick then
+			-- a six-sided stick, a little thinner at the far end
+			part = dress(stick, visual, limb.trunk)
+			part.Size = stick.Size * Vector3.new(length, limb.r * 2.2, limb.r * 2.2)
+			part.CFrame = along * ModelBuilder.FIX
+		else
+			local round = piece(visual, limb.trunk)
+			round.Shape = Enum.PartType.Cylinder
+			round.Size = Vector3.new(length, limb.r * 2, limb.r * 2)
+			round.CFrame = along
+			part = round
+		end
 		part.Name = if limb.trunk then "Trunk" else "Branch"
-		part.Shape = Enum.PartType.Cylinder -- a cylinder lies along its own X
-		part.Size = Vector3.new((b - a).Magnitude + limb.r * 0.6, limb.r * 2, limb.r * 2)
-		part.CFrame = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.pi / 2, 0)
 		part.Color = BARK
 	end
 	for _, lump in tree.lumps do
-		local part = piece(visual, false)
-		part.Name = "Leaves"
-		part.Size = Vector3.new(lump.sx, lump.sy, lump.sz)
-		part.CFrame = CFrame.new(foot + Vector3.new(lump.x, lump.y, lump.z))
+		local turned = CFrame.new(foot + Vector3.new(lump.x, lump.y, lump.z))
 			* CFrame.Angles(lump.rx, lump.ry, lump.rz)
+		local blob = ModelBuilder.template("t_leaf" .. lump.shade)
+		local part: BasePart
+		if blob then
+			-- a lumpy faceted ball, stretched to the size of this mass of leaves
+			part = dress(blob, visual, false)
+			part.Size = blob.Size * Vector3.new(lump.sx, lump.sy, lump.sz) * 1.15
+		else
+			part = piece(visual, false)
+			part.Size = Vector3.new(lump.sx, lump.sy, lump.sz)
+		end
+		part.CFrame = turned
+		part.Name = "Leaves"
 		part.Color = LEAVES[lump.shade]
 	end
 	visual.Parent = machine.model

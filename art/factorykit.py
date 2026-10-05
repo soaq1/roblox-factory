@@ -2418,6 +2418,161 @@ if "export" in ARGS:
     json.dump(index, open(os.path.join(EXPORT, "models.json"), "w"), ensure_ascii=False, indent=1)
     print("EXPORT done", len(index["machines"]), len(index["items"]))
 
+# ============================ MESHES FOR THE GAME ============================
+# Whole models as real meshes, many to a file, for Studio's 3D importer. Each object is named
+# m_<id> (machine), i_<id> (item); the game finds them by that name. Colour is carried two ways so
+# that whichever the importer honours can be used: as vertex colours ("vc"), or as a small
+# palette picture every face points into ("tex").
+if "meshes" in ARGS:
+    MESH_OUT = os.path.join(HERE, "export", "game")
+    os.makedirs(MESH_OUT, exist_ok=True)
+    S = 3.0
+    keys_all = list(PAL.keys())
+    COLS, SW = 16, 8  # swatches per row, pixels per swatch
+    ROWS = (len(keys_all) + COLS - 1) // COLS
+    W, H = COLS * SW, max(64, ROWS * SW)
+    img = bpy.data.images.new("palette", W, H, alpha=False)
+    px = [1.0] * (W * H * 4)
+    for n, key in enumerate(keys_all):
+        h = PAL[key].lstrip("#")
+        rgb = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        cx, cy = n % COLS, n // COLS
+        for yy in range(cy * SW, cy * SW + SW):
+            for xx in range(cx * SW, cx * SW + SW):
+                o = (yy * W + xx) * 4
+                px[o:o + 3] = rgb
+    img.pixels = px
+    img.filepath_raw = os.path.join(MESH_OUT, "palette.png")
+    img.file_format = "PNG"
+    img.save()
+    pal_mat = bpy.data.materials.new("palette")
+    pal_mat.use_nodes = True
+    tex_node = pal_mat.node_tree.nodes.new("ShaderNodeTexImage")
+    tex_node.image = img
+    tex_node.interpolation = "Closest"
+    pal_mat.node_tree.links.new(tex_node.outputs["Color"], pal_mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"])
+
+    def swatch_uv(key):
+        n = keys_all.index(key)
+        return ((n % COLS + 0.5) * SW / W, (n // COLS + 0.5) * SW / H)
+
+    def prepared(mesh, name, mode, shift=(0, 0, 0)):
+        me = mesh.copy()
+        keys = [m.name for m in me.materials]
+        if mode == "vc":
+            attr = me.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+            for poly in me.polygons:
+                h = PAL[keys[poly.material_index]].lstrip("#")
+                r, g, b = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+                for li in poly.loop_indices:
+                    attr.data[li].color_srgb = (r, g, b, 1.0)
+            me.materials.clear()
+        else:
+            uv = me.uv_layers.new(name="UVMap")
+            for poly in me.polygons:
+                u, v = swatch_uv(keys[poly.material_index])
+                for li in poly.loop_indices:
+                    uv.data[li].uv = (u, v)
+            me.materials.clear()
+            me.materials.append(pal_mat)
+        me.transform(Matrix.Scale(S, 4))
+        me.transform(Matrix.Translation(shift))
+        ob = bpy.data.objects.new(name, me)
+        col.objects.link(ob)
+        return ob
+
+    def write(objects, filename):
+        for other in bpy.context.view_layer.objects:
+            other.select_set(False)
+        for ob in objects:
+            ob.select_set(True)
+        bpy.context.view_layer.objects.active = objects[0]
+        bpy.ops.export_scene.fbx(
+            filepath=os.path.join(MESH_OUT, filename), use_selection=True, object_types={"MESH"},
+            global_scale=0.01, colors_type="SRGB", mesh_smooth_type="FACE", bake_anim=False,
+            add_leaf_bones=False, axis_forward="-Z", axis_up="Y", path_mode="COPY", embed_textures=True)
+        for ob in objects:
+            col.objects.unlink(ob)
+
+    def plain(bm, name, shift):
+        """A mesh with no colour of its own: the game tints it (leaves, bark)."""
+        me = bpy.data.meshes.new(name)
+        bm.to_mesh(me)
+        bm.free()
+        me.transform(Matrix.Translation(shift))
+        ob = bpy.data.objects.new(name, me)
+        col.objects.link(ob)
+        return ob
+
+    def leaf_blob(seed):
+        """A lumpy faceted ball about one unit across; the game stretches it to each mass of leaves."""
+        r = random.Random(seed)
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.5)
+        for v in bm.verts:
+            v.co *= 1 + r.uniform(-0.2, 0.2)
+        bmesh.ops.dissolve_limit(bm, angle_limit=rad(14), verts=bm.verts, edges=bm.edges)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        return bm
+
+    def limb():
+        """A six-sided stick one unit long lying along X, a little thinner at the far end."""
+        bm = bmesh.new()
+        bmesh.ops.create_cone(bm, segments=6, radius1=0.5, radius2=0.4, depth=1.0, cap_ends=True)
+        bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=Matrix.Rotation(rad(90), 3, "Y"))
+        return bm
+
+    if "test" in ARGS:
+        # A few things side by side, 6 studs apart along X, to see what the importer does with them.
+        write([
+            prepared(MESH["smelter"], "vc_smelter", "vc", (0, 0, 0)),
+            prepared(MESH["smelter"], "tex_smelter", "tex", (6, 0, 0)),
+            prepared(MESH["belt_corner"], "vc_belt_corner", "vc", (12, 0, 0)),
+            prepared(MESH["belt_corner"], "tex_belt_corner", "tex", (18, 0, 0)),
+            prepared(ITEMS["pick_wood"], "vc_pick_wood", "vc", (23, 0, 0)),
+            prepared(ITEMS["pick_wood"], "tex_pick_wood", "tex", (26, 0, 0)),
+        ], "import_test.fbx")
+        print("MESHES test done")
+    else:
+        # Everything, laid out on a grid 12 studs apart so each can be told from its neighbours and
+        # so the importer's scale and turn can be worked out afterwards from where things landed.
+        # `info` records, in Roblox axes and studs, where each object was put and where the middle
+        # of its mesh lies relative to its own origin (the middle of its footprint on the ground).
+        objects, info, n = [], {}, 0
+
+        def spot():
+            return ((n % 15) * 12.0, (n // 15) * 12.0, 0.0)
+
+        def note(name, ob, at):
+            xs = [v.co for v in ob.data.vertices]
+            lo = [min(c[i] for c in xs) - at[i] for i in range(3)]
+            hi = [max(c[i] for c in xs) - at[i] for i in range(3)]
+            info[name] = {
+                "at": [at[0], at[2], -at[1]],
+                "center": [round((hi[0] + lo[0]) / 2, 4), round((hi[2] + lo[2]) / 2, 4), round(-(hi[1] + lo[1]) / 2, 4)],
+                "size": [round(hi[0] - lo[0], 4), round(hi[2] - lo[2], 4), round(hi[1] - lo[1], 4)],
+            }
+            objects.append(ob)
+
+        for s in SPECS:
+            at = spot()
+            note("m_" + s["key"], prepared(MESH[s["key"]], "m_" + s["key"], "tex", at), at)
+            n += 1
+        for s in ITEM_SPECS:
+            at = spot()
+            note("i_" + s["key"], prepared(ITEMS[s["key"]], "i_" + s["key"], "tex", at), at)
+            n += 1
+        for k in (1, 2, 3):
+            at = spot()
+            note("t_leaf" + str(k), plain(leaf_blob(40 + k), "t_leaf" + str(k), at), at)
+            n += 1
+        at = spot()
+        note("t_limb", plain(limb(), "t_limb", at), at)
+        n += 1
+        write(objects, "models.fbx")
+        json.dump(info, open(os.path.join(MESH_OUT, "models_info.json"), "w"), indent=0)
+        print("MESHES done", len(info), "objects")
+
 # ============================ GAME DATA ============================
 # The primitive lists, converted to Roblox axes (Y up) and studs, for game/tools/gen_data.py.
 if "gamedata" in ARGS:

@@ -594,7 +594,8 @@ local function fitToScreen(barFit: UIScale)
 	hint.Visible = keyboardLast and not compact
 	-- Where the screen is too narrow for the coin read-out to sit beside the menu buttons, it
 	-- goes under them.
-	stateLabel.Position = UDim2.new(1, -12, 0, if view.X < 860 then 52 else 8)
+	-- Roblox draws its own player list in the top right corner, so this sits at the bottom left.
+	stateLabel.Position = UDim2.new(0, 14, 1, -16)
 end
 
 function HotbarUI.init()
@@ -651,10 +652,11 @@ function HotbarUI.init()
 	buildArrangePanel()
 
 	stateLabel = UIKit.label(gui, "", 14)
-	stateLabel.AnchorPoint = Vector2.new(1, 0)
-	stateLabel.Position = UDim2.new(1, -12, 0, 8)
-	stateLabel.Size = UDim2.fromOffset(200, 20)
-	stateLabel.TextXAlignment = Enum.TextXAlignment.Right
+	stateLabel.AnchorPoint = Vector2.new(0, 1)
+	stateLabel.Position = UDim2.new(0, 14, 1, -16)
+	stateLabel.Size = UDim2.fromOffset(260, 22)
+	stateLabel.TextSize = 16
+	stateLabel.TextXAlignment = Enum.TextXAlignment.Left
 	stateLabel.TextWrapped = false
 	stateLabel.TextStrokeTransparency = 0.5
 
