@@ -12,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
+local HandArm = require(script.Parent.HandArm)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
@@ -179,6 +180,70 @@ function scenarios.idle(_player, _island, args)
 	return { pass = true }
 end
 
+-- How far the right upper arm is turned away from the body, in degrees. Raised for a held tool it
+-- reads about 80; hanging down it reads about 0. The arm is animated on the player's own machine,
+-- so this is the pose as it reaches everyone else.
+local function armAngle(player: Player): number?
+	local character = player.Character
+	local upper = character and character:FindFirstChild("RightUpperArm")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (upper and root and upper:IsA("BasePart") and root:IsA("BasePart")) then
+		return nil
+	end
+	local x = select(1, root.CFrame:ToObjectSpace(upper.CFrame):ToOrientation())
+	return math.deg(x)
+end
+
+-- Holding something has to raise the arm, and keep it raised. Passes if the empty Tool stays in the
+-- character, Roblox really equips it (it welds the handle to the hand as RightGrip), the arm comes
+-- up, and letting go brings it down again.
+function scenarios.arm(player, _island, args)
+	local problems: { string } = {}
+	local rounds = tonumber(args.seconds) or 10
+	HandArm.hold(player, "item:pick_wood")
+	task.wait(1.5) -- the animation takes a moment to blend in
+	local raised = 0
+	for t = 1, rounds do
+		local state = HandArm.state(player)
+		local angle = armAngle(player)
+		say(
+			string.format("arm t=%d", t),
+			"tool=" .. tostring(state.tool),
+			"equipped=" .. tostring(state.equipped),
+			"angle=" .. (if angle then string.format("%.0f", angle) else "?")
+		)
+		if not state.tool then
+			table.insert(problems, "the tool was gone by second " .. t)
+		elseif not state.equipped then
+			table.insert(problems, "Roblox never equipped the tool (no RightGrip) by second " .. t)
+		end
+		if angle and angle > 40 then
+			raised += 1
+		end
+		task.wait(1)
+	end
+	if raised < rounds - 1 then
+		table.insert(problems, "the arm was only up for " .. raised .. " of " .. rounds .. " seconds")
+	end
+
+	HandArm.hold(player, "")
+	task.wait(1.5)
+	local after = HandArm.state(player)
+	local down = armAngle(player)
+	say(
+		"arm let go",
+		"tool=" .. tostring(after.tool),
+		"angle=" .. (if down then string.format("%.0f", down) else "?")
+	)
+	if after.tool then
+		table.insert(problems, "the tool stayed after letting go")
+	end
+	if down and down > 40 then
+		table.insert(problems, string.format("the arm stayed up after letting go (%.0f degrees)", down))
+	end
+	return { pass = #problems == 0, raisedSeconds = raised, of = rounds, problems = problems }
+end
+
 function SelfTest.start()
 	if not RunService:IsStudio() then
 		return
@@ -193,6 +258,9 @@ function SelfTest.start()
 			task.wait(0.25)
 		end
 		if type(raw) ~= "string" then
+			-- Normal when the game is just being played in Studio by hand. Said out loud anyway,
+			-- because when a test *was* asked for, this silence is the only sign it went astray.
+			say("no scenario was handed over in 20 seconds; nothing to run")
 			return
 		end
 		local args = HttpService:JSONDecode(raw)

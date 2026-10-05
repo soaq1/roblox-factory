@@ -13,7 +13,12 @@ local Workspace = game:GetService("Workspace")
 
 local URL = "http://localhost:34873"
 
+-- Says the same thing twice: to the test server, and to Studio's output. Inside a play test the
+-- request may be refused (a running game needs HTTP turned on for the place), and then the printed
+-- line is the only trace left.
 local function post(path, body)
+	local ok, text = pcall(HttpService.JSONEncode, HttpService, body)
+	print("FactorySelfTest " .. path .. " " .. (if ok then text else "(could not be written out)"))
 	pcall(function()
 		HttpService:RequestAsync({
 			Url = URL .. path,
@@ -32,7 +37,20 @@ if RunService:IsRunning() then
 	local ok, args = pcall(function()
 		return StudioTestService:GetTestArgs()
 	end)
+	-- Always say what came through. Reading nothing here used to end quietly, which left the play
+	-- test running for ever with no scenario and nothing reported.
+	local described = if type(args) == "table"
+		then (pcall(HttpService.JSONEncode, HttpService, args) and HttpService:JSONEncode(args) or "a table")
+		else type(args) .. " " .. tostring(args)
+	post("/result", { stage = "args", ok = ok, args = described })
 	if not ok or type(args) ~= "table" or type(args.scenario) ~= "string" then
+		-- Ending the test is what stops play mode, so do it even when there is nothing to run.
+		pcall(function()
+			StudioTestService:EndTest(HttpService:JSONEncode({
+				pass = false,
+				problems = { "the test arguments did not reach the game: " .. described },
+			}))
+		end)
 		return
 	end
 	Workspace:SetAttribute("SelfTest", HttpService:JSONEncode(args))
@@ -61,6 +79,7 @@ task.spawn(function()
 			local decoded, command = pcall(HttpService.JSONDecode, HttpService, response.Body)
 			if decoded and type(command) == "table" and command.cmd then
 				local started = os.clock()
+				post("/result", { stage = "starting", id = command.id, cmd = command.cmd, args = command.args })
 				local ran, result = pcall(function()
 					if command.cmd == "run" then
 						return StudioTestService:ExecuteRunModeAsync(command.args or {})
