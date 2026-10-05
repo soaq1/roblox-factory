@@ -181,6 +181,9 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		Profile.hint(player, Profile.NEED_TOOL)
 		return
 	end
+	if cell.kind == "block" and ToolLogic.spares(island.extra.held, cell.id) then
+		return
+	end
 	-- A hoe does not break soil, it tills it: the block becomes farmland where it lies.
 	if cell.kind == "block" and ToolLogic.tills(island.extra.held, cell.id) then
 		IslandService.clearCell(island, key)

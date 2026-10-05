@@ -175,4 +175,11 @@ test("a hoe tills dirt and grass, and nothing else does", function()
 	eq(ToolLogic.tills(nil, "dirt"), false)
 end)
 
+test("a hoe leaves farmland alone, so a long press does not undo the tilling", function()
+	eq(ToolLogic.spares("hoe_wood", "farmland"), true)
+	eq(ToolLogic.spares("hoe_wood", "dirt"), false)
+	eq(ToolLogic.spares("shovel_wood", "farmland"), false)
+	eq(ToolLogic.spares(nil, "farmland"), false)
+end)
+
 T.done()

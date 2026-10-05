@@ -66,6 +66,12 @@ function ToolLogic.tills(held: any, blockId: string): boolean
 	return (ToolLogic.parse(held)) == "hoe" and TILLABLE[blockId] == true
 end
 
+-- A hoe never digs up a field: swinging one at farmland does nothing. Without this, holding the
+-- button a moment too long after tilling would break the farmland that was just made.
+function ToolLogic.spares(held: any, blockId: string): boolean
+	return (ToolLogic.parse(held)) == "hoe" and blockId == "farmland"
+end
+
 -- How many tools of any kind a bag holds.
 function ToolLogic.count(bag: Bag): number
 	local total = 0
