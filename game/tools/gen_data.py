@@ -60,6 +60,20 @@ BENCHES = {"wb_basic": "basic", "wb_tool": "tool", "wb_part": "part", "wb_machin
            "wb_elec": "elec", "wb_furn": "furn", "wb_all": "all", "hand_furnace": "hand_furnace",
            "campfire": "campfire"}
 HIDDEN = {"assembler_n", "crop_wheat_2", "crop_wheat_3", "seller"}
+# Everything else that does something. The behaviour names the file in server/machines that runs it.
+OTHER = {
+    "belt_ramp": ("ramp", {}), "chute": ("chute", {}), "lift": ("lift", {}), "launcher": ("launcher", {}),
+    "pusher": ("pusher", {}), "blower": ("blower", {}), "sorter": ("sorter", {}),
+    "assembler": ("assembler", {}), "circuit": ("assembler", {}), "manufacturer": ("assembler", {}),
+    "logger": ("logger", {}), "harvester": ("harvester", {}), "seeder": ("seeder", {}),
+    "sprinkler": ("sprinkler", {}), "vending": ("vending", {}), "chest": ("chest", {"topIntake": True}),
+    "generator": ("power", {"power": "generator"}), "incinerator": ("power", {"power": "incinerator"}),
+    "windturbine": ("power", {"power": "wind"}), "solar": ("power", {"power": "solar"}),
+    "battery": ("power", {"power": "battery"}), "pole": ("power", {"power": "pole"}),
+    "reactor": ("power", {"power": "reactor"}),
+}
+for kind in ("sensor", "gate", "counter", "switch", "logic", "beacon", "timer"):
+    OTHER[kind] = ("signal", {"signal": kind})
 RENAME = {"crop_wheat_1": "밀 씨앗 (심기)", "plant_sapling": "묘목 (심기)", "extractor_cu": "추출기 (구리 광맥 핵)"}
 
 machines = {}
@@ -78,6 +92,8 @@ for key, m in models["machines"].items():
         behavior = "chest"
     elif key in BENCHES:
         behavior, extra = "bench", {"bench": BENCHES[key]}
+    elif key in OTHER:
+        behavior, extra = OTHER[key][0], dict(OTHER[key][1])
     elif key == "plant_sapling":
         behavior, extra = "sapling", {"needsBelow": ["grass", "dirt"], "walkThrough": True, "cost": "sapling"}
     elif key == "crop_wheat_1":
@@ -89,7 +105,8 @@ for key, m in models["machines"].items():
     machines[key] = dict(name=RENAME.get(key, m["name"]), family=m["family"], note=m["note"],
                          sx=m["cells"][0], sz=m["cells"][1], sy=layers, height=m["height"], icon=key,
                          ports=[dict(side=s, kind=k, off=o) for s, k, o in m["ports"]],
-                         behavior=behavior, hidden=key in HIDDEN, **extra)
+                         behavior=behavior, hidden=key in HIDDEN, needsPower=key in recipes["needs_power"],
+                         **extra)
 # belt variants that are not separate catalog models
 machines["belt_corner_l"] = dict(machines["belt_corner"], name="코너 벨트 (왼쪽)", shape="left")
 machines["belt_corner"]["name"] = "코너 벨트 (오른쪽)"

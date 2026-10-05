@@ -25,11 +25,13 @@ export type Island = {
 	coins: number,
 	tiers: { [string]: number }, -- workbench kind -> tier, for kinds raised above 1
 	handFuel: number, -- heat left over from the last fire lit for hand work
+	extra: { [string]: any }, -- other systems keep their per-island data here, under their own name
 	canSave: boolean,
 }
 
 local islands: { [Player]: Island } = {}
 local slots: { [number]: Player } = {}
+local createdHooks: { (Island) -> () } = {}
 
 local CELL = Config.CELL
 local BLOCK_SIZE = Vector3.new(CELL, CELL, CELL)
@@ -82,13 +84,41 @@ function IslandService.create(player: Player): Island
 		coins = Config.START_COINS,
 		tiers = {},
 		handFuel = 0,
+		extra = {},
 		-- Stays false until the island has finished loading, so a half-built island is never saved
 		-- over the real one.
 		canSave = false,
 	}
 	islands[player] = island
 	player:SetAttribute("IslandOrigin", island.origin)
+	for _, hook in createdHooks do
+		task.spawn(hook, island)
+	end
 	return island
+end
+
+-- Runs `hook` for every island made from now on (for fixtures such as the portal).
+function IslandService.onCreated(hook: (Island) -> ())
+	table.insert(createdHooks, hook)
+end
+
+function IslandService.byUserId(userId: number): Island?
+	for player, island in islands do
+		if player.UserId == userId then
+			return island
+		end
+	end
+	return nil
+end
+
+-- The island whose stretch of world contains this position.
+function IslandService.at(position: Vector3): Island?
+	for _, island in islands do
+		if IslandService.owns(island, position) then
+			return island
+		end
+	end
+	return nil
 end
 
 function IslandService.get(player: Player): Island?

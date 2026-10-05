@@ -522,6 +522,68 @@ return {
 				secs = 10,
 			},
 		},
+		coreforge = {
+			{
+				ins = {
+					stone = 2000,
+					diamond = 1,
+				},
+				outs = {
+					core_stone = 1,
+				},
+				secs = 300,
+			},
+			{
+				ins = {
+					coal = 2000,
+					diamond = 2,
+				},
+				outs = {
+					core_coal = 1,
+				},
+				secs = 300,
+			},
+			{
+				ins = {
+					ingot_cu = 1000,
+					diamond = 2,
+				},
+				outs = {
+					core_cu = 1,
+				},
+				secs = 300,
+			},
+			{
+				ins = {
+					ingot_fe = 1000,
+					diamond = 2,
+				},
+				outs = {
+					core_fe = 1,
+				},
+				secs = 300,
+			},
+			{
+				ins = {
+					ingot_au = 1000,
+					diamond = 10,
+				},
+				outs = {
+					core_au = 1,
+				},
+				secs = 600,
+			},
+			{
+				ins = {
+					diamond = 500,
+					ingot_steel = 1000,
+				},
+				outs = {
+					core_dia = 1,
+				},
+				secs = 600,
+			},
+		},
 	},
 	fuel = {
 		log = 1,

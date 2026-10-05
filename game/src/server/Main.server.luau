@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local IslandGen = require(Shared.IslandGen)
 local Net = require(Shared.Net)
 local Commands = require(script.Parent.Commands)
@@ -10,6 +11,7 @@ local CraftService = require(script.Parent.CraftService)
 local DebugService = require(script.Parent.DebugService)
 local GameCommands = require(script.Parent.GameCommands)
 local IslandService = require(script.Parent.IslandService)
+local MachineActs = require(script.Parent.MachineActs)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
 local PlacementService = require(script.Parent.PlacementService)
@@ -109,6 +111,7 @@ local function onPlayerAdded(player: Player)
 		end
 	else
 		buildStarter(island)
+		island.bag = table.clone(Config.START_ITEMS)
 		if result.status == "new" then
 			island.canSave = true
 		else
@@ -145,6 +148,21 @@ TradeService.start()
 SaveService.start()
 DebugService.start()
 GameCommands.start()
+MachineActs.start()
+-- Larger systems, each in its own file with a start() of its own.
+for _, name in
+	{ "HubService", "MineService", "MonsterService", "ShopService", "VisitService", "PowerService" }
+do
+	local source = script.Parent:FindFirstChild(name)
+	if source and source:IsA("ModuleScript") then
+		local ok, err = pcall(function()
+			(require(source) :: any).start()
+		end)
+		if not ok then
+			warn(name .. " did not start: " .. tostring(err))
+		end
+	end
+end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)

@@ -12,11 +12,19 @@ local NAMES = {
 	"Hand",
 	"Upgrade",
 	"TradeAct",
+	"ShopAct", -- buy from or sell to a merchant
+	"VisitAct", -- go to another player's island, or home
+	"MachineAct", -- do something to a placed machine: owner id, cell x y z, action, argument
+	"WorldAct", -- mine a node, hit a monster, use a portal
 	-- server to client
 	"Notify",
 	"Bag",
 	"State",
 	"Trade",
+	"Shop", -- a merchant's counter was opened
+	"Visit", -- the list of islands that can be visited
+	"MachineInfo", -- a placed machine wants its screen shown
+	"World", -- mining progress, monster health and the like
 }
 
 local folder: Folder

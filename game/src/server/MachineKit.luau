@@ -151,6 +151,20 @@ function MachineKit.outputs(ports: { Port }): { Port }
 	return list
 end
 
+-- A "press F" prompt on a machine. `run` gets the player who pressed it.
+function MachineKit.prompt(machine, part: BasePart, action: string, run: (Player) -> ()): ProximityPrompt
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = action
+	prompt.ObjectText = machine.def.name
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = part
+	prompt.Triggered:Connect(run)
+	return prompt
+end
+
 -- A small read-out above the machine, visible from close by.
 function MachineKit.label(part: BasePart, height: number): TextLabel
 	local gui = Instance.new("BillboardGui")

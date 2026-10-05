@@ -808,6 +808,96 @@
    "secs": 10,
    "tool": null,
    "note": ""
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "stone": 2000,
+    "diamond": 1
+   },
+   "outs": {
+    "core_stone": 1
+   },
+   "secs": 300,
+   "tool": null,
+   "note": "임시 값"
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "coal": 2000,
+    "diamond": 2
+   },
+   "outs": {
+    "core_coal": 1
+   },
+   "secs": 300,
+   "tool": null,
+   "note": "임시 값"
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "ingot_cu": 1000,
+    "diamond": 2
+   },
+   "outs": {
+    "core_cu": 1
+   },
+   "secs": 300,
+   "tool": null,
+   "note": "임시 값"
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "ingot_fe": 1000,
+    "diamond": 2
+   },
+   "outs": {
+    "core_fe": 1
+   },
+   "secs": 300,
+   "tool": null,
+   "note": "임시 값"
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "ingot_au": 1000,
+    "diamond": 10
+   },
+   "outs": {
+    "core_au": 1
+   },
+   "secs": 600,
+   "tool": null,
+   "note": "임시 값. 여기서만 얻음"
+  },
+  {
+   "kind": "핵 제련",
+   "machine": "coreforge",
+   "hand": null,
+   "ins": {
+    "diamond": 500,
+    "ingot_steel": 1000
+   },
+   "outs": {
+    "core_dia": 1
+   },
+   "secs": 600,
+   "tool": null,
+   "note": "임시 값. 여기서만 얻음"
   }
  ],
  "craft": [

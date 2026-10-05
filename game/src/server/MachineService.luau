@@ -19,18 +19,40 @@ local MODULES = {
 	processor = "Processor",
 	passthrough = "Passthrough",
 	chest = "Chest",
-	bench = "Bench",
 	sapling = "Plant",
 	crop = "Plant",
+	bench = "Bench",
 	decor = "Decor",
+	-- moving things about
+	ramp = "Ramp",
+	chute = "Chute",
+	lift = "Lift",
+	launcher = "Launcher",
+	pusher = "Pusher",
+	blower = "Blower",
+	sorter = "Sorter",
+	-- making and growing
+	assembler = "Assembler",
+	logger = "Logger",
+	harvester = "Harvester",
+	seeder = "Seeder",
+	sprinkler = "Sprinkler",
+	-- signals, power, trade
+	signal = "Signal",
+	power = "Power",
+	vending = "Vending",
 }
 
 local machines: { [any]: boolean } = {}
 local total = 0
 
 local function moduleFor(behavior: string)
-	local name = MODULES[behavior] or "Decor"
-	return require(script.Parent.machines:FindFirstChild(name) :: ModuleScript) :: any
+	local source = script.Parent.machines:FindFirstChild(MODULES[behavior] or "Decor")
+	if not source then
+		-- Not written yet: the machine can still be placed and looked at.
+		source = script.Parent.machines:FindFirstChild("Decor")
+	end
+	return require(source :: ModuleScript) :: any
 end
 
 -- The keys of every cell a machine would cover, or nil if any of them is taken or out of range.
@@ -151,6 +173,12 @@ function MachineService.removeIsland(island: IslandService.Island)
 	end
 end
 
+-- The machine covering a cell, if any.
+function MachineService.at(island: IslandService.Island, x: number, y: number, z: number): any?
+	local cell = island.cells[Grid.key(x, y, z)]
+	return if cell and cell.kind == "machine" then cell.machine else nil
+end
+
 function MachineService.onIsland(island: IslandService.Island): { any }
 	local list = {}
 	for machine in machines do
@@ -185,7 +213,8 @@ function MachineService.start()
 		local finished = {}
 		for machine in machines do
 			local tick = machine.mod.tick
-			if tick then
+			-- `halted` is set by signal devices to stop a neighbour; `powered` by the power system.
+			if tick and not machine.halted then
 				local ok, result = pcall(tick, machine, step)
 				if not ok then
 					warn("machine " .. machine.id .. " at " .. machine.key .. " failed: " .. tostring(result))

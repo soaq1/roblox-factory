@@ -11,6 +11,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Defs = require(Shared:WaitForChild("Defs"))
 local Grid = require(Shared:WaitForChild("Grid"))
 local Net = require(Shared:WaitForChild("Net"))
+local Screens = require(script.Parent.Screens)
 
 local BuildController = {}
 
@@ -164,7 +165,7 @@ end
 
 local function drawGhost()
 	local at = origin()
-	local found = if hotbar.isPaletteOpen() then nil else target()
+	local found = if Screens.anyOpen() then nil else target()
 	if not at or not found then
 		ghost.Transparency = 1
 		arrow.Transparency = 1
@@ -198,7 +199,7 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		return
 	end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		local found = if hotbar.isPaletteOpen() then nil else target()
+		local found = if Screens.anyOpen() then nil else target()
 		if found then
 			Net.get("Break"):FireServer(found.bx, found.by, found.bz)
 		end
@@ -207,8 +208,6 @@ local function onInputBegan(input: InputObject, handledByUi: boolean)
 		rightDragged = 0
 	elseif input.KeyCode == Enum.KeyCode.R then
 		dir = Grid.rotate(dir, 1)
-	elseif input.KeyCode == Enum.KeyCode.E then
-		hotbar.togglePalette()
 	elseif input.KeyCode == Enum.KeyCode.F then
 		Net.get("Pickup"):FireServer()
 	elseif keys[input.KeyCode] then
@@ -222,7 +221,7 @@ local function onInputEnded(input: InputObject)
 	end
 	local held = os.clock() - rightDownAt
 	rightDownAt = nil
-	if held > CLICK_SECONDS or rightDragged > CLICK_PIXELS or hotbar.isPaletteOpen() then
+	if held > CLICK_SECONDS or rightDragged > CLICK_PIXELS or Screens.anyOpen() then
 		return
 	end
 	local found = target()

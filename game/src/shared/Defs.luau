@@ -1016,6 +1016,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "belt",
 		hidden = false,
+		needsPower = false,
 		shape = "straight",
 	},
 	belt_corner = {
@@ -1030,6 +1031,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "belt",
 		hidden = false,
+		needsPower = false,
 		shape = "right",
 	},
 	belt_ramp = {
@@ -1042,8 +1044,9 @@ Defs.Machines = {
 		height = 4.08,
 		icon = "belt_ramp",
 		ports = {},
-		behavior = "decor",
+		behavior = "ramp",
 		hidden = false,
+		needsPower = false,
 	},
 	splitter = {
 		name = "분배기",
@@ -1073,6 +1076,7 @@ Defs.Machines = {
 		},
 		behavior = "passthrough",
 		hidden = false,
+		needsPower = false,
 	},
 	merger = {
 		name = "합류기",
@@ -1102,6 +1106,7 @@ Defs.Machines = {
 		},
 		behavior = "passthrough",
 		hidden = false,
+		needsPower = false,
 	},
 	sorter = {
 		name = "분류기",
@@ -1129,8 +1134,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "sorter",
 		hidden = false,
+		needsPower = true,
 	},
 	storage = {
 		name = "보관함",
@@ -1155,6 +1161,7 @@ Defs.Machines = {
 		},
 		behavior = "chest",
 		hidden = false,
+		needsPower = false,
 	},
 	extractor_empty = {
 		name = "빈 추출기",
@@ -1174,6 +1181,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = false,
+		needsPower = false,
 	},
 	extractor_fe = {
 		name = "추출기 (철 광맥 핵)",
@@ -1193,6 +1201,7 @@ Defs.Machines = {
 		},
 		behavior = "extractor",
 		hidden = false,
+		needsPower = false,
 		item = "ore_fe",
 	},
 	extractor_coal = {
@@ -1213,6 +1222,7 @@ Defs.Machines = {
 		},
 		behavior = "extractor",
 		hidden = false,
+		needsPower = false,
 		item = "coal",
 	},
 	extractor_cu = {
@@ -1233,6 +1243,7 @@ Defs.Machines = {
 		},
 		behavior = "extractor",
 		hidden = false,
+		needsPower = false,
 		item = "ore_cu",
 	},
 	logger = {
@@ -1251,8 +1262,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "logger",
 		hidden = false,
+		needsPower = false,
 	},
 	pump = {
 		name = "물 펌프",
@@ -1272,6 +1284,7 @@ Defs.Machines = {
 		},
 		behavior = "extractor",
 		hidden = false,
+		needsPower = false,
 		item = "barrel_water",
 	},
 	pumpjack = {
@@ -1292,6 +1305,7 @@ Defs.Machines = {
 		},
 		behavior = "extractor",
 		hidden = false,
+		needsPower = false,
 		item = "barrel_oil",
 	},
 	harvester = {
@@ -1310,8 +1324,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "harvester",
 		hidden = false,
+		needsPower = false,
 	},
 	crusher = {
 		name = "분쇄기",
@@ -1336,6 +1351,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	washer = {
 		name = "세척기",
@@ -1360,6 +1376,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	smelter = {
 		name = "제련로",
@@ -1384,6 +1401,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	kiln = {
 		name = "가마",
@@ -1408,6 +1426,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	sawmill = {
 		name = "제재기",
@@ -1432,6 +1451,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	stonecutter = {
 		name = "석재 절단기",
@@ -1456,6 +1476,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	press = {
 		name = "압연 프레스",
@@ -1480,6 +1501,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	wiredraw = {
 		name = "신선기",
@@ -1504,6 +1526,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	refinery = {
 		name = "정유탑",
@@ -1533,6 +1556,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	mill = {
 		name = "제분기",
@@ -1557,6 +1581,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	blast = {
 		name = "고로",
@@ -1586,6 +1611,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	assembler = {
 		name = "조립기",
@@ -1613,8 +1639,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "assembler",
 		hidden = false,
+		needsPower = true,
 	},
 	assembler_n = {
 		name = "조립기",
@@ -1644,6 +1671,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = true,
+		needsPower = false,
 	},
 	circuit = {
 		name = "회로 제작기",
@@ -1671,8 +1699,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "assembler",
 		hidden = false,
+		needsPower = true,
 	},
 	mixer = {
 		name = "혼합기",
@@ -1702,6 +1731,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	oven = {
 		name = "제빵 오븐",
@@ -1731,6 +1761,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	manufacturer = {
 		name = "제조 공장",
@@ -1763,8 +1794,9 @@ Defs.Machines = {
 				off = -0.5,
 			},
 		},
-		behavior = "decor",
+		behavior = "assembler",
 		hidden = false,
+		needsPower = true,
 	},
 	packer = {
 		name = "포장기",
@@ -1789,6 +1821,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = false,
+		needsPower = false,
 	},
 	seller = {
 		name = "판매기",
@@ -1808,6 +1841,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = true,
+		needsPower = false,
 	},
 	generator = {
 		name = "석탄 발전기",
@@ -1825,8 +1859,10 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "generator",
 	},
 	funnel = {
 		name = "깔때기",
@@ -1846,6 +1882,7 @@ Defs.Machines = {
 		},
 		behavior = "passthrough",
 		hidden = false,
+		needsPower = false,
 		topIntake = true,
 	},
 	chute = {
@@ -1858,8 +1895,9 @@ Defs.Machines = {
 		height = 4.44,
 		icon = "chute",
 		ports = {},
-		behavior = "decor",
+		behavior = "chute",
 		hidden = false,
+		needsPower = false,
 	},
 	blower = {
 		name = "송풍기",
@@ -1871,8 +1909,9 @@ Defs.Machines = {
 		height = 3.54,
 		icon = "blower",
 		ports = {},
-		behavior = "decor",
+		behavior = "blower",
 		hidden = false,
+		needsPower = true,
 	},
 	lift = {
 		name = "수직 승강기",
@@ -1890,8 +1929,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "lift",
 		hidden = false,
+		needsPower = true,
 	},
 	launcher = {
 		name = "발사기",
@@ -1909,8 +1949,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "launcher",
 		hidden = false,
+		needsPower = true,
 	},
 	pusher = {
 		name = "밀대",
@@ -1938,8 +1979,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "pusher",
 		hidden = false,
+		needsPower = true,
 	},
 	sensor = {
 		name = "감지기",
@@ -1951,8 +1993,10 @@ Defs.Machines = {
 		height = 3.42,
 		icon = "sensor",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "sensor",
 	},
 	gate = {
 		name = "여닫이 문",
@@ -1964,8 +2008,10 @@ Defs.Machines = {
 		height = 3.21,
 		icon = "gate",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "gate",
 	},
 	counter = {
 		name = "계수기",
@@ -1977,8 +2023,10 @@ Defs.Machines = {
 		height = 2.79,
 		icon = "counter",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "counter",
 	},
 	switch = {
 		name = "스위치",
@@ -1990,8 +2038,10 @@ Defs.Machines = {
 		height = 2.14,
 		icon = "switch",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = false,
+		signal = "switch",
 	},
 	logic = {
 		name = "논리 회로함",
@@ -2003,8 +2053,10 @@ Defs.Machines = {
 		height = 1.23,
 		icon = "logic",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "logic",
 	},
 	beacon = {
 		name = "신호등",
@@ -2016,8 +2068,10 @@ Defs.Machines = {
 		height = 4.59,
 		icon = "beacon",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "beacon",
 	},
 	timer = {
 		name = "타이머",
@@ -2029,8 +2083,10 @@ Defs.Machines = {
 		height = 1.95,
 		icon = "timer",
 		ports = {},
-		behavior = "decor",
+		behavior = "signal",
 		hidden = false,
+		needsPower = true,
+		signal = "timer",
 	},
 	campfire = {
 		name = "모닥불",
@@ -2044,6 +2100,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "campfire",
 	},
 	hand_furnace = {
@@ -2058,6 +2115,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "hand_furnace",
 	},
 	wb_basic = {
@@ -2072,6 +2130,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "basic",
 	},
 	wb_tool = {
@@ -2086,6 +2145,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "tool",
 	},
 	wb_part = {
@@ -2100,6 +2160,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "part",
 	},
 	wb_machine = {
@@ -2114,6 +2175,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "machine",
 	},
 	wb_cook = {
@@ -2128,6 +2190,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "cook",
 	},
 	wb_elec = {
@@ -2142,6 +2205,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "elec",
 	},
 	wb_furn = {
@@ -2156,6 +2220,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "furn",
 	},
 	wb_all = {
@@ -2170,6 +2235,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "bench",
 		hidden = false,
+		needsPower = false,
 		bench = "all",
 	},
 	chest = {
@@ -2182,8 +2248,10 @@ Defs.Machines = {
 		height = 1.98,
 		icon = "chest",
 		ports = {},
-		behavior = "decor",
+		behavior = "chest",
 		hidden = false,
+		needsPower = false,
+		topIntake = true,
 	},
 	vending = {
 		name = "자판기",
@@ -2195,8 +2263,9 @@ Defs.Machines = {
 		height = 5.7,
 		icon = "vending",
 		ports = {},
-		behavior = "decor",
+		behavior = "vending",
 		hidden = false,
+		needsPower = false,
 	},
 	briquetter = {
 		name = "압축기",
@@ -2221,6 +2290,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	oilpress = {
 		name = "착유기",
@@ -2245,6 +2315,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	lathe = {
 		name = "선반",
@@ -2269,6 +2340,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	alloy = {
 		name = "합금로",
@@ -2298,6 +2370,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	caster = {
 		name = "주조기",
@@ -2322,6 +2395,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	loom = {
 		name = "직조기",
@@ -2346,6 +2420,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	gemcutter = {
 		name = "보석 절삭기",
@@ -2370,6 +2445,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = true,
 	},
 	recycler = {
 		name = "분해기",
@@ -2399,6 +2475,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = false,
+		needsPower = true,
 	},
 	painter = {
 		name = "도색기",
@@ -2423,6 +2500,7 @@ Defs.Machines = {
 		},
 		behavior = "decor",
 		hidden = false,
+		needsPower = true,
 	},
 	magsep = {
 		name = "자석 분리기",
@@ -2452,6 +2530,7 @@ Defs.Machines = {
 		},
 		behavior = "passthrough",
 		hidden = false,
+		needsPower = true,
 		filter = { "ore_fe", "crushed_fe", "clean_fe", "ingot_fe" },
 	},
 	sieve = {
@@ -2482,6 +2561,7 @@ Defs.Machines = {
 		},
 		behavior = "processor",
 		hidden = false,
+		needsPower = false,
 	},
 	sprinkler = {
 		name = "물뿌리개",
@@ -2493,8 +2573,9 @@ Defs.Machines = {
 		height = 2.31,
 		icon = "sprinkler",
 		ports = {},
-		behavior = "decor",
+		behavior = "sprinkler",
 		hidden = false,
+		needsPower = false,
 	},
 	seeder = {
 		name = "파종기",
@@ -2512,8 +2593,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "seeder",
 		hidden = false,
+		needsPower = false,
 	},
 	incinerator = {
 		name = "소각로",
@@ -2531,8 +2613,10 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "incinerator",
 	},
 	windturbine = {
 		name = "풍력 터빈",
@@ -2544,8 +2628,10 @@ Defs.Machines = {
 		height = 10.27,
 		icon = "windturbine",
 		ports = {},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "wind",
 	},
 	solar = {
 		name = "태양광 패널",
@@ -2557,8 +2643,10 @@ Defs.Machines = {
 		height = 1.98,
 		icon = "solar",
 		ports = {},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "solar",
 	},
 	battery = {
 		name = "축전지",
@@ -2570,8 +2658,10 @@ Defs.Machines = {
 		height = 2.64,
 		icon = "battery",
 		ports = {},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "battery",
 	},
 	pole = {
 		name = "전신주",
@@ -2583,8 +2673,10 @@ Defs.Machines = {
 		height = 7.15,
 		icon = "pole",
 		ports = {},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "pole",
 	},
 	plant_sapling = {
 		name = "묘목 (심기)",
@@ -2598,6 +2690,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "sapling",
 		hidden = false,
+		needsPower = false,
 		needsBelow = { "grass", "dirt" },
 		walkThrough = true,
 		cost = "sapling",
@@ -2614,6 +2707,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "crop",
 		hidden = false,
+		needsPower = false,
 		needsBelow = { "farmland" },
 		walkThrough = true,
 		cost = "seed",
@@ -2631,6 +2725,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "decor",
 		hidden = true,
+		needsPower = false,
 	},
 	crop_wheat_3 = {
 		name = "밀 (다 자람)",
@@ -2644,6 +2739,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "decor",
 		hidden = true,
+		needsPower = false,
 	},
 	coreforge = {
 		name = "핵 제련소",
@@ -2676,8 +2772,9 @@ Defs.Machines = {
 				off = 0,
 			},
 		},
-		behavior = "decor",
+		behavior = "processor",
 		hidden = false,
+		needsPower = true,
 	},
 	reactor = {
 		name = "무한 동력로",
@@ -2689,8 +2786,10 @@ Defs.Machines = {
 		height = 10.62,
 		icon = "reactor",
 		ports = {},
-		behavior = "decor",
+		behavior = "power",
 		hidden = false,
+		needsPower = false,
+		power = "reactor",
 	},
 	belt_corner_l = {
 		name = "코너 벨트 (왼쪽)",
@@ -2704,6 +2803,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "belt",
 		hidden = false,
+		needsPower = false,
 		shape = "left",
 	},
 	belt_open = {
@@ -2718,6 +2818,7 @@ Defs.Machines = {
 		ports = {},
 		behavior = "belt",
 		hidden = false,
+		needsPower = false,
 		shape = "open",
 	},
 }

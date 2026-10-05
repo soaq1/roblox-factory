@@ -8,7 +8,7 @@
 "hidden": false
 },
 "belt_ramp": {
-"behavior": "decor",
+"behavior": "ramp",
 "hidden": false
 },
 "splitter": {
@@ -20,7 +20,7 @@
 "hidden": false
 },
 "sorter": {
-"behavior": "decor",
+"behavior": "sorter",
 "hidden": false
 },
 "storage": {
@@ -44,7 +44,7 @@
 "hidden": false
 },
 "logger": {
-"behavior": "decor",
+"behavior": "logger",
 "hidden": false
 },
 "pump": {
@@ -56,7 +56,7 @@
 "hidden": false
 },
 "harvester": {
-"behavior": "decor",
+"behavior": "harvester",
 "hidden": false
 },
 "crusher": {
@@ -104,7 +104,7 @@
 "hidden": false
 },
 "assembler": {
-"behavior": "decor",
+"behavior": "assembler",
 "hidden": false
 },
 "assembler_n": {
@@ -112,7 +112,7 @@
 "hidden": true
 },
 "circuit": {
-"behavior": "decor",
+"behavior": "assembler",
 "hidden": false
 },
 "mixer": {
@@ -124,7 +124,7 @@
 "hidden": false
 },
 "manufacturer": {
-"behavior": "decor",
+"behavior": "assembler",
 "hidden": false
 },
 "packer": {
@@ -136,7 +136,7 @@
 "hidden": true
 },
 "generator": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "funnel": {
@@ -144,51 +144,51 @@
 "hidden": false
 },
 "chute": {
-"behavior": "decor",
+"behavior": "chute",
 "hidden": false
 },
 "blower": {
-"behavior": "decor",
+"behavior": "blower",
 "hidden": false
 },
 "lift": {
-"behavior": "decor",
+"behavior": "lift",
 "hidden": false
 },
 "launcher": {
-"behavior": "decor",
+"behavior": "launcher",
 "hidden": false
 },
 "pusher": {
-"behavior": "decor",
+"behavior": "pusher",
 "hidden": false
 },
 "sensor": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "gate": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "counter": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "switch": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "logic": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "beacon": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "timer": {
-"behavior": "decor",
+"behavior": "signal",
 "hidden": false
 },
 "campfire": {
@@ -232,11 +232,11 @@
 "hidden": false
 },
 "chest": {
-"behavior": "decor",
+"behavior": "chest",
 "hidden": false
 },
 "vending": {
-"behavior": "decor",
+"behavior": "vending",
 "hidden": false
 },
 "briquetter": {
@@ -284,31 +284,31 @@
 "hidden": false
 },
 "sprinkler": {
-"behavior": "decor",
+"behavior": "sprinkler",
 "hidden": false
 },
 "seeder": {
-"behavior": "decor",
+"behavior": "seeder",
 "hidden": false
 },
 "incinerator": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "windturbine": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "solar": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "battery": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "pole": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "plant_sapling": {
@@ -328,11 +328,11 @@
 "hidden": true
 },
 "coreforge": {
-"behavior": "decor",
+"behavior": "processor",
 "hidden": false
 },
 "reactor": {
-"behavior": "decor",
+"behavior": "power",
 "hidden": false
 },
 "belt_corner_l": {

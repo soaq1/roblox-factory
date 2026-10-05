@@ -126,6 +126,14 @@ P("혼합", "mixer", "wb_basic", {"slag": 2, "tar": 1}, {"asphalt": 4}, 4, note=
 P("정유", "refinery", "hand_furnace", {"barrel_oil": 2}, {"barrel_fuel": 1, "plastic": 2, "tar": 1}, 10)
 
 # ---------------------------------------------------------------- crafting at a workbench
+# 핵 제련소: 광맥 핵을 만듦. 수량과 시간은 임시 값
+P("핵 제련", "coreforge", None, {"stone": 2000, "diamond": 1}, {"core_stone": 1}, 300, note="임시 값")
+P("핵 제련", "coreforge", None, {"coal": 2000, "diamond": 2}, {"core_coal": 1}, 300, note="임시 값")
+P("핵 제련", "coreforge", None, {"ingot_cu": 1000, "diamond": 2}, {"core_cu": 1}, 300, note="임시 값")
+P("핵 제련", "coreforge", None, {"ingot_fe": 1000, "diamond": 2}, {"core_fe": 1}, 300, note="임시 값")
+P("핵 제련", "coreforge", None, {"ingot_au": 1000, "diamond": 10}, {"core_au": 1}, 600, note="임시 값. 여기서만 얻음")
+P("핵 제련", "coreforge", None, {"diamond": 500, "ingot_steel": 1000}, {"core_dia": 1}, 600, note="임시 값. 여기서만 얻음")
+
 # bench = (kind, tier). "bag" needs no workbench. An assembler can run any of these on its own.
 CRAFT = []
 

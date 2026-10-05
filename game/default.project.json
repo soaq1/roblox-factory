@@ -17,7 +17,7 @@
       "$properties": { "CharacterAutoLoads": false }
     },
     "Workspace": {
-      "$properties": { "FallenPartsDestroyHeight": -300 }
+      "$properties": { "FallenPartsDestroyHeight": -300, "StreamingEnabled": false }
     },
     "Lighting": {
       "$properties": {
