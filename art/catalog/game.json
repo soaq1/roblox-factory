@@ -1,0 +1,346 @@
+{
+"belt": {
+"behavior": "belt",
+"hidden": false
+},
+"belt_corner": {
+"behavior": "belt",
+"hidden": false
+},
+"belt_ramp": {
+"behavior": "decor",
+"hidden": false
+},
+"splitter": {
+"behavior": "passthrough",
+"hidden": false
+},
+"merger": {
+"behavior": "passthrough",
+"hidden": false
+},
+"sorter": {
+"behavior": "decor",
+"hidden": false
+},
+"storage": {
+"behavior": "chest",
+"hidden": false
+},
+"extractor_empty": {
+"behavior": "decor",
+"hidden": false
+},
+"extractor_fe": {
+"behavior": "extractor",
+"hidden": false
+},
+"extractor_coal": {
+"behavior": "extractor",
+"hidden": false
+},
+"extractor_cu": {
+"behavior": "extractor",
+"hidden": false
+},
+"logger": {
+"behavior": "decor",
+"hidden": false
+},
+"pump": {
+"behavior": "extractor",
+"hidden": false
+},
+"pumpjack": {
+"behavior": "extractor",
+"hidden": false
+},
+"harvester": {
+"behavior": "decor",
+"hidden": false
+},
+"crusher": {
+"behavior": "processor",
+"hidden": false
+},
+"washer": {
+"behavior": "processor",
+"hidden": false
+},
+"smelter": {
+"behavior": "processor",
+"hidden": false
+},
+"kiln": {
+"behavior": "processor",
+"hidden": false
+},
+"sawmill": {
+"behavior": "processor",
+"hidden": false
+},
+"stonecutter": {
+"behavior": "processor",
+"hidden": false
+},
+"press": {
+"behavior": "processor",
+"hidden": false
+},
+"wiredraw": {
+"behavior": "processor",
+"hidden": false
+},
+"refinery": {
+"behavior": "processor",
+"hidden": false
+},
+"mill": {
+"behavior": "processor",
+"hidden": false
+},
+"blast": {
+"behavior": "processor",
+"hidden": false
+},
+"assembler": {
+"behavior": "decor",
+"hidden": false
+},
+"assembler_n": {
+"behavior": "decor",
+"hidden": true
+},
+"circuit": {
+"behavior": "decor",
+"hidden": false
+},
+"mixer": {
+"behavior": "processor",
+"hidden": false
+},
+"oven": {
+"behavior": "processor",
+"hidden": false
+},
+"manufacturer": {
+"behavior": "decor",
+"hidden": false
+},
+"packer": {
+"behavior": "decor",
+"hidden": false
+},
+"seller": {
+"behavior": "decor",
+"hidden": true
+},
+"generator": {
+"behavior": "decor",
+"hidden": false
+},
+"funnel": {
+"behavior": "passthrough",
+"hidden": false
+},
+"chute": {
+"behavior": "decor",
+"hidden": false
+},
+"blower": {
+"behavior": "decor",
+"hidden": false
+},
+"lift": {
+"behavior": "decor",
+"hidden": false
+},
+"launcher": {
+"behavior": "decor",
+"hidden": false
+},
+"pusher": {
+"behavior": "decor",
+"hidden": false
+},
+"sensor": {
+"behavior": "decor",
+"hidden": false
+},
+"gate": {
+"behavior": "decor",
+"hidden": false
+},
+"counter": {
+"behavior": "decor",
+"hidden": false
+},
+"switch": {
+"behavior": "decor",
+"hidden": false
+},
+"logic": {
+"behavior": "decor",
+"hidden": false
+},
+"beacon": {
+"behavior": "decor",
+"hidden": false
+},
+"timer": {
+"behavior": "decor",
+"hidden": false
+},
+"campfire": {
+"behavior": "bench",
+"hidden": false
+},
+"hand_furnace": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_basic": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_tool": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_part": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_machine": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_cook": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_elec": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_furn": {
+"behavior": "bench",
+"hidden": false
+},
+"wb_all": {
+"behavior": "bench",
+"hidden": false
+},
+"chest": {
+"behavior": "decor",
+"hidden": false
+},
+"vending": {
+"behavior": "decor",
+"hidden": false
+},
+"briquetter": {
+"behavior": "processor",
+"hidden": false
+},
+"oilpress": {
+"behavior": "processor",
+"hidden": false
+},
+"lathe": {
+"behavior": "processor",
+"hidden": false
+},
+"alloy": {
+"behavior": "processor",
+"hidden": false
+},
+"caster": {
+"behavior": "processor",
+"hidden": false
+},
+"loom": {
+"behavior": "processor",
+"hidden": false
+},
+"gemcutter": {
+"behavior": "processor",
+"hidden": false
+},
+"recycler": {
+"behavior": "decor",
+"hidden": false
+},
+"painter": {
+"behavior": "decor",
+"hidden": false
+},
+"magsep": {
+"behavior": "passthrough",
+"hidden": false
+},
+"sieve": {
+"behavior": "processor",
+"hidden": false
+},
+"sprinkler": {
+"behavior": "decor",
+"hidden": false
+},
+"seeder": {
+"behavior": "decor",
+"hidden": false
+},
+"incinerator": {
+"behavior": "decor",
+"hidden": false
+},
+"windturbine": {
+"behavior": "decor",
+"hidden": false
+},
+"solar": {
+"behavior": "decor",
+"hidden": false
+},
+"battery": {
+"behavior": "decor",
+"hidden": false
+},
+"pole": {
+"behavior": "decor",
+"hidden": false
+},
+"plant_sapling": {
+"behavior": "sapling",
+"hidden": false
+},
+"crop_wheat_1": {
+"behavior": "crop",
+"hidden": false
+},
+"crop_wheat_2": {
+"behavior": "decor",
+"hidden": true
+},
+"crop_wheat_3": {
+"behavior": "decor",
+"hidden": true
+},
+"coreforge": {
+"behavior": "decor",
+"hidden": false
+},
+"reactor": {
+"behavior": "decor",
+"hidden": false
+},
+"belt_corner_l": {
+"behavior": "belt",
+"hidden": false
+},
+"belt_open": {
+"behavior": "belt",
+"hidden": false
+}
+}

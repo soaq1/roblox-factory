@@ -240,6 +240,10 @@ for key, m in models["machines"].items():
                      "-- machine's footprint, one cell above the ground being y = 1.5.\n") + "return { " + body + " }\n"
     open(os.path.join(model_dir, key + ".luau"), "w", encoding="utf-8").write(text)
 
+# What each machine does in the game, for the catalogue page to show.
+json.dump({k: dict(behavior=m["behavior"], hidden=m["hidden"]) for k, m in machines.items()},
+          open(os.path.join(ROOT, "art", "catalog", "game.json"), "w"), ensure_ascii=False, indent=0)
+
 print(f"blocks {len(block_defs)}, items {len(items)}, machines {len(machines)}, models {len(models['machines'])}")
 working = sorted(k for k, m in machines.items() if m["behavior"] != "decor" and not m["hidden"])
 print("working:", len(working), working)

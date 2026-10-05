@@ -36,7 +36,29 @@
   .card figcaption { padding: 12px 14px 14px; }
   .card h3 { margin: 0 0 4px; font-size: 17px; color: var(--link); }
   .recipe { margin: 0 0 8px; font-size: 14.5px; }
-  .meta { margin: 0; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .meta { margin: 8px 0 0; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .badges { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line);
+           color: var(--dim); white-space: nowrap; }
+  .badge.on { color: #7fd18b; border-color: #3d6b45; }
+  .badge.off { color: #e58a80; border-color: #6e3b36; }
+  .badge.heat { color: #f0a15c; border-color: #6b4a2c; }
+  .badge.power { color: #e9cf5c; border-color: #6a5f2a; }
+  .make, .worktitle { margin: 0 0 4px; font-size: 13px; line-height: 1.5; }
+  .make b, .worktitle b, summary { color: var(--dim); font-weight: 500; margin-right: 4px; }
+  .where { color: var(--dim); white-space: nowrap; }
+  .where::before { content: "· "; }
+  .work { margin: 0 0 4px; padding: 0; list-style: none; font-size: 13px; line-height: 1.5; }
+  .work li { padding: 1px 0; }
+  .arrow { color: var(--out); }
+  details { font-size: 13px; }
+  summary { cursor: pointer; }
+  .how { display: block; margin-top: 3px; font-size: 11px; line-height: 1.35; color: var(--dim); }
+  .more { white-space: nowrap; opacity: 0.8; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .links a { color: var(--text); text-decoration: none; font-size: 14px; padding: 7px 14px; border-radius: 8px;
+             background: var(--panel); border: 1px solid var(--line); }
+  .links a:hover { border-color: var(--link); }
   h3.cat { font-size: 17px; margin: 28px 0 12px; }
   .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
   .tile { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
@@ -47,7 +69,13 @@
 <body>
 <main>
   <h1>공장 기계 카탈로그</h1>
-  <p class="sub">기계와 장치 81종 · 아이템 108종 · 블록 34종 · 시험 제작본 · 모든 모델은 스크립트로 생성</p>
+  <p class="sub">기계와 장치 81종(베타에서 동작 44종) · 아이템 108종 · 블록 34종 · 레시피는 초안 · 모든 모델은 스크립트로 생성</p>
+  <div class="links">
+    <a href="https://github.com/soaq1/roblox-factory/raw/main/game/build/roblox-factory.rbxlx">게임 파일 받기 (스튜디오에서 열기)</a>
+    <a href="https://github.com/soaq1/roblox-factory/blob/main/docs/recipes.md">레시피 표</a>
+    <a href="https://github.com/soaq1/roblox-factory/blob/main/docs/game-design.md">설계 문서</a>
+    <a href="https://github.com/soaq1/roblox-factory/blob/main/docs/specs/2026-10-05-beta.md">베타판 설명</a>
+  </div>
   <nav><a href="#운반">운반</a><a href="#물리 장치">물리 장치</a><a href="#판단 장치">판단 장치</a><a href="#공급">공급</a><a href="#식물">식물</a><a href="#변환">변환</a><a href="#조합">조합</a><a href="#포장·판매">포장·판매</a><a href="#동력">동력</a><a href="#궁극의 장치">궁극의 장치</a><a href="#손 작업">손 작업</a><a href="#아이템">아이템</a><a href="#블록">블록</a></nav>
   <div class="hero"><img src="img/_line.png" alt="벨트로 연결한 공장 예시"></div>
   <ul class="legend">
@@ -67,6 +95,7 @@
       <figcaption>
         <h3>직선 벨트</h3>
         <p class="recipe">아이템을 한 방향으로 옮김</p>
+        <p class="badges"><span class="badge on" title="물건을 실어 나름">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 2 · 철 막대 2 → 4개 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 152</p>
       </figcaption>
     </figure>
@@ -75,6 +104,7 @@
       <figcaption>
         <h3>코너 벨트</h3>
         <p class="recipe">진행 방향을 90도 꺾음 (좌·우 대칭형)</p>
+        <p class="badges"><span class="badge on" title="물건을 실어 나름">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 2 · 철 막대 2 → 2개 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 252</p>
       </figcaption>
     </figure>
@@ -83,6 +113,7 @@
       <figcaption>
         <h3>경사 벨트</h3>
         <p class="recipe">두 칸에 걸쳐 한 칸 높이를 올림</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 철판 3 · 철 막대 4 <span class="where">기계 작업대</span></p>
         <p class="meta">2×1칸 · 출입구 없음 · 삼각형 216</p>
       </figcaption>
     </figure>
@@ -91,6 +122,7 @@
       <figcaption>
         <h3>분배기</h3>
         <p class="recipe">들어온 아이템을 두 방향으로 번갈아 내보냄</p>
+        <p class="badges"><span class="badge on" title="받은 것을 그대로 넘김">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 3 · 철 막대 2 · 기어 2 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 616</p>
       </figcaption>
     </figure>
@@ -99,6 +131,7 @@
       <figcaption>
         <h3>합류기</h3>
         <p class="recipe">두 줄을 한 줄로 합침</p>
+        <p class="badges"><span class="badge on" title="받은 것을 그대로 넘김">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 3 · 철 막대 2 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 764</p>
       </figcaption>
     </figure>
@@ -107,6 +140,7 @@
       <figcaption>
         <h3>분류기</h3>
         <p class="recipe">지정한 아이템만 옆으로 빼내고 나머지는 통과</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 회로 기판 1 · 모터 1 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 704</p>
       </figcaption>
     </figure>
@@ -115,6 +149,7 @@
       <figcaption>
         <h3>보관함</h3>
         <p class="recipe">아이템을 쌓아 두었다가 순서대로 내보내는 완충 창고</p>
+        <p class="badges"><span class="badge on" title="들어온 것을 모음">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 6 · 판자 8 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 808</p>
       </figcaption>
     </figure>
@@ -123,6 +158,7 @@
       <figcaption>
         <h3>자석 분리기</h3>
         <p class="recipe">철이 든 것만 옆으로 끌어내고 나머지는 통과시킴</p>
+        <p class="badges"><span class="badge on" title="받은 것을 그대로 넘김">베타에서 동작</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 구리선 20 · 철 주괴 10 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 776</p>
       </figcaption>
     </figure></div>
@@ -136,6 +172,7 @@
       <figcaption>
         <h3>깔때기</h3>
         <p class="recipe">위에서 떨어지는 아이템을 받아 벨트로 내보냄. 높낮이만 맞추면 동력이 필요 없음</p>
+        <p class="badges"><span class="badge on" title="받은 것을 그대로 넘김">베타에서 동작</span></p><p class="make"><b>만들기</b> 철판 6 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 536</p>
       </figcaption>
     </figure>
@@ -144,6 +181,7 @@
       <figcaption>
         <h3>낙하 통로</h3>
         <p class="recipe">높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 철판 4 · 철 막대 2 <span class="where">기계 작업대</span></p>
         <p class="meta">2×1칸 · 출입구 없음 · 삼각형 144</p>
       </figcaption>
     </figure>
@@ -152,6 +190,7 @@
       <figcaption>
         <h3>송풍기</h3>
         <p class="recipe">바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 모터 1 · 철판 6 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 288</p>
       </figcaption>
     </figure>
@@ -160,6 +199,7 @@
       <figcaption>
         <h3>수직 승강기</h3>
         <p class="recipe">아이템을 두 칸 위로 올림</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 모터 1 · 철판 10 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 삼각형 740</p>
       </figcaption>
     </figure>
@@ -168,6 +208,7 @@
       <figcaption>
         <h3>발사기</h3>
         <p class="recipe">아이템을 포물선으로 쏘아 보냄. 벨트 없이 먼 곳이나 높은 곳으로 보낼 수 있음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 모터 1 · 강철판 4 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 삼각형 672</p>
       </figcaption>
     </figure>
@@ -176,6 +217,7 @@
       <figcaption>
         <h3>밀대</h3>
         <p class="recipe">신호가 오면 지나가는 아이템을 옆으로 밀어냄</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 모터 1 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 624</p>
       </figcaption>
     </figure></div>
@@ -189,6 +231,7 @@
       <figcaption>
         <h3>감지기</h3>
         <p class="recipe">벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철 막대 4 · 회로 기판 1 · 유리 1 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 360</p>
       </figcaption>
     </figure>
@@ -197,6 +240,7 @@
       <figcaption>
         <h3>여닫이 문</h3>
         <p class="recipe">신호에 따라 벨트를 막거나 엶</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철 막대 4 · 철판 2 · 모터 1 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 324</p>
       </figcaption>
     </figure>
@@ -205,6 +249,7 @@
       <figcaption>
         <h3>계수기</h3>
         <p class="recipe">지나간 아이템을 세고, 정한 수가 차면 신호를 냄</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철 막대 2 · 회로 기판 1 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 440</p>
       </figcaption>
     </figure>
@@ -213,6 +258,7 @@
       <figcaption>
         <h3>스위치</h3>
         <p class="recipe">손으로 켜고 끄는 신호</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 철판 2 · 구리선 2 <span class="where">전기 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 180</p>
       </figcaption>
     </figure>
@@ -221,6 +267,7 @@
       <figcaption>
         <h3>논리 회로함</h3>
         <p class="recipe">신호 둘을 받아 조건이 맞으면 신호를 내보냄 (그리고, 또는, 아니면)</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철판 2 · 회로 기판 2 <span class="where">전기 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 280</p>
       </figcaption>
     </figure>
@@ -229,6 +276,7 @@
       <figcaption>
         <h3>신호등</h3>
         <p class="recipe">신호를 받으면 켜짐. 공장 상태를 멀리서 확인</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철 막대 2 · 유리 3 · 구리선 2 <span class="where">전기 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 252</p>
       </figcaption>
     </figure>
@@ -237,6 +285,7 @@
       <figcaption>
         <h3>타이머</h3>
         <p class="recipe">정해 둔 간격마다 신호를 냄</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 철판 2 · 회로 기판 1 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 248</p>
       </figcaption>
     </figure></div>
@@ -250,6 +299,7 @@
       <figcaption>
         <h3>빈 추출기</h3>
         <p class="recipe">돌, 철 주괴, 나무, 몬스터 부품으로 조립. 광맥 핵을 꽂기 전에는 아무것도 나오지 않음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 돌 40 · 철 주괴 30 · 판자 10 · 핵심 부품 1 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 796</p>
       </figcaption>
     </figure>
@@ -258,6 +308,7 @@
       <figcaption>
         <h3>추출기 (철 광맥 핵)</h3>
         <p class="recipe">꽂은 광맥 핵에 맞는 원석을 계속 내보냄</p>
+        <p class="badges"><span class="badge on" title="2초마다 하나씩 내보냄">베타에서 동작</span></p><p class="make"><b>만들기</b> 빈 추출기 1 · 철 광맥 핵 1 <span class="where">가방에서</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 956</p>
       </figcaption>
     </figure>
@@ -266,6 +317,7 @@
       <figcaption>
         <h3>추출기 (석탄 광맥 핵)</h3>
         <p class="recipe">핵만 바꿔 꽂으면 다른 원석이 나옴</p>
+        <p class="badges"><span class="badge on" title="2초마다 하나씩 내보냄">베타에서 동작</span></p><p class="make"><b>만들기</b> 빈 추출기 1 · 석탄 광맥 핵 1 <span class="where">가방에서</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 956</p>
       </figcaption>
     </figure>
@@ -274,6 +326,7 @@
       <figcaption>
         <h3>벌목기</h3>
         <p class="recipe">주변 나무를 베어 통나무를 내보냄</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 2 · 철판 4 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 980</p>
       </figcaption>
     </figure>
@@ -282,6 +335,7 @@
       <figcaption>
         <h3>물 펌프</h3>
         <p class="recipe">물을 끌어올려 물통으로 내보냄</p>
+        <p class="badges"><span class="badge on" title="2초마다 하나씩 내보냄">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 철 막대 8 · 구리판 4 <span class="where">기계 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 844</p>
       </figcaption>
     </figure>
@@ -290,6 +344,7 @@
       <figcaption>
         <h3>펌프잭</h3>
         <p class="recipe">유전 위에 놓으면 원유통을 내보냄</p>
+        <p class="badges"><span class="badge on" title="2초마다 하나씩 내보냄">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 4 · 모터 2 · 강철판 20 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">2×1칸 · 출구 1 · 삼각형 920</p>
       </figcaption>
     </figure>
@@ -298,6 +353,7 @@
       <figcaption>
         <h3>수확기</h3>
         <p class="recipe">앞쪽 밭의 다 자란 작물을 거둬들임</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 2 · 판자 10 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출구 1 · 삼각형 508</p>
       </figcaption>
     </figure>
@@ -306,6 +362,7 @@
       <figcaption>
         <h3>물뿌리개</h3>
         <p class="recipe">주변 밭에 물을 줘서 작물이 빨리 자람</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 철 막대 4 · 구리판 2 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 284</p>
       </figcaption>
     </figure>
@@ -314,6 +371,7 @@
       <figcaption>
         <h3>파종기</h3>
         <p class="recipe">수확이 끝난 자리에 씨앗을 다시 심음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 1 · 판자 6 <span class="where">기계 작업대</span></p>
         <p class="meta">1×1칸 · 입구 1 · 삼각형 524</p>
       </figcaption>
     </figure></div>
@@ -327,6 +385,7 @@
       <figcaption>
         <h3>묘목 (심은 것)</h3>
         <p class="recipe">잔디나 흙 위에 심으면 시간이 지나 나무가 됨</p>
+        <p class="badges"><span class="badge on" title="심으면 나무가 됨">베타에서 동작</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 72</p>
       </figcaption>
     </figure>
@@ -335,6 +394,7 @@
       <figcaption>
         <h3>밀 (싹)</h3>
         <p class="recipe">경작지에 씨앗을 심은 직후</p>
+        <p class="badges"><span class="badge on" title="심으면 자람">베타에서 동작</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 204</p>
       </figcaption>
     </figure>
@@ -343,6 +403,7 @@
       <figcaption>
         <h3>밀 (자라는 중)</h3>
         <p class="recipe">절반쯤 자람</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 204</p>
       </figcaption>
     </figure>
@@ -351,6 +412,7 @@
       <figcaption>
         <h3>밀 (다 자람)</h3>
         <p class="recipe">거두면 밀과 씨앗이 나옴</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 396</p>
       </figcaption>
     </figure></div>
@@ -364,6 +426,7 @@
       <figcaption>
         <h3>분쇄기</h3>
         <p class="recipe">광석 → 분쇄 광석(수량 2배), 돌 → 모래</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 4 · 석재 10 <span class="where">기계 작업대</span></p><details><summary>하는 일 5가지</summary><ul class="work"><li>철 광석 1 <span class="arrow">→</span> 분쇄 철광 2 <span class="where">2초</span></li><li>구리 광석 1 <span class="arrow">→</span> 분쇄 구리광 2 <span class="where">2초</span></li><li>금 광석 1 <span class="arrow">→</span> 분쇄 금광 2 <span class="where">2초</span></li><li>돌 1 <span class="arrow">→</span> 자갈 1 <span class="where">2초</span></li><li>자갈 1 <span class="arrow">→</span> 모래 1 <span class="where">2초</span></li></ul></details>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,132</p>
       </figcaption>
     </figure>
@@ -372,6 +435,7 @@
       <figcaption>
         <h3>세척기</h3>
         <p class="recipe">분쇄 광석 → 정제 광석 (제련 수율이 오름)</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 구리판 8 · 철 막대 6 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>분쇄 철광 8 · 물통 1 <span class="arrow">→</span> 정제 철광 8 · 찌꺼기 2 <span class="where">8초</span></li><li>분쇄 구리광 8 · 물통 1 <span class="arrow">→</span> 정제 구리광 8 · 찌꺼기 2 <span class="where">8초</span></li><li>분쇄 금광 8 · 물통 1 <span class="arrow">→</span> 정제 금광 8 · 찌꺼기 2 <span class="where">8초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 988</p>
       </figcaption>
     </figure>
@@ -380,6 +444,7 @@
       <figcaption>
         <h3>제련로</h3>
         <p class="recipe">광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 4 · 벽돌 60 · 철판 60 · 금 주괴 10 <span class="where">기계 작업대 2단계</span></p><details><summary>하는 일 9가지</summary><ul class="work"><li>철 광석 1 <span class="arrow">→</span> 철 주괴 1 <span class="where">3초</span></li><li>분쇄 철광 3 <span class="arrow">→</span> 철 주괴 2 <span class="where">6초</span></li><li>정제 철광 1 <span class="arrow">→</span> 철 주괴 1 <span class="where">3초</span></li><li>구리 광석 1 <span class="arrow">→</span> 구리 주괴 1 <span class="where">3초</span></li><li>분쇄 구리광 3 <span class="arrow">→</span> 구리 주괴 2 <span class="where">6초</span></li><li>정제 구리광 1 <span class="arrow">→</span> 구리 주괴 1 <span class="where">3초</span></li><li>금 광석 1 <span class="arrow">→</span> 금 주괴 1 <span class="where">3초</span></li><li>분쇄 금광 3 <span class="arrow">→</span> 금 주괴 2 <span class="where">6초</span></li><li>정제 금광 1 <span class="arrow">→</span> 금 주괴 1 <span class="where">3초</span></li></ul></details>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,056</p>
       </figcaption>
     </figure>
@@ -388,6 +453,7 @@
       <figcaption>
         <h3>가마</h3>
         <p class="recipe">모래 → 유리, 통나무 → 숯</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 벽돌 30 · 철판 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>모래 2 <span class="arrow">→</span> 유리 1 <span class="where">3초</span></li><li>점토 1 <span class="arrow">→</span> 벽돌 1 <span class="where">3초</span></li><li>통나무 1 <span class="arrow">→</span> 숯 1 <span class="where">4초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 688</p>
       </figcaption>
     </figure>
@@ -396,6 +462,7 @@
       <figcaption>
         <h3>제재기</h3>
         <p class="recipe">통나무 → 판자</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 2 · 철판 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>통나무 1 <span class="arrow">→</span> 판자 4 · 톱밥 1 <span class="where">2초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 944</p>
       </figcaption>
     </figure>
@@ -404,6 +471,7 @@
       <figcaption>
         <h3>석재 절단기</h3>
         <p class="recipe">돌 → 석재 블록</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 철판 6 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>돌 1 <span class="arrow">→</span> 석재 1 <span class="where">2초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 796</p>
       </figcaption>
     </figure>
@@ -412,6 +480,7 @@
       <figcaption>
         <h3>압연 프레스</h3>
         <p class="recipe">주괴 → 판재</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 철판 20 · 강철 주괴 10 <span class="where">기계 작업대 2단계</span></p><details><summary>하는 일 4가지</summary><ul class="work"><li>철 주괴 1 <span class="arrow">→</span> 철판 1 <span class="where">2초</span></li><li>구리 주괴 1 <span class="arrow">→</span> 구리판 1 <span class="where">2초</span></li><li>강철 주괴 1 <span class="arrow">→</span> 강철판 1 <span class="where">2초</span></li><li>강철 주괴 2 <span class="arrow">→</span> 강철 기둥 1 <span class="where">4초</span></li></ul></details>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 960</p>
       </figcaption>
     </figure>
@@ -420,6 +489,7 @@
       <figcaption>
         <h3>신선기</h3>
         <p class="recipe">구리 주괴 → 구리선 묶음</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 4 · 강철 주괴 6 <span class="where">기계 작업대 2단계</span></p><details><summary>하는 일 5가지</summary><ul class="work"><li>철 주괴 1 <span class="arrow">→</span> 철 막대 2 <span class="where">2초</span></li><li>구리 주괴 1 <span class="arrow">→</span> 구리 막대 2 <span class="where">2초</span></li><li>강철 주괴 1 <span class="arrow">→</span> 강철 막대 2 <span class="where">2초</span></li><li>구리 주괴 1 <span class="arrow">→</span> 구리선 2 <span class="where">2초</span></li><li>금 주괴 1 <span class="arrow">→</span> 금선 2 <span class="where">2초</span></li></ul></details>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 748</p>
       </figcaption>
     </figure>
@@ -428,6 +498,7 @@
       <figcaption>
         <h3>정유탑</h3>
         <p class="recipe">원유 → 연료통 + 플라스틱 (출구 둘)</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 6 · 강철판 40 · 강철 막대 30 · 모터 2 <span class="where">기계 작업대 3단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>원유통 2 <span class="arrow">→</span> 연료통 1 · 플라스틱 2 · 타르 1 <span class="where">10초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 1,280</p>
       </figcaption>
     </figure>
@@ -436,6 +507,7 @@
       <figcaption>
         <h3>제분기</h3>
         <p class="recipe">밀 → 밀가루</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 판자 20 · 석재 4 · 천 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>밀 1 <span class="arrow">→</span> 밀가루 1 <span class="where">2초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 724</p>
       </figcaption>
     </figure>
@@ -444,6 +516,7 @@
       <figcaption>
         <h3>압축기</h3>
         <p class="recipe">톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 철판 6 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>톱밥 4 <span class="arrow">→</span> 연료 덩이 1 <span class="where">3초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 952</p>
       </figcaption>
     </figure>
@@ -452,6 +525,7 @@
       <figcaption>
         <h3>착유기</h3>
         <p class="recipe">기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 2 · 철판 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>기름 작물 4 <span class="arrow">→</span> 식물 기름통 1 <span class="where">4초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 976</p>
       </figcaption>
     </figure>
@@ -460,6 +534,7 @@
       <figcaption>
         <h3>선반</h3>
         <p class="recipe">철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 6 · 강철 주괴 6 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>철 막대 1 <span class="arrow">→</span> 볼트 4 <span class="where">2초</span></li><li>철판 1 <span class="arrow">→</span> 기어 1 <span class="where">3초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 908</p>
       </figcaption>
     </figure>
@@ -468,6 +543,7 @@
       <figcaption>
         <h3>주조기</h3>
         <p class="recipe">철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 벽돌 20 · 강철 주괴 10 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>철 주괴 4 <span class="arrow">→</span> 기계 틀 1 <span class="where">6초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 776</p>
       </figcaption>
     </figure>
@@ -476,6 +552,7 @@
       <figcaption>
         <h3>직조기</h3>
         <p class="recipe">목화 → 천</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 판자 16 · 철 막대 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>목화 2 <span class="arrow">→</span> 천 1 <span class="where">3초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 804</p>
       </figcaption>
     </figure>
@@ -484,6 +561,7 @@
       <figcaption>
         <h3>보석 절삭기</h3>
         <p class="recipe">다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 모터 1 · 절삭 날 1 · 유리 4 <span class="where">기계 작업대 3단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>다이아 원석 1 <span class="arrow">→</span> 다이아 1 <span class="where">6초</span></li><li>다이아 1 <span class="arrow">→</span> 절삭 날 1 <span class="where">8초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 936</p>
       </figcaption>
     </figure>
@@ -492,6 +570,7 @@
       <figcaption>
         <h3>분해기</h3>
         <p class="recipe">기계나 부품을 넣으면 들어간 재료의 일부를 되돌려 받음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 모터 1 · 기어 8 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 804</p>
       </figcaption>
     </figure>
@@ -500,6 +579,7 @@
       <figcaption>
         <h3>도색기</h3>
         <p class="recipe">블록 + 염료 → 색을 입힌 블록</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 모터 1 · 유리 6 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 932</p>
       </figcaption>
     </figure>
@@ -508,6 +588,7 @@
       <figcaption>
         <h3>체질기</h3>
         <p class="recipe">자갈이나 모래를 걸러 아주 적은 양의 광물을 얻음. 광맥 핵이 없어도 됨</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 철 막대 6 · 천 4 <span class="where">기계 작업대</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>자갈 10 <span class="arrow">→</span> 모래 8 · 철 광석 1 <span class="where">10초</span></li><li>모래 10 <span class="arrow">→</span> 구리 광석 1 <span class="where">10초</span></li></ul>
         <p class="meta">1×1칸 · 입구 1 · 출구 2 · 삼각형 760</p>
       </figcaption>
     </figure></div>
@@ -521,6 +602,7 @@
       <figcaption>
         <h3>고로</h3>
         <p class="recipe">철 주괴 + 석탄 → 강철 주괴</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 10 · 벽돌 200 · 강철판 40 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>철 주괴 4 · 석탄 2 <span class="arrow">→</span> 강철 주괴 4 <span class="where">12초</span></li><li>철 주괴 4 · 숯 3 <span class="arrow">→</span> 강철 주괴 4 <span class="where">16초</span></li></ul>
         <p class="meta">2×2칸 · 입구 2 · 출구 1 · 삼각형 1,708</p>
       </figcaption>
     </figure>
@@ -529,6 +611,7 @@
       <figcaption>
         <h3>조립기</h3>
         <p class="recipe">판재 + 구리선 → 기계 부품</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 모터 2 · 회로 기판 2 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 840</p>
       </figcaption>
     </figure>
@@ -537,6 +620,7 @@
       <figcaption>
         <h3>회로 제작기</h3>
         <p class="recipe">구리선 + 플라스틱 → 회로 기판</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 모터 1 · 회로 기판 4 · 유리 8 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 732</p>
       </figcaption>
     </figure>
@@ -545,6 +629,7 @@
       <figcaption>
         <h3>혼합기</h3>
         <p class="recipe">모래 + 물통 → 콘크리트</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 철판 12 · 기어 2 <span class="where">기계 작업대 2단계</span></p><details><summary>하는 일 4가지</summary><ul class="work"><li>흙 4 · 물통 1 <span class="arrow">→</span> 점토 4 <span class="where">4초</span></li><li>모래 2 · 자갈 2 · 물통 1 <span class="arrow">→</span> 콘크리트 4 <span class="where">4초</span></li><li>밀가루 2 · 물통 1 <span class="arrow">→</span> 반죽 4 <span class="where">3초</span></li><li>찌꺼기 2 · 타르 1 <span class="arrow">→</span> 포장재 4 <span class="where">4초</span></li></ul></details>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 836</p>
       </figcaption>
     </figure>
@@ -553,6 +638,7 @@
       <figcaption>
         <h3>제빵 오븐</h3>
         <p class="recipe">밀가루 + 물통 → 빵</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 벽돌 30 · 철판 6 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>반죽 1 <span class="arrow">→</span> 빵 1 <span class="where">4초</span></li></ul>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 712</p>
       </figcaption>
     </figure>
@@ -561,6 +647,7 @@
       <figcaption>
         <h3>제조 공장</h3>
         <p class="recipe">기계 부품 + 회로 기판 + 강철 → 모터</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 기계 틀 10 · 모터 6 · 회로 기판 6 · 강철판 40 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">2×2칸 · 입구 3 · 출구 1 · 삼각형 1,564</p>
       </figcaption>
     </figure>
@@ -569,6 +656,7 @@
       <figcaption>
         <h3>합금로</h3>
         <p class="recipe">두 가지 금속을 함께 녹여 합금 주괴로 만듦</p>
+        <p class="badges"><span class="badge on" title="레시피대로 가공">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 벽돌 40 · 강철 주괴 20 <span class="where">기계 작업대 2단계</span></p><p class="worktitle"><b>하는 일</b></p><ul class="work"><li>구리 주괴 1 · 금 주괴 1 <span class="arrow">→</span> 합금 주괴 2 <span class="where">8초</span></li></ul>
         <p class="meta">1×1칸 · 입구 2 · 출구 1 · 삼각형 740</p>
       </figcaption>
     </figure></div>
@@ -582,6 +670,7 @@
       <figcaption>
         <h3>포장기</h3>
         <p class="recipe">같은 아이템 8개 → 상자 1개 (물체 수를 줄임)</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 기어 2 · 판자 10 <span class="where">기계 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 출구 1 · 삼각형 1,008</p>
       </figcaption>
     </figure>
@@ -590,6 +679,7 @@
       <figcaption>
         <h3>자판기</h3>
         <p class="recipe">물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 유리 8 · 금 주괴 4 <span class="where">기계 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 500</p>
       </figcaption>
     </figure></div>
@@ -603,6 +693,7 @@
       <figcaption>
         <h3>석탄 발전기</h3>
         <p class="recipe">석탄이나 연료통을 태워 주변 기계에 전력을 공급</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 구리선 30 · 철판 10 <span class="where">전기 작업대</span></p>
         <p class="meta">1×1칸 · 입구 1 · 삼각형 960</p>
       </figcaption>
     </figure>
@@ -611,6 +702,7 @@
       <figcaption>
         <h3>소각로</h3>
         <p class="recipe">필요 없는 것을 태워 없앰. 전력이 조금 나옴</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 벽돌 30 · 구리선 10 <span class="where">기계 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 입구 1 · 삼각형 684</p>
       </figcaption>
     </figure>
@@ -619,6 +711,7 @@
       <figcaption>
         <h3>풍력 터빈</h3>
         <p class="recipe">바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 2 · 모터 1 · 강철판 6 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 180</p>
       </figcaption>
     </figure>
@@ -627,6 +720,7 @@
       <figcaption>
         <h3>태양광 패널</h3>
         <p class="recipe">낮 동안 전력을 만듦</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 유리 8 · 회로 기판 2 · 강철판 4 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 144</p>
       </figcaption>
     </figure>
@@ -635,6 +729,7 @@
       <figcaption>
         <h3>축전지</h3>
         <p class="recipe">남는 전력을 모아 두었다가 모자랄 때 내보냄</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 기계 틀 1 · 전지 8 · 구리판 4 <span class="where">전기 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 272</p>
       </figcaption>
     </figure>
@@ -643,6 +738,7 @@
       <figcaption>
         <h3>전신주</h3>
         <p class="recipe">전선을 이어 전기를 나름. 전신주 주변 몇 칸 안의 기계가 전기를 받음</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 통나무 2 · 구리선 4 · 유리 1 → 2개 <span class="where">전기 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 408</p>
       </figcaption>
     </figure></div>
@@ -656,6 +752,7 @@
       <figcaption>
         <h3>핵 제련소</h3>
         <p class="recipe">막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span><span class="badge power">전기 필요</span></p><p class="make"><b>만들기</b> 강철판 2000 · 모터 300 · 고급 회로 300 · 금 주괴 1000 · 다이아 200 · 핵심 부품 50 · 철 광맥 핵 10 · 석탄 광맥 핵 10 · 구리 광맥 핵 10 · 돌 광맥 핵 10 <span class="where">통합 작업대</span></p>
         <p class="meta">3×3칸 · 입구 3 · 출구 1 · 삼각형 2,292</p>
       </figcaption>
     </figure>
@@ -664,6 +761,7 @@
       <figcaption>
         <h3>무한 동력로</h3>
         <p class="recipe">연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 강철판 3000 · 고급 회로 500 · 전지 1000 · 금선 2000 · 다이아 500 · 모터 500 <span class="where">통합 작업대</span></p>
         <p class="meta">3×3칸 · 출입구 없음 · 삼각형 2,396</p>
       </figcaption>
     </figure></div>
@@ -677,6 +775,7 @@
       <figcaption>
         <h3>모닥불</h3>
         <p class="recipe">가장 처음 쓰는 불. 재료와 땔감을 직접 넣고 기다림</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 통나무 3 · 돌 8 <span class="where">가방에서</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 280</p>
       </figcaption>
     </figure>
@@ -685,6 +784,7 @@
       <figcaption>
         <h3>손 화덕</h3>
         <p class="recipe">돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span><span class="badge heat">연료 필요</span></p><p class="make"><b>만들기</b> 돌 40 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 292</p>
       </figcaption>
     </figure>
@@ -693,6 +793,7 @@
       <figcaption>
         <h3>기본 작업대</h3>
         <p class="recipe">건축 블록, 일반 물건, 다른 작업대를 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 판자 8 <span class="where">가방에서</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 236</p>
       </figcaption>
     </figure>
@@ -701,6 +802,7 @@
       <figcaption>
         <h3>도구 작업대</h3>
         <p class="recipe">곡괭이, 무기, 갑옷을 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 판자 10 · 돌 20 · 철 주괴 10 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 312</p>
       </figcaption>
     </figure>
@@ -709,6 +811,7 @@
       <figcaption>
         <h3>부품 작업대</h3>
         <p class="recipe">판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 판자 10 · 철 주괴 20 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 756</p>
       </figcaption>
     </figure>
@@ -717,6 +820,7 @@
       <figcaption>
         <h3>기계 작업대</h3>
         <p class="recipe">벨트, 기계, 추출기를 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 철 주괴 50 · 돌 30 · 판자 20 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 588</p>
       </figcaption>
     </figure>
@@ -725,6 +829,7 @@
       <figcaption>
         <h3>조리대</h3>
         <p class="recipe">음식을 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 돌 20 · 판자 10 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 496</p>
       </figcaption>
     </figure>
@@ -733,6 +838,7 @@
       <figcaption>
         <h3>전기 작업대</h3>
         <p class="recipe">감지기, 스위치, 논리 회로 같은 전기 부품을 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 구리 주괴 60 · 철판 30 · 구리선 40 <span class="where">기본 작업대 2단계</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 544</p>
       </figcaption>
     </figure>
@@ -741,6 +847,7 @@
       <figcaption>
         <h3>가구 작업대</h3>
         <p class="recipe">가구와 꾸미기 물건을 만듦</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 판자 20 <span class="where">기본 작업대</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 396</p>
       </figcaption>
     </figure>
@@ -749,6 +856,7 @@
       <figcaption>
         <h3>통합 작업대</h3>
         <p class="recipe">모든 분류의 물건을 한곳에서 만듦. 아주 비싼 후반 설비</p>
+        <p class="badges"><span class="badge on" title="가까이에서 조합할 수 있음">베타에서 동작</span></p><p class="make"><b>만들기</b> 금 주괴 200 · 다이아 50 · 모터 50 · 고급 회로 50 · 강철판 500 <span class="where">기계 작업대 3단계</span></p>
         <p class="meta">2×1칸 · 출입구 없음 · 삼각형 1,024</p>
       </figcaption>
     </figure>
@@ -757,6 +865,7 @@
       <figcaption>
         <h3>상자</h3>
         <p class="recipe">물건을 넣어 두는 보관함</p>
+        <p class="badges"><span class="badge">베타에서는 모양만</span></p><p class="make"><b>만들기</b> 판자 8 <span class="where">가방에서</span></p>
         <p class="meta">1×1칸 · 출입구 없음 · 삼각형 124</p>
       </figcaption>
     </figure></div>
@@ -764,439 +873,439 @@
   
   <section id="아이템">
     <h2>아이템 <span class="count">108</span></h2>
-    <p class="lede">손에 들거나 벨트 위를 굴러다니는 물건들. 도구부터 공장을 거친 재료까지</p>
+    <p class="lede">손에 들거나 벨트 위를 굴러다니는 물건들. 이름 아래 작은 글씨는 얻는 길 하나이고, 마우스를 올리면 전부 보임</p>
     <h3 class="cat">도구 <span class="count">35</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 판자 5">
         <div class="shot"><img src="img/items/pick_wood.png" alt="나무 곡괭이" loading="lazy"></div>
-        <figcaption>나무 곡괭이</figcaption>
+        <figcaption>나무 곡괭이<span class="how">가방에서: 판자 5</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 돌 3 · 판자 2">
         <div class="shot"><img src="img/items/pick_stone.png" alt="돌 곡괭이" loading="lazy"></div>
-        <figcaption>돌 곡괭이</figcaption>
+        <figcaption>돌 곡괭이<span class="how">가방에서: 돌 3 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 3 · 판자 2">
         <div class="shot"><img src="img/items/pick_iron.png" alt="철 곡괭이" loading="lazy"></div>
-        <figcaption>철 곡괭이</figcaption>
+        <figcaption>철 곡괭이<span class="how">도구 작업대: 철 주괴 3 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 강철 주괴 3 · 철 막대 2">
         <div class="shot"><img src="img/items/pick_steel.png" alt="강철 곡괭이" loading="lazy"></div>
-        <figcaption>강철 곡괭이</figcaption>
+        <figcaption>강철 곡괭이<span class="how">도구 작업대 2단계: 강철 주괴 3 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 금 주괴 3 · 철 막대 2">
         <div class="shot"><img src="img/items/pick_gold.png" alt="금 곡괭이" loading="lazy"></div>
-        <figcaption>금 곡괭이</figcaption>
+        <figcaption>금 곡괭이<span class="how">도구 작업대 2단계: 금 주괴 3 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 3단계: 다이아 3 · 강철 막대 2">
         <div class="shot"><img src="img/items/pick_dia.png" alt="다이아 곡괭이" loading="lazy"></div>
-        <figcaption>다이아 곡괭이</figcaption>
+        <figcaption>다이아 곡괭이<span class="how">도구 작업대 3단계: 다이아 3 · 강철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 판자 5">
         <div class="shot"><img src="img/items/axe_wood.png" alt="나무 도끼" loading="lazy"></div>
-        <figcaption>나무 도끼</figcaption>
+        <figcaption>나무 도끼<span class="how">가방에서: 판자 5</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 돌 3 · 판자 2">
         <div class="shot"><img src="img/items/axe_stone.png" alt="돌 도끼" loading="lazy"></div>
-        <figcaption>돌 도끼</figcaption>
+        <figcaption>돌 도끼<span class="how">가방에서: 돌 3 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 3 · 판자 2">
         <div class="shot"><img src="img/items/axe_iron.png" alt="철 도끼" loading="lazy"></div>
-        <figcaption>철 도끼</figcaption>
+        <figcaption>철 도끼<span class="how">도구 작업대: 철 주괴 3 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 강철 주괴 3 · 철 막대 2">
         <div class="shot"><img src="img/items/axe_steel.png" alt="강철 도끼" loading="lazy"></div>
-        <figcaption>강철 도끼</figcaption>
+        <figcaption>강철 도끼<span class="how">도구 작업대 2단계: 강철 주괴 3 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 금 주괴 3 · 철 막대 2">
         <div class="shot"><img src="img/items/axe_gold.png" alt="금 도끼" loading="lazy"></div>
-        <figcaption>금 도끼</figcaption>
+        <figcaption>금 도끼<span class="how">도구 작업대 2단계: 금 주괴 3 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 3단계: 다이아 3 · 강철 막대 2">
         <div class="shot"><img src="img/items/axe_dia.png" alt="다이아 도끼" loading="lazy"></div>
-        <figcaption>다이아 도끼</figcaption>
+        <figcaption>다이아 도끼<span class="how">도구 작업대 3단계: 다이아 3 · 강철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 판자 3">
         <div class="shot"><img src="img/items/shovel_wood.png" alt="나무 삽" loading="lazy"></div>
-        <figcaption>나무 삽</figcaption>
+        <figcaption>나무 삽<span class="how">가방에서: 판자 3</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 돌 1 · 판자 2">
         <div class="shot"><img src="img/items/shovel_stone.png" alt="돌 삽" loading="lazy"></div>
-        <figcaption>돌 삽</figcaption>
+        <figcaption>돌 삽<span class="how">가방에서: 돌 1 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 1 · 판자 2">
         <div class="shot"><img src="img/items/shovel_iron.png" alt="철 삽" loading="lazy"></div>
-        <figcaption>철 삽</figcaption>
+        <figcaption>철 삽<span class="how">도구 작업대: 철 주괴 1 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 강철 주괴 1 · 철 막대 2">
         <div class="shot"><img src="img/items/shovel_steel.png" alt="강철 삽" loading="lazy"></div>
-        <figcaption>강철 삽</figcaption>
+        <figcaption>강철 삽<span class="how">도구 작업대 2단계: 강철 주괴 1 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 금 주괴 1 · 철 막대 2">
         <div class="shot"><img src="img/items/shovel_gold.png" alt="금 삽" loading="lazy"></div>
-        <figcaption>금 삽</figcaption>
+        <figcaption>금 삽<span class="how">도구 작업대 2단계: 금 주괴 1 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 3단계: 다이아 1 · 강철 막대 2">
         <div class="shot"><img src="img/items/shovel_dia.png" alt="다이아 삽" loading="lazy"></div>
-        <figcaption>다이아 삽</figcaption>
+        <figcaption>다이아 삽<span class="how">도구 작업대 3단계: 다이아 1 · 강철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 판자 4">
         <div class="shot"><img src="img/items/hoe_wood.png" alt="나무 괭이" loading="lazy"></div>
-        <figcaption>나무 괭이</figcaption>
+        <figcaption>나무 괭이<span class="how">가방에서: 판자 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 돌 2 · 판자 2">
         <div class="shot"><img src="img/items/hoe_stone.png" alt="돌 괭이" loading="lazy"></div>
-        <figcaption>돌 괭이</figcaption>
+        <figcaption>돌 괭이<span class="how">가방에서: 돌 2 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 2 · 판자 2">
         <div class="shot"><img src="img/items/hoe_iron.png" alt="철 괭이" loading="lazy"></div>
-        <figcaption>철 괭이</figcaption>
+        <figcaption>철 괭이<span class="how">도구 작업대: 철 주괴 2 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 강철 주괴 2 · 철 막대 2">
         <div class="shot"><img src="img/items/hoe_steel.png" alt="강철 괭이" loading="lazy"></div>
-        <figcaption>강철 괭이</figcaption>
+        <figcaption>강철 괭이<span class="how">도구 작업대 2단계: 강철 주괴 2 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 금 주괴 2 · 철 막대 2">
         <div class="shot"><img src="img/items/hoe_gold.png" alt="금 괭이" loading="lazy"></div>
-        <figcaption>금 괭이</figcaption>
+        <figcaption>금 괭이<span class="how">도구 작업대 2단계: 금 주괴 2 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 3단계: 다이아 2 · 강철 막대 2">
         <div class="shot"><img src="img/items/hoe_dia.png" alt="다이아 괭이" loading="lazy"></div>
-        <figcaption>다이아 괭이</figcaption>
+        <figcaption>다이아 괭이<span class="how">도구 작업대 3단계: 다이아 2 · 강철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 판자 4">
         <div class="shot"><img src="img/items/sword_wood.png" alt="나무 검" loading="lazy"></div>
-        <figcaption>나무 검</figcaption>
+        <figcaption>나무 검<span class="how">가방에서: 판자 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 돌 2 · 판자 2">
         <div class="shot"><img src="img/items/sword_stone.png" alt="돌 검" loading="lazy"></div>
-        <figcaption>돌 검</figcaption>
+        <figcaption>돌 검<span class="how">가방에서: 돌 2 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 2 · 판자 2">
         <div class="shot"><img src="img/items/sword_iron.png" alt="철 검" loading="lazy"></div>
-        <figcaption>철 검</figcaption>
+        <figcaption>철 검<span class="how">도구 작업대: 철 주괴 2 · 판자 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 강철 주괴 2 · 철 막대 2">
         <div class="shot"><img src="img/items/sword_steel.png" alt="강철 검" loading="lazy"></div>
-        <figcaption>강철 검</figcaption>
+        <figcaption>강철 검<span class="how">도구 작업대 2단계: 강철 주괴 2 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 2단계: 금 주괴 2 · 철 막대 2">
         <div class="shot"><img src="img/items/sword_gold.png" alt="금 검" loading="lazy"></div>
-        <figcaption>금 검</figcaption>
+        <figcaption>금 검<span class="how">도구 작업대 2단계: 금 주괴 2 · 철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대 3단계: 다이아 2 · 강철 막대 2">
         <div class="shot"><img src="img/items/sword_dia.png" alt="다이아 검" loading="lazy"></div>
-        <figcaption>다이아 검</figcaption>
+        <figcaption>다이아 검<span class="how">도구 작업대 3단계: 다이아 2 · 강철 막대 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 철 주괴 2 · 판자 1">
         <div class="shot"><img src="img/items/hammer.png" alt="망치" loading="lazy"></div>
-        <figcaption>망치</figcaption>
+        <figcaption>망치<span class="how">기본 작업대: 철 주괴 2 · 판자 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철 주괴 2">
         <div class="shot"><img src="img/items/wrench.png" alt="렌치" loading="lazy"></div>
-        <figcaption>렌치</figcaption>
+        <figcaption>렌치<span class="how">도구 작업대: 철 주괴 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 판자 3 · 천 1">
         <div class="shot"><img src="img/items/fishing_rod.png" alt="낚싯대" loading="lazy"></div>
-        <figcaption>낚싯대</figcaption>
+        <figcaption>낚싯대<span class="how">기본 작업대: 판자 3 · 천 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="부품 작업대: 철판 3">
         <div class="shot"><img src="img/items/bucket.png" alt="양동이" loading="lazy"></div>
-        <figcaption>양동이</figcaption>
+        <figcaption>양동이<span class="how">부품 작업대: 철판 3</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="도구 작업대: 철판 3 · 구리판 1">
         <div class="shot"><img src="img/items/watering_can.png" alt="물뿌리개" loading="lazy"></div>
-        <figcaption>물뿌리개</figcaption>
+        <figcaption>물뿌리개<span class="how">도구 작업대: 철판 3 · 구리판 1</span></figcaption>
       </figure></div><h3 class="cat">원석과 광물 <span class="count">11</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기">
         <div class="shot"><img src="img/items/stone.png" alt="돌" loading="lazy"></div>
-        <figcaption>돌</figcaption>
+        <figcaption>돌<span class="how">섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산 · 석탄 광맥 핵을 꽂은 추출기">
         <div class="shot"><img src="img/items/coal.png" alt="석탄" loading="lazy"></div>
-        <figcaption>석탄</figcaption>
+        <figcaption>석탄<span class="how">허브 광산 · 석탄 광맥 핵을 꽂은 추출기</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산 · 구리 광맥 핵을 꽂은 추출기 / 체질기: 모래 10">
         <div class="shot"><img src="img/items/ore_cu.png" alt="구리 광석" loading="lazy"></div>
-        <figcaption>구리 광석</figcaption>
+        <figcaption>구리 광석<span class="how">허브 광산 · 구리 광맥 핵을 꽂은 추출기 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산 · 철 광맥 핵을 꽂은 추출기 / 체질기: 자갈 10">
         <div class="shot"><img src="img/items/ore_fe.png" alt="철 광석" loading="lazy"></div>
-        <figcaption>철 광석</figcaption>
+        <figcaption>철 광석<span class="how">허브 광산 · 철 광맥 핵을 꽂은 추출기 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서만 (핵 제련소가 있으면 금 광맥 핵)">
         <div class="shot"><img src="img/items/ore_au.png" alt="금 광석" loading="lazy"></div>
-        <figcaption>금 광석</figcaption>
+        <figcaption>금 광석<span class="how">허브 광산에서만 (핵 제련소가 있으면 금 광맥 핵)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서만 (핵 제련소가 있으면 다이아 광맥 핵)">
         <div class="shot"><img src="img/items/ore_dia.png" alt="다이아 원석" loading="lazy"></div>
-        <figcaption>다이아 원석</figcaption>
+        <figcaption>다이아 원석<span class="how">허브 광산에서만 (핵 제련소가 있으면 다이아 광맥 핵)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="보석 절삭기: 다이아 원석 1">
         <div class="shot"><img src="img/items/diamond.png" alt="다이아" loading="lazy"></div>
-        <figcaption>다이아</figcaption>
+        <figcaption>다이아<span class="how">보석 절삭기: 다이아 원석 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="분쇄기: 자갈 1 / 체질기: 자갈 10">
         <div class="shot"><img src="img/items/sand.png" alt="모래" loading="lazy"></div>
-        <figcaption>모래</figcaption>
+        <figcaption>모래<span class="how">분쇄기: 자갈 1 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="분쇄기: 돌 1">
         <div class="shot"><img src="img/items/gravel.png" alt="자갈" loading="lazy"></div>
-        <figcaption>자갈</figcaption>
+        <figcaption>자갈<span class="how">분쇄기: 돌 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="혼합기: 흙 4 · 물통 1">
         <div class="shot"><img src="img/items/clay.png" alt="점토" loading="lazy"></div>
-        <figcaption>점토</figcaption>
+        <figcaption>점토<span class="how">혼합기: 흙 4 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="섬의 땅을 팜">
         <div class="shot"><img src="img/items/dirt_clod.png" alt="흙" loading="lazy"></div>
-        <figcaption>흙</figcaption>
+        <figcaption>흙<span class="how">섬의 땅을 팜</span></figcaption>
       </figure></div><h3 class="cat">광석 가공 <span class="count">7</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="분쇄기: 구리 광석 1">
         <div class="shot"><img src="img/items/crushed.png" alt="분쇄 구리광" loading="lazy"></div>
-        <figcaption>분쇄 구리광</figcaption>
+        <figcaption>분쇄 구리광<span class="how">분쇄기: 구리 광석 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="분쇄기: 철 광석 1">
         <div class="shot"><img src="img/items/crushed_fe.png" alt="분쇄 철광" loading="lazy"></div>
-        <figcaption>분쇄 철광</figcaption>
+        <figcaption>분쇄 철광<span class="how">분쇄기: 철 광석 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="분쇄기: 금 광석 1">
         <div class="shot"><img src="img/items/crushed_au.png" alt="분쇄 금광" loading="lazy"></div>
-        <figcaption>분쇄 금광</figcaption>
+        <figcaption>분쇄 금광<span class="how">분쇄기: 금 광석 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="세척기: 분쇄 구리광 8 · 물통 1">
         <div class="shot"><img src="img/items/clean.png" alt="정제 구리광" loading="lazy"></div>
-        <figcaption>정제 구리광</figcaption>
+        <figcaption>정제 구리광<span class="how">세척기: 분쇄 구리광 8 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="세척기: 분쇄 철광 8 · 물통 1">
         <div class="shot"><img src="img/items/clean_fe.png" alt="정제 철광" loading="lazy"></div>
-        <figcaption>정제 철광</figcaption>
+        <figcaption>정제 철광<span class="how">세척기: 분쇄 철광 8 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="세척기: 분쇄 금광 8 · 물통 1">
         <div class="shot"><img src="img/items/clean_au.png" alt="정제 금광" loading="lazy"></div>
-        <figcaption>정제 금광</figcaption>
+        <figcaption>정제 금광<span class="how">세척기: 분쇄 금광 8 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="세척기: 분쇄 철광 8 · 물통 1 / 세척기: 분쇄 구리광 8 · 물통 1 / 세척기: 분쇄 금광 8 · 물통 1">
         <div class="shot"><img src="img/items/slag.png" alt="찌꺼기" loading="lazy"></div>
-        <figcaption>찌꺼기</figcaption>
+        <figcaption>찌꺼기<span class="how">세척기: 분쇄 철광 8 · 물통 1 <span class="more">외 2</span></span></figcaption>
       </figure></div><h3 class="cat">주괴 <span class="count">5</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="제련로: 구리 광석 1 / 제련로: 분쇄 구리광 3 / 제련로: 정제 구리광 1">
         <div class="shot"><img src="img/items/ingot_cu.png" alt="구리 주괴" loading="lazy"></div>
-        <figcaption>구리 주괴</figcaption>
+        <figcaption>구리 주괴<span class="how">제련로: 구리 광석 1 <span class="more">외 2</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="제련로: 철 광석 1 / 제련로: 분쇄 철광 3 / 제련로: 정제 철광 1">
         <div class="shot"><img src="img/items/ingot_fe.png" alt="철 주괴" loading="lazy"></div>
-        <figcaption>철 주괴</figcaption>
+        <figcaption>철 주괴<span class="how">제련로: 철 광석 1 <span class="more">외 2</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="고로: 철 주괴 4 · 석탄 2 / 고로: 철 주괴 4 · 숯 3">
         <div class="shot"><img src="img/items/ingot_steel.png" alt="강철 주괴" loading="lazy"></div>
-        <figcaption>강철 주괴</figcaption>
+        <figcaption>강철 주괴<span class="how">고로: 철 주괴 4 · 석탄 2 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="제련로: 금 광석 1 / 제련로: 분쇄 금광 3 / 제련로: 정제 금광 1">
         <div class="shot"><img src="img/items/ingot_au.png" alt="금 주괴" loading="lazy"></div>
-        <figcaption>금 주괴</figcaption>
+        <figcaption>금 주괴<span class="how">제련로: 금 광석 1 <span class="more">외 2</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="합금로: 구리 주괴 1 · 금 주괴 1">
         <div class="shot"><img src="img/items/ingot_alloy.png" alt="합금 주괴" loading="lazy"></div>
-        <figcaption>합금 주괴</figcaption>
+        <figcaption>합금 주괴<span class="how">합금로: 구리 주괴 1 · 금 주괴 1</span></figcaption>
       </figure></div><h3 class="cat">금속 부품 <span class="count">13</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="압연 프레스: 구리 주괴 1">
         <div class="shot"><img src="img/items/plate_cu.png" alt="구리판" loading="lazy"></div>
-        <figcaption>구리판</figcaption>
+        <figcaption>구리판<span class="how">압연 프레스: 구리 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="신선기: 구리 주괴 1">
         <div class="shot"><img src="img/items/rod_cu.png" alt="구리 막대" loading="lazy"></div>
-        <figcaption>구리 막대</figcaption>
+        <figcaption>구리 막대<span class="how">신선기: 구리 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="압연 프레스: 철 주괴 1">
         <div class="shot"><img src="img/items/plate_fe.png" alt="철판" loading="lazy"></div>
-        <figcaption>철판</figcaption>
+        <figcaption>철판<span class="how">압연 프레스: 철 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="신선기: 철 주괴 1">
         <div class="shot"><img src="img/items/rod_fe.png" alt="철 막대" loading="lazy"></div>
-        <figcaption>철 막대</figcaption>
+        <figcaption>철 막대<span class="how">신선기: 철 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="압연 프레스: 강철 주괴 1">
         <div class="shot"><img src="img/items/plate_steel.png" alt="강철판" loading="lazy"></div>
-        <figcaption>강철판</figcaption>
+        <figcaption>강철판<span class="how">압연 프레스: 강철 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="신선기: 강철 주괴 1">
         <div class="shot"><img src="img/items/rod_steel.png" alt="강철 막대" loading="lazy"></div>
-        <figcaption>강철 막대</figcaption>
+        <figcaption>강철 막대<span class="how">신선기: 강철 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="신선기: 구리 주괴 1">
         <div class="shot"><img src="img/items/coil.png" alt="구리선" loading="lazy"></div>
-        <figcaption>구리선</figcaption>
+        <figcaption>구리선<span class="how">신선기: 구리 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="신선기: 금 주괴 1">
         <div class="shot"><img src="img/items/wire_au.png" alt="금선" loading="lazy"></div>
-        <figcaption>금선</figcaption>
+        <figcaption>금선<span class="how">신선기: 금 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="선반: 철 막대 1">
         <div class="shot"><img src="img/items/bolt.png" alt="볼트" loading="lazy"></div>
-        <figcaption>볼트</figcaption>
+        <figcaption>볼트<span class="how">선반: 철 막대 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="선반: 철판 1">
         <div class="shot"><img src="img/items/gear.png" alt="기어" loading="lazy"></div>
-        <figcaption>기어</figcaption>
+        <figcaption>기어<span class="how">선반: 철판 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="주조기: 철 주괴 4 / 부품 작업대: 철판 2 · 철 막대 2">
         <div class="shot"><img src="img/items/frame.png" alt="기계 틀" loading="lazy"></div>
-        <figcaption>기계 틀</figcaption>
+        <figcaption>기계 틀<span class="how">주조기: 철 주괴 4 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="압연 프레스: 강철 주괴 2">
         <div class="shot"><img src="img/items/beam.png" alt="강철 기둥" loading="lazy"></div>
-        <figcaption>강철 기둥</figcaption>
+        <figcaption>강철 기둥<span class="how">압연 프레스: 강철 주괴 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="보석 절삭기: 다이아 1">
         <div class="shot"><img src="img/items/blade.png" alt="절삭 날" loading="lazy"></div>
-        <figcaption>절삭 날</figcaption>
+        <figcaption>절삭 날<span class="how">보석 절삭기: 다이아 1</span></figcaption>
       </figure></div><h3 class="cat">조립품 <span class="count">5</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="부품 작업대 2단계: 구리선 4 · 기어 2 · 기계 틀 1">
         <div class="shot"><img src="img/items/motor.png" alt="모터" loading="lazy"></div>
-        <figcaption>모터</figcaption>
+        <figcaption>모터<span class="how">부품 작업대 2단계: 구리선 4 · 기어 2 · 기계 틀 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="전기 작업대: 구리선 3 · 유리 1 / 전기 작업대 2단계: 구리선 2 · 플라스틱 1">
         <div class="shot"><img src="img/items/board.png" alt="회로 기판" loading="lazy"></div>
-        <figcaption>회로 기판</figcaption>
+        <figcaption>회로 기판<span class="how">전기 작업대: 구리선 3 · 유리 1 <span class="more">외 1</span></span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="전기 작업대 3단계: 회로 기판 2 · 금선 4 · 합금 주괴 1">
         <div class="shot"><img src="img/items/board_adv.png" alt="고급 회로" loading="lazy"></div>
-        <figcaption>고급 회로</figcaption>
+        <figcaption>고급 회로<span class="how">전기 작업대 3단계: 회로 기판 2 · 금선 4 · 합금 주괴 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="전기 작업대: 구리판 1 · 철판 1 · 숯 2">
         <div class="shot"><img src="img/items/cell.png" alt="전지" loading="lazy"></div>
-        <figcaption>전지</figcaption>
+        <figcaption>전지<span class="how">전기 작업대: 구리판 1 · 철판 1 · 숯 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="몬스터를 잡아 낮은 확률로">
         <div class="shot"><img src="img/items/monster_part.png" alt="핵심 부품" loading="lazy"></div>
-        <figcaption>핵심 부품</figcaption>
+        <figcaption>핵심 부품<span class="how">몬스터를 잡아 낮은 확률로</span></figcaption>
       </figure></div><h3 class="cat">건축 재료 <span class="count">7</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="제재기: 통나무 1">
         <div class="shot"><img src="img/items/plank.png" alt="판자" loading="lazy"></div>
-        <figcaption>판자</figcaption>
+        <figcaption>판자<span class="how">제재기: 통나무 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="석재 절단기: 돌 1">
         <div class="shot"><img src="img/items/stone_block.png" alt="석재" loading="lazy"></div>
-        <figcaption>석재</figcaption>
+        <figcaption>석재<span class="how">석재 절단기: 돌 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가마: 점토 1">
         <div class="shot"><img src="img/items/brick.png" alt="벽돌" loading="lazy"></div>
-        <figcaption>벽돌</figcaption>
+        <figcaption>벽돌<span class="how">가마: 점토 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가마: 모래 2">
         <div class="shot"><img src="img/items/glass.png" alt="유리" loading="lazy"></div>
-        <figcaption>유리</figcaption>
+        <figcaption>유리<span class="how">가마: 모래 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="혼합기: 모래 2 · 자갈 2 · 물통 1">
         <div class="shot"><img src="img/items/concrete.png" alt="콘크리트" loading="lazy"></div>
-        <figcaption>콘크리트</figcaption>
+        <figcaption>콘크리트<span class="how">혼합기: 모래 2 · 자갈 2 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="혼합기: 찌꺼기 2 · 타르 1">
         <div class="shot"><img src="img/items/asphalt.png" alt="포장재" loading="lazy"></div>
-        <figcaption>포장재</figcaption>
+        <figcaption>포장재<span class="how">혼합기: 찌꺼기 2 · 타르 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="직조기: 목화 2">
         <div class="shot"><img src="img/items/cloth.png" alt="천" loading="lazy"></div>
-        <figcaption>천</figcaption>
+        <figcaption>천<span class="how">직조기: 목화 2</span></figcaption>
       </figure></div><h3 class="cat">나무와 연료 <span class="count">10</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="나무를 벰 (묘목을 심어 기름) · 벌목기">
         <div class="shot"><img src="img/items/log.png" alt="통나무" loading="lazy"></div>
-        <figcaption>통나무</figcaption>
+        <figcaption>통나무<span class="how">나무를 벰 (묘목을 심어 기름) · 벌목기</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="제재기: 통나무 1">
         <div class="shot"><img src="img/items/sawdust.png" alt="톱밥" loading="lazy"></div>
-        <figcaption>톱밥</figcaption>
+        <figcaption>톱밥<span class="how">제재기: 통나무 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가마: 통나무 1">
         <div class="shot"><img src="img/items/charcoal.png" alt="숯" loading="lazy"></div>
-        <figcaption>숯</figcaption>
+        <figcaption>숯<span class="how">가마: 통나무 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="압축기: 톱밥 4">
         <div class="shot"><img src="img/items/briquette.png" alt="연료 덩이" loading="lazy"></div>
-        <figcaption>연료 덩이</figcaption>
+        <figcaption>연료 덩이<span class="how">압축기: 톱밥 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="물 펌프 (손으로 물을 뜨는 방법은 미정)">
         <div class="shot"><img src="img/items/barrel_water.png" alt="물통" loading="lazy"></div>
-        <figcaption>물통</figcaption>
+        <figcaption>물통<span class="how">물 펌프 (손으로 물을 뜨는 방법은 미정)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="펌프잭 (원유를 어디서 얻는지는 미정)">
         <div class="shot"><img src="img/items/barrel_oil.png" alt="원유통" loading="lazy"></div>
-        <figcaption>원유통</figcaption>
+        <figcaption>원유통<span class="how">펌프잭 (원유를 어디서 얻는지는 미정)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="정유탑: 원유통 2">
         <div class="shot"><img src="img/items/barrel_fuel.png" alt="연료통" loading="lazy"></div>
-        <figcaption>연료통</figcaption>
+        <figcaption>연료통<span class="how">정유탑: 원유통 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="착유기: 기름 작물 4">
         <div class="shot"><img src="img/items/oilcan.png" alt="식물 기름통" loading="lazy"></div>
-        <figcaption>식물 기름통</figcaption>
+        <figcaption>식물 기름통<span class="how">착유기: 기름 작물 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="정유탑: 원유통 2">
         <div class="shot"><img src="img/items/tar.png" alt="타르" loading="lazy"></div>
-        <figcaption>타르</figcaption>
+        <figcaption>타르<span class="how">정유탑: 원유통 2</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="정유탑: 원유통 2">
         <div class="shot"><img src="img/items/plastic.png" alt="플라스틱" loading="lazy"></div>
-        <figcaption>플라스틱</figcaption>
+        <figcaption>플라스틱<span class="how">정유탑: 원유통 2</span></figcaption>
       </figure></div><h3 class="cat">농산물과 음식 <span class="count">8</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="밭에서 기름 (씨앗)">
         <div class="shot"><img src="img/items/wheat.png" alt="밀" loading="lazy"></div>
-        <figcaption>밀</figcaption>
+        <figcaption>밀<span class="how">밭에서 기름 (씨앗)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="농부에게서 삼 · 작물을 거두면 일부가 씨앗으로 돌아옴">
         <div class="shot"><img src="img/items/seed.png" alt="씨앗" loading="lazy"></div>
-        <figcaption>씨앗</figcaption>
+        <figcaption>씨앗<span class="how">농부에게서 삼 · 작물을 거두면 일부가 씨앗으로 돌아옴</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="제분기: 밀 1">
         <div class="shot"><img src="img/items/flour.png" alt="밀가루" loading="lazy"></div>
-        <figcaption>밀가루</figcaption>
+        <figcaption>밀가루<span class="how">제분기: 밀 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="혼합기: 밀가루 2 · 물통 1">
         <div class="shot"><img src="img/items/dough.png" alt="반죽" loading="lazy"></div>
-        <figcaption>반죽</figcaption>
+        <figcaption>반죽<span class="how">혼합기: 밀가루 2 · 물통 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="제빵 오븐: 반죽 1">
         <div class="shot"><img src="img/items/bread.png" alt="빵" loading="lazy"></div>
-        <figcaption>빵</figcaption>
+        <figcaption>빵<span class="how">제빵 오븐: 반죽 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="밭에서 기름 (씨앗)">
         <div class="shot"><img src="img/items/cotton.png" alt="목화" loading="lazy"></div>
-        <figcaption>목화</figcaption>
+        <figcaption>목화<span class="how">밭에서 기름 (씨앗)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="밭에서 기름 (씨앗)">
         <div class="shot"><img src="img/items/oilseed.png" alt="기름 작물" loading="lazy"></div>
-        <figcaption>기름 작물</figcaption>
+        <figcaption>기름 작물<span class="how">밭에서 기름 (씨앗)</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="농부에게서 삼 · 나뭇잎을 부수면 가끔 나옴">
         <div class="shot"><img src="img/items/sapling.png" alt="묘목" loading="lazy"></div>
-        <figcaption>묘목</figcaption>
+        <figcaption>묘목<span class="how">농부에게서 삼 · 나뭇잎을 부수면 가끔 나옴</span></figcaption>
       </figure></div><h3 class="cat">광맥 핵 <span class="count">6</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서 돌을 캐다 낮은 확률로">
         <div class="shot"><img src="img/items/core_stone.png" alt="돌 광맥 핵" loading="lazy"></div>
-        <figcaption>돌 광맥 핵</figcaption>
+        <figcaption>돌 광맥 핵<span class="how">허브 광산에서 돌을 캐다 낮은 확률로</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서 석탄을 캐다 낮은 확률로">
         <div class="shot"><img src="img/items/core_coal.png" alt="석탄 광맥 핵" loading="lazy"></div>
-        <figcaption>석탄 광맥 핵</figcaption>
+        <figcaption>석탄 광맥 핵<span class="how">허브 광산에서 석탄을 캐다 낮은 확률로</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서 구리를 캐다 낮은 확률로">
         <div class="shot"><img src="img/items/core_cu.png" alt="구리 광맥 핵" loading="lazy"></div>
-        <figcaption>구리 광맥 핵</figcaption>
+        <figcaption>구리 광맥 핵<span class="how">허브 광산에서 구리를 캐다 낮은 확률로</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산에서 철을 캐다 낮은 확률로">
         <div class="shot"><img src="img/items/core_fe.png" alt="철 광맥 핵" loading="lazy"></div>
-        <figcaption>철 광맥 핵</figcaption>
+        <figcaption>철 광맥 핵<span class="how">허브 광산에서 철을 캐다 낮은 확률로</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="핵 제련소에서만">
         <div class="shot"><img src="img/items/core_au.png" alt="금 광맥 핵" loading="lazy"></div>
-        <figcaption>금 광맥 핵</figcaption>
+        <figcaption>금 광맥 핵<span class="how">핵 제련소에서만</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="핵 제련소에서만">
         <div class="shot"><img src="img/items/core_dia.png" alt="다이아 광맥 핵" loading="lazy"></div>
-        <figcaption>다이아 광맥 핵</figcaption>
+        <figcaption>다이아 광맥 핵<span class="how">핵 제련소에서만</span></figcaption>
       </figure></div><h3 class="cat">포장 <span class="count">1</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="포장기가 같은 아이템 8개를 묶어 만듦">
         <div class="shot"><img src="img/items/crate.png" alt="상자 (포장)" loading="lazy"></div>
-        <figcaption>상자 (포장)</figcaption>
+        <figcaption>상자 (포장)<span class="how">포장기가 같은 아이템 8개를 묶어 만듦</span></figcaption>
       </figure></div>
   </section>
   
@@ -1204,141 +1313,141 @@
     <h2>블록 <span class="count">34</span></h2>
     <p class="lede">섬을 이루는 정육면체 블록. 스타일은 아직 확정하지 않은 시험 제작본</p>
     <h3 class="cat">자연 <span class="count">9</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="섬의 땅 · 흙 위에 저절로 번짐">
         <div class="shot"><img src="img/blocks/grass.png" alt="잔디" loading="lazy"></div>
-        <figcaption>잔디</figcaption>
+        <figcaption>잔디<span class="how">섬의 땅 · 흙 위에 저절로 번짐</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="섬의 땅">
         <div class="shot"><img src="img/blocks/dirt.png" alt="흙" loading="lazy"></div>
-        <figcaption>흙</figcaption>
+        <figcaption>흙<span class="how">섬의 땅</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가방에서: 흙 블록 1">
         <div class="shot"><img src="img/blocks/farmland.png" alt="경작지" loading="lazy"></div>
-        <figcaption>경작지</figcaption>
+        <figcaption>경작지<span class="how">가방에서: 흙 블록 1</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="섬의 땅">
         <div class="shot"><img src="img/blocks/stone.png" alt="돌" loading="lazy"></div>
-        <figcaption>돌</figcaption>
+        <figcaption>돌<span class="how">섬의 땅</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 모래 4">
         <div class="shot"><img src="img/blocks/sand.png" alt="모래" loading="lazy"></div>
-        <figcaption>모래</figcaption>
+        <figcaption>모래<span class="how">기본 작업대: 모래 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 자갈 4">
         <div class="shot"><img src="img/blocks/gravel.png" alt="자갈" loading="lazy"></div>
-        <figcaption>자갈</figcaption>
+        <figcaption>자갈<span class="how">기본 작업대: 자갈 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 점토 4">
         <div class="shot"><img src="img/blocks/clay.png" alt="점토" loading="lazy"></div>
-        <figcaption>점토</figcaption>
+        <figcaption>점토<span class="how">기본 작업대: 점토 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="나무">
         <div class="shot"><img src="img/blocks/log.png" alt="통나무" loading="lazy"></div>
-        <figcaption>통나무</figcaption>
+        <figcaption>통나무<span class="how">나무</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="나무">
         <div class="shot"><img src="img/blocks/leaves.png" alt="나뭇잎" loading="lazy"></div>
-        <figcaption>나뭇잎</figcaption>
+        <figcaption>나뭇잎<span class="how">나무</span></figcaption>
       </figure></div><h3 class="cat">광석 <span class="count">5</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="허브 광산">
         <div class="shot"><img src="img/blocks/ore_coal.png" alt="석탄 광석" loading="lazy"></div>
-        <figcaption>석탄 광석</figcaption>
+        <figcaption>석탄 광석<span class="how">허브 광산</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산">
         <div class="shot"><img src="img/blocks/ore_cu.png" alt="구리 광석" loading="lazy"></div>
-        <figcaption>구리 광석</figcaption>
+        <figcaption>구리 광석<span class="how">허브 광산</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산">
         <div class="shot"><img src="img/blocks/ore_fe.png" alt="철 광석" loading="lazy"></div>
-        <figcaption>철 광석</figcaption>
+        <figcaption>철 광석<span class="how">허브 광산</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산">
         <div class="shot"><img src="img/blocks/ore_au.png" alt="금 광석" loading="lazy"></div>
-        <figcaption>금 광석</figcaption>
+        <figcaption>금 광석<span class="how">허브 광산</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="허브 광산">
         <div class="shot"><img src="img/blocks/ore_dia.png" alt="다이아 광석" loading="lazy"></div>
-        <figcaption>다이아 광석</figcaption>
+        <figcaption>다이아 광석<span class="how">허브 광산</span></figcaption>
       </figure></div><h3 class="cat">건축 <span class="count">7</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 판자 4">
         <div class="shot"><img src="img/blocks/planks.png" alt="판자" loading="lazy"></div>
-        <figcaption>판자</figcaption>
+        <figcaption>판자<span class="how">기본 작업대: 판자 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 석재 4">
         <div class="shot"><img src="img/blocks/stone_bricks.png" alt="석재 벽돌" loading="lazy"></div>
-        <figcaption>석재 벽돌</figcaption>
+        <figcaption>석재 벽돌<span class="how">기본 작업대: 석재 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 벽돌 4">
         <div class="shot"><img src="img/blocks/bricks.png" alt="벽돌" loading="lazy"></div>
-        <figcaption>벽돌</figcaption>
+        <figcaption>벽돌<span class="how">기본 작업대: 벽돌 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 유리 4">
         <div class="shot"><img src="img/blocks/glass.png" alt="유리" loading="lazy"></div>
-        <figcaption>유리</figcaption>
+        <figcaption>유리<span class="how">기본 작업대: 유리 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 콘크리트 4">
         <div class="shot"><img src="img/blocks/concrete.png" alt="콘크리트" loading="lazy"></div>
-        <figcaption>콘크리트</figcaption>
+        <figcaption>콘크리트<span class="how">기본 작업대: 콘크리트 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 포장재 4">
         <div class="shot"><img src="img/blocks/asphalt.png" alt="포장재" loading="lazy"></div>
-        <figcaption>포장재</figcaption>
+        <figcaption>포장재<span class="how">기본 작업대: 포장재 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="미정">
         <div class="shot"><img src="img/blocks/quartz.png" alt="석영" loading="lazy"></div>
-        <figcaption>석영</figcaption>
+        <figcaption>석영<span class="how">미정</span></figcaption>
       </figure></div><h3 class="cat">금속 <span class="count">8</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 철 주괴 9">
         <div class="shot"><img src="img/blocks/block_fe.png" alt="철 블록" loading="lazy"></div>
-        <figcaption>철 블록</figcaption>
+        <figcaption>철 블록<span class="how">기본 작업대: 철 주괴 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 구리 주괴 9">
         <div class="shot"><img src="img/blocks/block_cu.png" alt="구리 블록" loading="lazy"></div>
-        <figcaption>구리 블록</figcaption>
+        <figcaption>구리 블록<span class="how">기본 작업대: 구리 주괴 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 강철 주괴 9">
         <div class="shot"><img src="img/blocks/block_steel.png" alt="강철 블록" loading="lazy"></div>
-        <figcaption>강철 블록</figcaption>
+        <figcaption>강철 블록<span class="how">기본 작업대: 강철 주괴 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 금 주괴 9">
         <div class="shot"><img src="img/blocks/block_au.png" alt="금 블록" loading="lazy"></div>
-        <figcaption>금 블록</figcaption>
+        <figcaption>금 블록<span class="how">기본 작업대: 금 주괴 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 다이아 9">
         <div class="shot"><img src="img/blocks/block_dia.png" alt="다이아 블록" loading="lazy"></div>
-        <figcaption>다이아 블록</figcaption>
+        <figcaption>다이아 블록<span class="how">기본 작업대: 다이아 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="기본 작업대: 석탄 9">
         <div class="shot"><img src="img/blocks/block_coal.png" alt="석탄 블록" loading="lazy"></div>
-        <figcaption>석탄 블록</figcaption>
+        <figcaption>석탄 블록<span class="how">기본 작업대: 석탄 9</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="부품 작업대: 철판 4">
         <div class="shot"><img src="img/blocks/tread.png" alt="금속 바닥" loading="lazy"></div>
-        <figcaption>금속 바닥</figcaption>
+        <figcaption>금속 바닥<span class="how">부품 작업대: 철판 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="부품 작업대: 철 막대 4">
         <div class="shot"><img src="img/blocks/grating.png" alt="격자 바닥" loading="lazy"></div>
-        <figcaption>격자 바닥</figcaption>
+        <figcaption>격자 바닥<span class="how">부품 작업대: 철 막대 4</span></figcaption>
       </figure></div><h3 class="cat">색 블록 <span class="count">5</span></h3><div class="tiles">
-      <figure class="tile">
+      <figure class="tile" title="가구 작업대: 천 4">
         <div class="shot"><img src="img/blocks/cloth_white.png" alt="흰 천 블록" loading="lazy"></div>
-        <figcaption>흰 천 블록</figcaption>
+        <figcaption>흰 천 블록<span class="how">가구 작업대: 천 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가구 작업대: 천 4">
         <div class="shot"><img src="img/blocks/cloth_red.png" alt="빨간 천 블록" loading="lazy"></div>
-        <figcaption>빨간 천 블록</figcaption>
+        <figcaption>빨간 천 블록<span class="how">가구 작업대: 천 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가구 작업대: 천 4">
         <div class="shot"><img src="img/blocks/cloth_yellow.png" alt="노란 천 블록" loading="lazy"></div>
-        <figcaption>노란 천 블록</figcaption>
+        <figcaption>노란 천 블록<span class="how">가구 작업대: 천 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가구 작업대: 천 4">
         <div class="shot"><img src="img/blocks/cloth_green.png" alt="초록 천 블록" loading="lazy"></div>
-        <figcaption>초록 천 블록</figcaption>
+        <figcaption>초록 천 블록<span class="how">가구 작업대: 천 4</span></figcaption>
       </figure>
-      <figure class="tile">
+      <figure class="tile" title="가구 작업대: 천 4">
         <div class="shot"><img src="img/blocks/cloth_blue.png" alt="파란 천 블록" loading="lazy"></div>
-        <figcaption>파란 천 블록</figcaption>
+        <figcaption>파란 천 블록<span class="how">가구 작업대: 천 4</span></figcaption>
       </figure></div>
   </section>
 </main>

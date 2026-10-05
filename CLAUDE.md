@@ -62,7 +62,7 @@
 - 모델은 손으로 만들지 않고 `art/factorykit.py`(기계, 장치, 아이템)와 `art/blocks.py`(블록)가 만듭니다. 모양을 바꾸려면 스크립트를 고칩니다.
 - Blender를 창 없이 실행합니다. macOS 기준 `/Applications/Blender.app/Contents/MacOS/Blender --background --python art/factorykit.py -- thumbs line items`.
 - 하나만 다시 그리려면 `-- thumbs only=<이름>`.
-- 그린 뒤 `python3 art/build_catalog.py`로 카탈로그 페이지를 다시 만듭니다.
+- 그린 뒤 `python3 art/build_catalog.py`로 카탈로그 페이지를 다시 만듭니다. 이 페이지는 `data/recipes.json`(만드는 재료, 기계가 하는 일)과 `art/catalog/game.json`(베타에서 동작하는지, `game/tools/gen_data.py`가 씀)도 읽으므로, 레시피나 게임 동작을 바꾼 뒤에도 다시 만듭니다.
 - 기계의 문법: 공용 하부 몸체, 노란 테두리는 입구, 청록 테두리는 출구, 기계마다 용도를 알려 주는 상징물 하나. 등급에 따라 재질이나 색을 바꾸지 않습니다.
 
 ## 지금 상태 (2026-10-05)
