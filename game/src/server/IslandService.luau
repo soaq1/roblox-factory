@@ -65,7 +65,6 @@ function IslandService.create(player: Player): Island
 	pad.Material = Enum.Material.SmoothPlastic
 	pad.Color = Color3.fromRGB(228, 225, 219)
 	pad.Transparency = 0.5
-	pad.CanQuery = false -- the build cursor looks straight through it
 	pad.Parent = folder
 	player.RespawnLocation = pad
 
@@ -127,7 +126,7 @@ end
 function IslandService.setBlock(island: Island, x: number, y: number, z: number, id: string): boolean
 	local key = Grid.key(x, y, z)
 	local def = Defs.Blocks[id]
-	if island.cells[key] or not def then
+	if island.cells[key] or not def or not Grid.inBounds(x, y, z, Config.MAX_COORD) then
 		return false
 	end
 	local part = Instance.new("Part")

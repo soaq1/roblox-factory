@@ -10,7 +10,7 @@ local ItemService = require(script.Parent.ItemService)
 local Outlet = {}
 
 local CELL = Config.CELL
-local FACING = 1.7 -- studs between this mouth's drop point and a neighbour's input for them to count as joined
+local FACING = 1.5 -- studs between this mouth's drop point and a neighbour's input for them to count as joined
 
 local function facingInput(other, port): boolean
 	for _, input in other.ins or {} do

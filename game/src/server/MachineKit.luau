@@ -115,11 +115,16 @@ function MachineKit.ports(machine): { Port }
 			then Vector3.new(0, 0, -port.off * CELL)
 			else Vector3.new(port.off * CELL, 0, 0)
 		local edge = outward * half + lateral
+		-- An input takes only what is pressed up against the mouth: the thin strip between the
+		-- machine and where the side rail of a belt running past would be. So a belt that ends at
+		-- the mouth feeds the machine, and a belt that passes by it does not.
+		-- An output looks further out, so it waits for a gap before putting the next item down.
+		local depth = if port.kind == "in" then 0.3 else 0.9
 		table.insert(ports, {
 			kind = port.kind,
-			-- from the ground up to a little above belt height, so items on a belt or on the floor both count
-			box = machine.base * CFrame.new(edge + outward * 0.45 + Vector3.new(0, -0.55, 0)),
-			size = if alongX then Vector3.new(0.9, 1.9, 2.2) else Vector3.new(2.2, 1.9, 0.9),
+			-- from the ground up to a little above belt height
+			box = machine.base * CFrame.new(edge + outward * (depth / 2) + Vector3.new(0, -0.55, 0)),
+			size = if alongX then Vector3.new(depth, 1.9, 2.2) else Vector3.new(2.2, 1.9, depth),
 			spawn = (machine.base * CFrame.new(edge + outward * 0.75 + Vector3.new(0, -0.15, 0))).Position,
 		})
 	end

@@ -1499,7 +1499,7 @@ Defs.Machines = {
 		note = "두 칸에 걸쳐 한 칸 높이를 올림",
 		sx = 2,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.08,
 		icon = "belt_ramp",
 		ports = {},
@@ -1512,7 +1512,7 @@ Defs.Machines = {
 		note = "들어온 아이템을 두 방향으로 번갈아 내보냄",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.14,
 		icon = "splitter",
 		ports = {
@@ -1541,7 +1541,7 @@ Defs.Machines = {
 		note = "두 줄을 한 줄로 합침",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.48,
 		icon = "merger",
 		ports = {
@@ -1570,7 +1570,7 @@ Defs.Machines = {
 		note = "지정한 아이템만 옆으로 빼내고 나머지는 통과",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.49,
 		icon = "sorter",
 		ports = {
@@ -1741,7 +1741,7 @@ Defs.Machines = {
 		note = "유전 위에 놓으면 원유통을 내보냄",
 		sx = 2,
 		sz = 1,
-		sy = 2,
+		sy = 3,
 		height = 6.42,
 		icon = "pumpjack",
 		ports = {
@@ -1761,7 +1761,7 @@ Defs.Machines = {
 		note = "앞쪽 밭의 다 자란 작물을 거둬들임",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.26,
 		icon = "harvester",
 		ports = {
@@ -1780,7 +1780,7 @@ Defs.Machines = {
 		note = "광석 → 분쇄 광석(수량 2배), 돌 → 모래",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.42,
 		icon = "crusher",
 		ports = {
@@ -1876,7 +1876,7 @@ Defs.Machines = {
 		note = "통나무 → 판자",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.58,
 		icon = "sawmill",
 		ports = {
@@ -1924,7 +1924,7 @@ Defs.Machines = {
 		note = "주괴 → 판재",
 		sx = 1,
 		sz = 1,
-		sy = 2,
+		sy = 3,
 		height = 6.9,
 		icon = "press",
 		ports = {
@@ -2001,7 +2001,7 @@ Defs.Machines = {
 		note = "밀 → 밀가루",
 		sx = 1,
 		sz = 1,
-		sy = 2,
+		sy = 3,
 		height = 6.86,
 		icon = "mill",
 		ports = {
@@ -2025,7 +2025,7 @@ Defs.Machines = {
 		note = "철 주괴 + 석탄 → 강철 주괴",
 		sx = 2,
 		sz = 2,
-		sy = 3,
+		sy = 4,
 		height = 9.85,
 		icon = "blast",
 		ports = {
@@ -2112,7 +2112,7 @@ Defs.Machines = {
 		note = "구리선 + 플라스틱 → 회로 기판",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.75,
 		icon = "circuit",
 		ports = {
@@ -2257,7 +2257,7 @@ Defs.Machines = {
 		note = "",
 		sx = 1,
 		sz = 1,
-		sy = 2,
+		sy = 3,
 		height = 6.24,
 		icon = "seller",
 		ports = {
@@ -2295,7 +2295,7 @@ Defs.Machines = {
 		note = "위에서 떨어지는 아이템을 받아 벨트로 내보냄. 높낮이만 맞추면 동력이 필요 없음",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.63,
 		icon = "funnel",
 		ports = {
@@ -2315,7 +2315,7 @@ Defs.Machines = {
 		note = "높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감",
 		sx = 2,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.44,
 		icon = "chute",
 		ports = {},
@@ -2328,7 +2328,7 @@ Defs.Machines = {
 		note = "바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.54,
 		icon = "blower",
 		ports = {},
@@ -2341,7 +2341,7 @@ Defs.Machines = {
 		note = "아이템을 두 칸 위로 올림",
 		sx = 1,
 		sz = 1,
-		sy = 3,
+		sy = 4,
 		height = 9.54,
 		icon = "lift",
 		ports = {
@@ -2379,7 +2379,7 @@ Defs.Machines = {
 		note = "신호가 오면 지나가는 아이템을 옆으로 밀어냄",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.69,
 		icon = "pusher",
 		ports = {
@@ -2408,7 +2408,7 @@ Defs.Machines = {
 		note = "벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.42,
 		icon = "sensor",
 		ports = {},
@@ -2421,7 +2421,7 @@ Defs.Machines = {
 		note = "신호에 따라 벨트를 막거나 엶",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.21,
 		icon = "gate",
 		ports = {},
@@ -2473,7 +2473,7 @@ Defs.Machines = {
 		note = "신호를 받으면 켜짐. 공장 상태를 멀리서 확인",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.59,
 		icon = "beacon",
 		ports = {},
@@ -2513,7 +2513,7 @@ Defs.Machines = {
 		note = "돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.19,
 		icon = "hand_furnace",
 		ports = {},
@@ -2527,7 +2527,7 @@ Defs.Machines = {
 		note = "건축 블록, 일반 물건, 다른 작업대를 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_basic",
 		ports = {},
@@ -2541,7 +2541,7 @@ Defs.Machines = {
 		note = "곡괭이, 무기, 갑옷을 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_tool",
 		ports = {},
@@ -2555,7 +2555,7 @@ Defs.Machines = {
 		note = "판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_part",
 		ports = {},
@@ -2569,7 +2569,7 @@ Defs.Machines = {
 		note = "벨트, 기계, 추출기를 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_machine",
 		ports = {},
@@ -2583,7 +2583,7 @@ Defs.Machines = {
 		note = "음식을 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_cook",
 		ports = {},
@@ -2597,7 +2597,7 @@ Defs.Machines = {
 		note = "감지기, 스위치, 논리 회로 같은 전기 부품을 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.49,
 		icon = "wb_elec",
 		ports = {},
@@ -2611,7 +2611,7 @@ Defs.Machines = {
 		note = "가구와 꾸미기 물건을 만듦",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.13,
 		icon = "wb_furn",
 		ports = {},
@@ -2713,7 +2713,7 @@ Defs.Machines = {
 		note = "철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.29,
 		icon = "lathe",
 		ports = {
@@ -2814,7 +2814,7 @@ Defs.Machines = {
 		note = "다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.66,
 		icon = "gemcutter",
 		ports = {
@@ -2838,7 +2838,7 @@ Defs.Machines = {
 		note = "기계나 부품을 넣으면 들어간 재료의 일부를 되돌려 받음",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.25,
 		icon = "recycler",
 		ports = {
@@ -2921,7 +2921,7 @@ Defs.Machines = {
 		note = "자갈이나 모래를 걸러 아주 적은 양의 광물을 얻음. 광맥 핵이 없어도 됨",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 4.68,
 		icon = "sieve",
 		ports = {
@@ -2963,7 +2963,7 @@ Defs.Machines = {
 		note = "수확이 끝난 자리에 씨앗을 다시 심음",
 		sx = 1,
 		sz = 1,
-		sy = 1,
+		sy = 2,
 		height = 3.9,
 		icon = "seeder",
 		ports = {
@@ -3001,7 +3001,7 @@ Defs.Machines = {
 		note = "바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함",
 		sx = 1,
 		sz = 1,
-		sy = 3,
+		sy = 4,
 		height = 10.27,
 		icon = "windturbine",
 		ports = {},
@@ -3040,7 +3040,7 @@ Defs.Machines = {
 		note = "전선을 이어 전기를 나름. 전신주 주변 몇 칸 안의 기계가 전기를 받음",
 		sx = 1,
 		sz = 1,
-		sy = 2,
+		sy = 3,
 		height = 7.15,
 		icon = "pole",
 		ports = {},
@@ -3112,7 +3112,7 @@ Defs.Machines = {
 		note = "막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지",
 		sx = 3,
 		sz = 3,
-		sy = 3,
+		sy = 4,
 		height = 10.51,
 		icon = "coreforge",
 		ports = {
@@ -3146,7 +3146,7 @@ Defs.Machines = {
 		note = "연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림",
 		sx = 3,
 		sz = 3,
-		sy = 3,
+		sy = 4,
 		height = 10.62,
 		icon = "reactor",
 		ports = {},
@@ -3571,7 +3571,7 @@ return IslandGen
           <string name="Source"><![CDATA[-- Builds the look of a catalogue model out of basic parts. The server uses it for placed machines
 -- and the client for the pictures in the palette. The parts are for show only: nothing collides
 -- with them and the build cursor ignores them.
-local Palette = require(script.Parent.ModelPalette)
+local Palette = require(script.Parent:WaitForChild("ModelPalette"))
 local models = script.Parent:WaitForChild("Models")
 
 local ModelBuilder = {}
@@ -8240,7 +8240,7 @@ function DebugService.start()
 	Commands.register("speed", function(_player, args)
 		setSpeed(args[1] or "")
 	end)
-	Commands.register("clear", clearItems)
+	Commands.register("wipe", clearItems)
 
 	local beats, since = 0, os.clock()
 	RunService.Heartbeat:Connect(function()
@@ -8374,8 +8374,11 @@ function GameCommands.start()
 		end
 	end)
 
+	-- Takes a workbench by name ("기본작업대", "wb_basic") or by its kind ("basic").
 	Commands.register("upgrade", function(player, args)
-		CraftService.upgrade(player, args[1])
+		local key = keyOf(args[1])
+		local def = key and Defs.Machines[key]
+		CraftService.upgrade(player, if def and def.bench then def.bench else args[1])
 	end)
 
 	Commands.register("can", function(player)
@@ -8492,7 +8495,6 @@ function IslandService.create(player: Player): Island
 	pad.Material = Enum.Material.SmoothPlastic
 	pad.Color = Color3.fromRGB(228, 225, 219)
 	pad.Transparency = 0.5
-	pad.CanQuery = false -- the build cursor looks straight through it
 	pad.Parent = folder
 	player.RespawnLocation = pad
 
@@ -8554,7 +8556,7 @@ end
 function IslandService.setBlock(island: Island, x: number, y: number, z: number, id: string): boolean
 	local key = Grid.key(x, y, z)
 	local def = Defs.Blocks[id]
-	if island.cells[key] or not def then
+	if island.cells[key] or not def or not Grid.inBounds(x, y, z, Config.MAX_COORD) then
 		return false
 	end
 	local part = Instance.new("Part")
@@ -8726,14 +8728,18 @@ function ItemService.spawn(itemId: string, count: number, position: Vector3): Ba
 	nextUid += 1
 	local part = Instance.new("Part")
 	part.Name = itemId
-	if def.ball then
-		part.Shape = Enum.PartType.Ball
-	end
 	part.Size = Vector3.new(def.size[1], def.size[2], def.size[3])
 	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
 	part.Material = Enum.Material.SmoothPlastic
 	part.CustomPhysicalProperties = PHYSICS
 	part.Position = position
+	if def.ball then
+		-- Looks round, but still collides as a box: a real ball would roll, and a rolling ball
+		-- travels along a belt at a fraction of the belt's speed.
+		local round = Instance.new("SpecialMesh")
+		round.MeshType = Enum.MeshType.Sphere
+		round.Parent = part
+	end
 	part:SetAttribute("ItemId", itemId)
 	part:SetAttribute("Count", math.min(count, Config.MAX_STACK))
 	part:SetAttribute("Uid", nextUid)
@@ -8974,11 +8980,16 @@ function MachineKit.ports(machine): { Port }
 			then Vector3.new(0, 0, -port.off * CELL)
 			else Vector3.new(port.off * CELL, 0, 0)
 		local edge = outward * half + lateral
+		-- An input takes only what is pressed up against the mouth: the thin strip between the
+		-- machine and where the side rail of a belt running past would be. So a belt that ends at
+		-- the mouth feeds the machine, and a belt that passes by it does not.
+		-- An output looks further out, so it waits for a gap before putting the next item down.
+		local depth = if port.kind == "in" then 0.3 else 0.9
 		table.insert(ports, {
 			kind = port.kind,
-			-- from the ground up to a little above belt height, so items on a belt or on the floor both count
-			box = machine.base * CFrame.new(edge + outward * 0.45 + Vector3.new(0, -0.55, 0)),
-			size = if alongX then Vector3.new(0.9, 1.9, 2.2) else Vector3.new(2.2, 1.9, 0.9),
+			-- from the ground up to a little above belt height
+			box = machine.base * CFrame.new(edge + outward * (depth / 2) + Vector3.new(0, -0.55, 0)),
+			size = if alongX then Vector3.new(depth, 1.9, 2.2) else Vector3.new(2.2, 1.9, depth),
 			spawn = (machine.base * CFrame.new(edge + outward * 0.75 + Vector3.new(0, -0.15, 0))).Position,
 		})
 	end
@@ -9138,9 +9149,16 @@ function MachineService.create(
 	}
 	-- Parent first: a conveyor's velocity is only reliable once the part is in the world.
 	model.Parent = island.machinesFolder
-	machine.mod.build(machine)
-	if machine.mod.load and saved ~= nil then
-		machine.mod.load(machine, saved)
+	local built, problem = pcall(function()
+		machine.mod.build(machine)
+		if machine.mod.load and saved ~= nil then
+			machine.mod.load(machine, saved)
+		end
+	end)
+	if not built then
+		warn("could not build " .. id .. " at " .. machine.key .. ": " .. tostring(problem))
+		model:Destroy()
+		return nil
 	end
 
 	machines[machine] = true
@@ -9414,7 +9432,7 @@ local ItemService = require(script.Parent.ItemService)
 local Outlet = {}
 
 local CELL = Config.CELL
-local FACING = 1.7 -- studs between this mouth's drop point and a neighbour's input for them to count as joined
+local FACING = 1.5 -- studs between this mouth's drop point and a neighbour's input for them to count as joined
 
 local function facingInput(other, port): boolean
 	for _, input in other.ins or {} do
@@ -10792,6 +10810,12 @@ local function ignoreList(): { Instance }
 	if items then
 		table.insert(list, items)
 	end
+	-- The pad the player arrives on is not a block and cannot be built against.
+	local island = Workspace:FindFirstChild("Island_" .. player.UserId)
+	local pad = island and island:FindFirstChild("SpawnPad")
+	if pad then
+		table.insert(list, pad)
+	end
 	return list
 end
 
@@ -10839,18 +10863,17 @@ local function target(): Target?
 	local model = hit.Instance:FindFirstAncestorOfClass("Model")
 	local def = model and Defs.Machines[model:GetAttribute("Machine") :: any]
 	if model and def then
-		-- A machine is broken by its anchor cell, whichever part of it was hit. Its shape does not
-		-- fill its cells exactly, so the hit height is fitted to the layers the machine keeps.
-		bx = model:GetAttribute("CellX") :: number
-		by = model:GetAttribute("CellY") :: number
-		bz = model:GetAttribute("CellZ") :: number
+		-- A machine's shape does not fill its cells exactly, so the hit height is fitted to the
+		-- layers the machine keeps. Any of its cells stands for the whole machine.
+		local base = model:GetAttribute("CellY") :: number
 		if sy > 0 then
-			hy = by + def.sy - 1
+			hy = base + def.sy - 1
 		elseif sy < 0 then
-			hy = by
+			hy = base
 		else
-			hy = math.clamp(hy, by, by + def.sy - 1)
+			hy = math.clamp(hy, base, base + def.sy - 1)
 		end
+		by = hy
 	end
 	local found: Target = { bx = bx, by = by, bz = bz, px = hx + sx, py = hy + sy, pz = hz + sz }
 	if (cellCenter(at, found.px, found.py, found.pz) - root.Position).Magnitude > Config.REACH then

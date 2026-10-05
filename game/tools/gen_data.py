@@ -3,7 +3,7 @@
 # Inputs:  game/tools/modeldata.json (from art/factorykit.py -- gamedata),
 #          art/catalog/blocks.json (from art/blocks.py), data/recipes.json (from data/recipes.py)
 # Outputs: game/src/shared/Defs.luau, Recipes.luau, ModelPalette.luau, Models/*.luau
-import json, os, shutil
+import json, math, os, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -83,8 +83,9 @@ for key, m in models["machines"].items():
     elif key == "crop_wheat_1":
         behavior, extra = "crop", {"needsBelow": ["farmland"], "walkThrough": True, "cost": "seed",
                                    "stages": ["crop_wheat_1", "crop_wheat_2", "crop_wheat_3"]}
-    # Cells are 3 studs tall. A machine keeps the cells above it too when it reaches well into them.
-    layers = max(1, int(m["height"] / 3 + 0.4))
+    # Cells are 3 studs tall. A machine keeps every cell it reaches into, so nothing can be built
+    # through its top.
+    layers = max(1, math.ceil((m["height"] - 0.2) / 3))
     machines[key] = dict(name=RENAME.get(key, m["name"]), family=m["family"], note=m["note"],
                          sx=m["cells"][0], sz=m["cells"][1], sy=layers, height=m["height"], icon=key,
                          ports=[dict(side=s, kind=k, off=o) for s, k, o in m["ports"]],

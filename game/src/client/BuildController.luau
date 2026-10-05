@@ -58,6 +58,12 @@ local function ignoreList(): { Instance }
 	if items then
 		table.insert(list, items)
 	end
+	-- The pad the player arrives on is not a block and cannot be built against.
+	local island = Workspace:FindFirstChild("Island_" .. player.UserId)
+	local pad = island and island:FindFirstChild("SpawnPad")
+	if pad then
+		table.insert(list, pad)
+	end
 	return list
 end
 
@@ -105,18 +111,17 @@ local function target(): Target?
 	local model = hit.Instance:FindFirstAncestorOfClass("Model")
 	local def = model and Defs.Machines[model:GetAttribute("Machine") :: any]
 	if model and def then
-		-- A machine is broken by its anchor cell, whichever part of it was hit. Its shape does not
-		-- fill its cells exactly, so the hit height is fitted to the layers the machine keeps.
-		bx = model:GetAttribute("CellX") :: number
-		by = model:GetAttribute("CellY") :: number
-		bz = model:GetAttribute("CellZ") :: number
+		-- A machine's shape does not fill its cells exactly, so the hit height is fitted to the
+		-- layers the machine keeps. Any of its cells stands for the whole machine.
+		local base = model:GetAttribute("CellY") :: number
 		if sy > 0 then
-			hy = by + def.sy - 1
+			hy = base + def.sy - 1
 		elseif sy < 0 then
-			hy = by
+			hy = base
 		else
-			hy = math.clamp(hy, by, by + def.sy - 1)
+			hy = math.clamp(hy, base, base + def.sy - 1)
 		end
+		by = hy
 	end
 	local found: Target = { bx = bx, by = by, bz = bz, px = hx + sx, py = hy + sy, pz = hz + sz }
 	if (cellCenter(at, found.px, found.py, found.pz) - root.Position).Magnitude > Config.REACH then

@@ -28,7 +28,7 @@ function DebugService.start()
 	Commands.register("speed", function(_player, args)
 		setSpeed(args[1] or "")
 	end)
-	Commands.register("clear", clearItems)
+	Commands.register("wipe", clearItems)
 
 	local beats, since = 0, os.clock()
 	RunService.Heartbeat:Connect(function()

@@ -1,7 +1,7 @@
 -- Builds the look of a catalogue model out of basic parts. The server uses it for placed machines
 -- and the client for the pictures in the palette. The parts are for show only: nothing collides
 -- with them and the build cursor ignores them.
-local Palette = require(script.Parent.ModelPalette)
+local Palette = require(script.Parent:WaitForChild("ModelPalette"))
 local models = script.Parent:WaitForChild("Models")
 
 local ModelBuilder = {}

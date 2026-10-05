@@ -104,9 +104,16 @@ function MachineService.create(
 	}
 	-- Parent first: a conveyor's velocity is only reliable once the part is in the world.
 	model.Parent = island.machinesFolder
-	machine.mod.build(machine)
-	if machine.mod.load and saved ~= nil then
-		machine.mod.load(machine, saved)
+	local built, problem = pcall(function()
+		machine.mod.build(machine)
+		if machine.mod.load and saved ~= nil then
+			machine.mod.load(machine, saved)
+		end
+	end)
+	if not built then
+		warn("could not build " .. id .. " at " .. machine.key .. ": " .. tostring(problem))
+		model:Destroy()
+		return nil
 	end
 
 	machines[machine] = true
