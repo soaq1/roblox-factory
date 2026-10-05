@@ -1680,6 +1680,26 @@ def _battery(m, T):
         m.box((0.09, 0.025, 0.14), (-0.18 + i * 0.12, -0.33, 0.34), "out" if i < 3 else "dark")
 
 
+@machine("pole", "전신주", "동력", "전선을 이어 전기를 나름. 전신주 주변 몇 칸 안의 기계가 전기를 받음",
+         chassis_on=False, ortho=6.6, tz=1.15)
+def _pole(m, T):
+    m.box((0.36, 0.36, 0.10), (0, 0, 0.05), "dark", bevel=0.02)
+    m.cyl(0.075, 2.10, (0, 0, 1.15), "wood_dark", seg=8, r2=0.055)
+    m.box((0.90, 0.08, 0.08), (0, 0, 1.95), "wood", bevel=0.01)
+    for s_ in (-1, 1):
+        m.box((0.05, 0.05, 0.42), (s_ * 0.17, 0, 1.78), "wood", rot=(0, s_ * rad(-40), 0))
+    for x in (-0.38, 0.0, 0.38):
+        z = 2.24 if x == 0 else 1.99
+        m.cyl(0.04, 0.10, (x, 0, z + 0.05), "white", seg=6)
+        m.cyl(0.025, 0.04, (x, 0, z + 0.12), "copper", seg=6)
+        for s_ in (-1, 1):
+            m.box((0.012, 0.50, 0.012), (x, s_ * 0.26, z + 0.09), "dark", rot=(s_ * rad(-10), 0, 0))
+    m.cyl(0.11, 0.26, (0.0, -0.14, 1.45), "mid", seg=8)
+    m.cyl(0.115, 0.03, (0.0, -0.14, 1.59), "dark", seg=8)
+    bolt = [(0.02, 0.07), (-0.04, -0.005), (-0.005, -0.005), (-0.025, -0.07), (0.04, 0.015), (0.005, 0.015)]
+    m.prism([(x, 1.45 + z) for x, z in bolt], -0.262, -0.25, "Y", "spark")
+
+
 # ============================ ITEMS ============================
 def build_items():
     items = {}
@@ -1846,7 +1866,10 @@ def shoot(path, target, ortho, res, transparent):
 # ============================ THUMBNAILS ============================
 if "thumbs" in ARGS:
     shown = [s for s in SPECS if s["show"]]
+    only = {a.split("=", 1)[1] for a in ARGS if a.startswith("only=")}
     for i, s in enumerate(shown):
+        if only and s["key"] not in only:
+            continue
         O = Vector((i * 40.0, 0, 0))
         place(MESH[s["key"]], O)
         ins, outs = list(s["ins"]), list(s["outs"])
@@ -1867,7 +1890,8 @@ if "thumbs" in ARGS:
         u = (c - (per - 1) / 2) * 0.46
         v = (1 - r) * 0.95
         place(ITEMS[name], (u - v, -80 + u + v, 0))
-    shoot(os.path.join(OUT, "img", "_items.png"), (0, -80, 0.1), 10.6, (2000, 720), True)
+    if not only:
+        shoot(os.path.join(OUT, "img", "_items.png"), (0, -80, 0.1), 10.6, (2000, 720), True)
     meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
             for s in shown]
     json.dump({"machines": meta, "items": items_row}, open(os.path.join(OUT, "catalog.json"), "w"),
