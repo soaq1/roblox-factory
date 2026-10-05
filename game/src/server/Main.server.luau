@@ -26,6 +26,9 @@ local function buildStarter(island: IslandService.Island)
 	for _, b in IslandGen.generate() do
 		IslandService.setBlock(island, b.x, b.y, b.z, b.id)
 	end
+	for _, t in IslandGen.TREES do
+		MachineService.create(island, "tree", t.x, t.y, t.z, 0, nil)
+	end
 end
 
 -- Returns false if the player left while the island was still being built.

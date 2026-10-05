@@ -198,7 +198,12 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		if cell.kind == "block" then
 			needed = ToolLogic.blockHits(cell.id, hand)
 		else
-			needed = ToolLogic.machineHits(ToolLogic.machineHardness(cell.machine.def), hand)
+			local target = cell.machine
+			local hardness = if target.mod.hardness
+				then target.mod.hardness(target)
+				else ToolLogic.machineHardness(target.def)
+			needed =
+				ToolLogic.machineHits(hardness, hand, if target.def.behavior == "tree" then "axe" else "pick")
 			swingAt = cell.machine.key
 		end
 		if needed > 1 then
@@ -248,7 +253,7 @@ end
 
 -- Picks up one loose stack. The one the player is pointing at is taken if it is close enough;
 -- otherwise the nearest one lying still, and items riding a belt only when nothing else is near.
-local function pickup(player: Player, aimed: any)
+local function pickup(player: Player, aimed: any, repeated: any)
 	local island = IslandService.get(player)
 	local position = rootPosition(player)
 	if not island or not position or not allowed(player) then
@@ -260,7 +265,8 @@ local function pickup(player: Player, aimed: any)
 			part = aimed
 		end
 	end
-	part = part or ItemService.pick(position, Config.PICKUP_RANGE)
+	-- A key held down only gathers what lies still: it would otherwise strip a running belt.
+	part = part or ItemService.pick(position, Config.PICKUP_RANGE, repeated == true)
 	-- Only what lies on the player's own island can be picked up, so a visitor cannot walk off
 	-- with what is lying on their host's.
 	if not part or not IslandService.owns(island, part.Position) then

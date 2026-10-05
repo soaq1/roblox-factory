@@ -42,6 +42,7 @@ local MODULES = {
 	power = "Power",
 	vending = "Vending",
 	sign = "Sign",
+	tree = "Tree",
 }
 
 local machines: { [any]: boolean } = {}
@@ -57,33 +58,50 @@ local function moduleFor(behavior: string)
 end
 
 -- The keys of every cell a machine would cover, or nil if any of them is taken or out of range.
+-- The keys of every cell a machine would keep, or nil if any of them is taken or out of range,
+-- and the state it should be built from. Most machines keep a box of cells; a machine whose
+-- module has `claim` (a tree) names its own cells and may fill in its state while doing so.
+-- Cells held by `ignore` count as free: a sapling asks whether the tree it will become fits.
 function MachineService.freeCells(
 	island: IslandService.Island,
 	id: string,
 	x: number,
 	y: number,
 	z: number,
-	dir: number
-): { string }?
+	dir: number,
+	saved: any?,
+	ignore: any?
+): ({ string }?, any?)
 	local def = Defs.Machines[id]
 	if not def then
-		return nil
+		return nil, saved
 	end
-	-- The anchor cell comes first; tall machines also keep the cells above them.
-	local keys = {}
-	for layer = 0, def.sy - 1 do
-		for _, cell in Grid.footprint(x, z, dir, def.sx, def.sz) do
-			if not Grid.inBounds(cell[1], y + layer, cell[2], Config.MAX_COORD) then
-				return nil
+	local mod = moduleFor(def.behavior)
+	local cells: { { number } } = {}
+	local state = saved
+	if mod.claim then
+		cells, state = mod.claim(x, y, z, saved)
+	else
+		-- The anchor cell comes first; tall machines also keep the cells above them.
+		for layer = 0, def.sy - 1 do
+			for _, cell in Grid.footprint(x, z, dir, def.sx, def.sz) do
+				table.insert(cells, { cell[1], y + layer, cell[2] })
 			end
-			local key = Grid.key(cell[1], y + layer, cell[2])
-			if island.cells[key] then
-				return nil
-			end
-			table.insert(keys, key)
 		end
 	end
-	return keys
+	local keys = {}
+	for _, cell in cells do
+		if not Grid.inBounds(cell[1], cell[2], cell[3], Config.MAX_COORD) then
+			return nil, state
+		end
+		local key = Grid.key(cell[1], cell[2], cell[3])
+		local taken = island.cells[key]
+		if taken and not (ignore and taken.kind == "machine" and taken.machine == ignore) then
+			return nil, state
+		end
+		table.insert(keys, key)
+	end
+	return keys, state
 end
 
 function MachineService.create(
@@ -96,10 +114,11 @@ function MachineService.create(
 	saved: any?
 )
 	local def = Defs.Machines[id]
-	local keys = MachineService.freeCells(island, id, x, y, z, dir)
+	local keys, state = MachineService.freeCells(island, id, x, y, z, dir, saved)
 	if not def or not keys then
 		return nil
 	end
+	saved = state
 	local model = Instance.new("Model")
 	model.Name = id
 	model:SetAttribute("Machine", id)
@@ -163,6 +182,10 @@ function MachineService.remove(machine, dropContents: boolean)
 	end
 	for _, key in machine.keys do
 		machine.island.cells[key] = nil
+	end
+	-- A last word for the machine before it goes (a felled tree tips over).
+	if machine.mod.removed then
+		pcall(machine.mod.removed, machine)
 	end
 	machine.model:Destroy()
 end

@@ -178,6 +178,12 @@ local function target(): Target?
 			hy = math.clamp(hy, base, base + def.sy - 1)
 		end
 		by = hy
+		if def.behavior == "tree" then
+			-- A trunk leans through cells of its own choosing; the cell it stands in is the sure one.
+			bx = model:GetAttribute("CellX") :: number
+			by = base
+			bz = model:GetAttribute("CellZ") :: number
+		end
 	end
 	local found: Target = {
 		bx = bx,
@@ -380,12 +386,13 @@ end
 
 -- F: picks up one stack. F also answers whatever prompt is on screen (a portal, a workbench, a
 -- ripe crop); then it is not a pick-up as well.
-local function pickUp()
+-- `repeated` is a pick-up made by holding the key down rather than pressing it.
+local function pickUp(repeated: boolean?)
 	if promptsShown > 0 or Screens.anyOpen() then
 		return
 	end
 	SoundPlayer.play("pickup")
-	Net.get("Pickup"):FireServer(aimedItem())
+	Net.get("Pickup"):FireServer(aimedItem(), repeated == true)
 end
 
 local function setRunning(now: boolean)
@@ -605,7 +612,7 @@ local function keepPicking(dt: number)
 	sincePick += dt
 	if sincePick >= PICKUP_SECONDS then
 		sincePick = 0
-		pickUp()
+		pickUp(true)
 	end
 end
 
@@ -645,11 +652,19 @@ local function pickLooked()
 	if not entry or not Defs.isPlaceable(entry) then
 		return
 	end
+	local picked = Defs.Machines[entry]
+	if picked and picked.hidden then
+		return -- a tree or a growing crop is not something to hold
+	end
 	local slots = if hotbar.slots then hotbar.slots() else {}
 	local what, index = HandLogic.pick(Stock, slots, entry, hotbar.bag, isCreative())
 	if what == "select" and index then
 		hotbar.select(index)
 	elseif what == "assign" then
+		local empty = table.find(slots, "")
+		if empty then
+			hotbar.select(empty)
+		end
 		hotbar.assign(entry)
 	else
 		UIKit.toast("가방에 " .. Defs.name(entry) .. "이(가) 없습니다")
@@ -686,8 +701,10 @@ local function aimedMachine(root: BasePart, near: { Model }): Model?
 	return if model and model:GetAttribute("Machine") then model else nil
 end
 
--- Each prompt's own reach, as the server set it, and the prompts each machine has.
-local promptReach: { [ProximityPrompt]: number } = setmetatable({}, { __mode = "k" }) :: any
+-- A machine prompt's reach is always this (MachineKit.prompt sets it). It is written here rather
+-- than read back from the prompt, because what is read back may be this client's own zero.
+local PROMPT_REACH = 10
+-- The prompts each machine has.
 local promptsOf: { [Model]: { at: number, list: { ProximityPrompt } } } = setmetatable({}, { __mode = "k" }) :: any
 
 local function promptsFor(model: Model): { ProximityPrompt }
@@ -701,9 +718,6 @@ local function promptsFor(model: Model): { ProximityPrompt }
 	for _, child in model:GetDescendants() do
 		if child:IsA("ProximityPrompt") then
 			table.insert(list, child)
-			if promptReach[child] == nil then
-				promptReach[child] = child.MaxActivationDistance
-			end
 		end
 	end
 	promptsOf[model] = { at = now, list = list }
@@ -745,7 +759,7 @@ local function gatePrompts(dt: number)
 	local aimed = aimedMachine(root, near)
 	for _, model in near do
 		for _, prompt in promptsFor(model) do
-			local reach = if model == aimed then promptReach[prompt] or 10 else 0
+			local reach = if model == aimed then PROMPT_REACH else 0
 			if prompt.MaxActivationDistance ~= reach then
 				prompt.MaxActivationDistance = reach
 			end

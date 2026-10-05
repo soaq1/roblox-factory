@@ -1,15 +1,10 @@
--- The logger: cuts the trees near it, one log at a time from the top down, and puts the logs out
--- of its mouth. When a tree is finished it clears the leaves and sets a sapling where the tree
--- stood, so a stand of trees keeps itself going.
--- It cannot tell a tree from a pillar of log blocks someone built: any log in reach is cut.
+-- The logger: fells the trees near it, one at a time, and puts the logs out of its mouth. It
+-- sets a sapling back where each tree stood, so a stand of trees keeps itself going, and puts any
+-- sapling left over out with the logs.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
-local FarmLogic = require(Shared.FarmLogic)
-local Grid = require(Shared.Grid)
 local DeviceKit = require(script.Parent.Parent.DeviceKit)
-local IslandService = require(script.Parent.Parent.IslandService)
 local Kit = require(script.Parent.Parent.MachineKit)
 local MachineService = require(script.Parent.Parent.MachineService)
 local Outlet = require(script.Parent.Parent.Outlet)
@@ -17,77 +12,101 @@ local Tuning = require(script.Parent.Parent.Tuning)
 
 local Logger = {}
 
-local RADIUS = 3 -- cells each way
-local BELOW, ABOVE = 1, 8 -- how far under and over its own level it looks for logs
-local EVERY = 3 -- seconds per log
-local HOLDS = 8 -- cut logs waiting to come out before it stops cutting
+local RADIUS = 3 -- cells each way, measured to where the trunk stands
+local EVERY = 12 -- seconds between trees (a placeholder)
+local HOLDS = 8 -- things waiting to come out before it stops felling
 local REPLANT = true
 local SAPLING = "plant_sapling"
+
+local function count(stock: { [string]: number }): number
+	local total = 0
+	for _, n in stock do
+		total += n
+	end
+	return total
+end
 
 function Logger.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	Kit.body(machine)
 	machine.out = Kit.outputs(Kit.ports(machine))[1]
-	machine.waiting = 0 -- logs cut but not yet put out
+	machine.stock = {} -- felled but not yet put out: logs, and saplings it had no use for
 	machine.wait = EVERY
 end
 
 function Logger.load(machine, saved)
-	if type(saved) == "table" and type(saved.waiting) == "number" and saved.waiting == saved.waiting then
-		machine.waiting = math.clamp(math.floor(saved.waiting), 0, HOLDS)
+	if type(saved) ~= "table" then
+		return
+	end
+	-- an older save held only a number of logs
+	local stock = if type(saved.stock) == "table" then saved.stock else { log = saved.waiting }
+	for _, id in { "log", "sapling" } do
+		local n = stock[id]
+		if type(n) == "number" and n == n and n >= 1 then
+			machine.stock[id] = math.min(math.floor(n), 999)
+		end
 	end
 end
 
 function Logger.save(machine)
-	return { waiting = machine.waiting }
+	return { stock = table.clone(machine.stock) }
 end
 
-local function cut(machine)
-	local island = machine.island
-	local function isLog(x: number, y: number, z: number): boolean
-		return DeviceKit.blockAt(island, x, y, z) == "log"
+-- The nearest tree whose trunk stands within reach, on the logger's own level or near it.
+local function nearestTree(machine)
+	local best, bestDistance = nil, math.huge
+	for _, other in MachineService.onIsland(machine.island) do
+		if other.def.behavior == "tree" then
+			local dx, dz = math.abs(other.x - machine.x), math.abs(other.z - machine.z)
+			if dx <= RADIUS and dz <= RADIUS and math.abs(other.y - machine.y) <= 1 then
+				local distance = dx + dz
+				if distance < bestDistance then
+					best, bestDistance = other, distance
+				end
+			end
+		end
 	end
-	local function isLeaf(x: number, y: number, z: number): boolean
-		return DeviceKit.blockAt(island, x, y, z) == "leaves"
-	end
-	local log = FarmLogic.nextLog(isLog, machine.x, machine.y, machine.z, RADIUS, BELOW, ABOVE)
-	if not log then
+	return best
+end
+
+local function fell(machine)
+	local tree = nearestTree(machine)
+	if not tree then
 		return
 	end
-	IslandService.clearCell(island, Grid.key(log.x, log.y, log.z))
-	machine.waiting += 1
-	if FarmLogic.trunkStands(isLog, log.x, log.z, machine.y - BELOW, machine.y + ABOVE) then
-		return
-	end
-	-- That was the last log of the tree, and since trees come down from the top, the lowest.
-	for _, leaf in FarmLogic.looseLeaves(isLeaf, isLog, log.x, log.y, log.z) do
-		IslandService.clearCell(island, Grid.key(leaf.x, leaf.y, leaf.z))
-	end
-	local ground = DeviceKit.blockAt(island, log.x, log.y - 1, log.z)
+	local island, x, y, z = machine.island, tree.x, tree.y, tree.z
+	local yield = tree.mod.drops(tree) -- this is also what makes the tree tip over
+	MachineService.remove(tree, false)
+	-- One sapling goes back where the tree stood, if the ground still suits it.
+	local ground = DeviceKit.blockAt(island, x, y - 1, z)
 	local needs = Defs.Machines[SAPLING].needsBelow or {}
-	if
-		REPLANT
-		and ground
-		and table.find(needs, ground)
-		and Grid.inBounds(log.x, log.y, log.z, Config.MAX_COORD)
-	then
-		MachineService.create(island, SAPLING, log.x, log.y, log.z, 0, nil)
+	if REPLANT and (yield.sapling or 0) >= 1 and ground and table.find(needs, ground) then
+		if MachineService.create(island, SAPLING, x, y, z, 0, nil) then
+			yield.sapling -= 1
+		end
+	end
+	for id, n in yield do
+		if n > 0 then
+			machine.stock[id] = (machine.stock[id] or 0) + n
+		end
 	end
 end
 
 function Logger.tick(machine, dt: number)
-	if machine.waiting > 0 and machine.out and Outlet.emit(machine, machine.out, "log") then
-		machine.waiting -= 1
+	local id = next(machine.stock)
+	if id and machine.out and Outlet.emit(machine, machine.out, id) then
+		local left = machine.stock[id] - 1
+		machine.stock[id] = if left > 0 then left else nil
 	end
 	machine.wait -= dt * Tuning.speed
-	if machine.wait <= 0 and machine.waiting < HOLDS then
+	if machine.wait <= 0 and count(machine.stock) < HOLDS then
 		machine.wait = EVERY
-		cut(machine)
+		fell(machine)
 	end
 end
 
 function Logger.drops(machine): { [string]: number }
-	return if machine.waiting > 0 then { log = machine.waiting } else {}
+	return table.clone(machine.stock)
 end
 
 return Logger

@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared.Defs)
 local Inventory = require(Shared.Inventory)
 local StoreLogic = require(Shared.StoreLogic)
+local ToolLogic = require(Shared.ToolLogic)
 local DeviceKit = require(script.Parent.Parent.DeviceKit)
 local Kit = require(script.Parent.Parent.MachineKit)
 local ItemService = require(script.Parent.Parent.ItemService)
@@ -105,6 +106,9 @@ function Chest.act(machine, player: Player, action: string, arg: any)
 		Watch.close(machine, player)
 		return
 	end
+	-- Whoever is using the window is watching it, even if they wandered off and came back.
+	machine.watchers = machine.watchers or {}
+	machine.watchers[player] = true
 	local bag = machine.island.bag
 	local moved = 0
 	if action == "takeall" then
@@ -112,6 +116,11 @@ function Chest.act(machine, player: Player, action: string, arg: any)
 	elseif type(arg) ~= "table" or not Stock.isKey(arg.key) then
 		return
 	elseif action == "put" then
+		-- The last tool stays with the player, as it does when dropped or traded.
+		if ToolLogic.parse(arg.key) and type(arg.n) == "number" and arg.n >= ToolLogic.count(bag) then
+			Profile.hint(player, "마지막 도구는 넣어 둘 수 없습니다")
+			return
+		end
 		moved = StoreLogic.move(bag, machine.state, arg.key, arg.n)
 	elseif action == "take" then
 		moved = StoreLogic.move(machine.state, bag, arg.key, arg.n)

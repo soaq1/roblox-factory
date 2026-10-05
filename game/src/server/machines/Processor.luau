@@ -246,6 +246,9 @@ function Processor.act(machine, player: Player, action: string, arg: any)
 		Watch.close(machine, player)
 		return
 	end
+	-- Whoever is using the window is watching it, even if they wandered off and came back.
+	machine.watchers = machine.watchers or {}
+	machine.watchers[player] = true
 	if type(arg) ~= "table" then
 		return
 	end

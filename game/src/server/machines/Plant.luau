@@ -1,10 +1,10 @@
--- Things that grow: a sapling becomes a tree of blocks, a crop ripens through stages.
+-- Things that grow: a sapling becomes a tree, a crop ripens through stages.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
-local IslandGen = require(Shared.IslandGen)
+local TreeGen = require(Shared.TreeGen)
 local Inventory = require(Shared.Inventory)
-local IslandService = require(script.Parent.Parent.IslandService)
+local MachineService = require(script.Parent.Parent.MachineService)
 local Kit = require(script.Parent.Parent.MachineKit)
 local Profile = require(script.Parent.Parent.Profile)
 local Tuning = require(script.Parent.Parent.Tuning)
@@ -12,6 +12,7 @@ local Tuning = require(script.Parent.Parent.Tuning)
 local Plant = {}
 
 Plant.WET_RATE = 2 -- how many times faster a watered plant grows
+Plant.LOOK_SECONDS = 5 -- how often a grown sapling looks for room to become a tree
 
 local function stageOf(machine): number
 	local stages = machine.def.stages
@@ -39,6 +40,12 @@ function Plant.build(machine)
 	machine.wetUntil = 0
 	show(machine, 1)
 	local body = Kit.body(machine)
+	machine.body = body
+	if machine.def.behavior == "sapling" then
+		-- What tree this will be is settled when it is planted, so it can be asked whether that
+		-- tree has room, and so it does not change if the island is saved in between.
+		machine.grow = { seed = math.random(1, 2 ^ 30), giant = TreeGen.isGiant(math.random()) }
+	end
 	if machine.def.stages then
 		-- F on a ripe crop gathers it by hand, the way the harvester does: what it bore goes into
 		-- the bag and the plant starts over where it stands.
@@ -67,10 +74,23 @@ function Plant.load(machine, saved)
 			show(machine, stage)
 		end
 	end
+	if
+		machine.grow
+		and type(saved) == "table"
+		and type(saved.seed) == "number"
+		and saved.seed == saved.seed
+	then
+		machine.grow = { seed = math.clamp(math.floor(saved.seed), 1, 2 ^ 30), giant = saved.giant == true }
+	end
 end
 
 function Plant.save(machine)
-	return { age = math.floor(machine.age) }
+	local grow = machine.grow
+	return {
+		age = math.floor(machine.age),
+		seed = if grow then grow.seed else nil,
+		giant = if grow then grow.giant else nil,
+	}
 end
 
 -- Keeps the plant watered for a while. A sprinkler calls this again and again.
@@ -79,11 +99,56 @@ function Plant.water(machine, seconds: number)
 end
 
 -- Returning true asks the machine service to remove this plant and then call `finish`.
+-- Is there room for the tree this sapling will become? A sapling due to be a giant settles for
+-- an ordinary tree when the giant does not fit.
+local function hasRoom(machine): boolean
+	local grow = machine.grow
+	local function fits(giant: boolean): boolean
+		local want = { seed = grow.seed, giant = giant }
+		local keys = MachineService.freeCells(
+			machine.island,
+			"tree",
+			machine.x,
+			machine.y,
+			machine.z,
+			0,
+			want,
+			machine
+		)
+		return keys ~= nil
+	end
+	if grow.giant and fits(true) then
+		return true
+	end
+	if fits(false) then
+		grow.giant = false
+		return true
+	end
+	return false
+end
+
 function Plant.tick(machine, dt: number): boolean
 	local rate = if os.clock() < machine.wetUntil then Plant.WET_RATE else 1
 	machine.age += dt * Tuning.speed * rate
 	if machine.def.behavior == "sapling" then
-		return machine.age >= Config.SAPLING_SECONDS
+		if machine.age < Config.SAPLING_SECONDS then
+			return false
+		end
+		-- Grown: it becomes a tree as soon as the tree has room. Looking is not free, so it looks
+		-- now and then rather than every beat.
+		machine.lookIn = (machine.lookIn or 0) - dt
+		if machine.lookIn > 0 then
+			return false
+		end
+		machine.lookIn = Plant.LOOK_SECONDS
+		if hasRoom(machine) then
+			return true
+		end
+		if not machine.blockedLabel then
+			machine.blockedLabel = Kit.label(machine.body, machine.def.height)
+			machine.blockedLabel.Text = "자랄 자리가 막혀 있음"
+		end
+		return false
 	end
 	local stage = stageOf(machine)
 	if stage ~= machine.stage then
@@ -94,11 +159,7 @@ end
 
 -- A grown sapling leaves a tree where it stood. Cells that are already taken are skipped.
 function Plant.finish(machine)
-	local blocks = {}
-	IslandGen.tree(blocks, machine.x, machine.y, machine.z, 3)
-	for _, b in blocks do
-		IslandService.setBlock(machine.island, b.x, b.y, b.z, b.id)
-	end
+	MachineService.create(machine.island, "tree", machine.x, machine.y, machine.z, 0, machine.grow)
 end
 
 function Plant.isRipe(machine): boolean

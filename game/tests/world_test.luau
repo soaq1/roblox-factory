@@ -182,4 +182,19 @@ test("a hoe leaves farmland alone, so a long press does not undo the tilling", f
 	eq(ToolLogic.spares(nil, "farmland"), false)
 end)
 
+test("an axe is the tool for a tree, as a pickaxe is for a machine", function()
+	local axe, pick = { axe_wood = 1 }, { pick_wood = 1 }
+	assert(
+		ToolLogic.machineHits(12, axe, "axe") < ToolLogic.machineHits(12, pick, "axe"),
+		"an axe should fell faster"
+	)
+	eq(ToolLogic.machineHits(12, pick, "axe"), ToolLogic.machineHits(12, {}, "axe"))
+	-- with no tool named, a pickaxe is the one that counts
+	eq(ToolLogic.machineHits(8, pick), ToolLogic.machineHits(8, pick, "pick"))
+	assert(
+		ToolLogic.machineHits(8, pick) < ToolLogic.machineHits(8, axe),
+		"a pickaxe should lift a machine faster"
+	)
+end)
+
 T.done()

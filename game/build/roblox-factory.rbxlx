@@ -3357,6 +3357,21 @@ Defs.Machines = {
 		needsPower = false,
 		power = "reactor",
 	},
+	tree = {
+		name = "나무",
+		family = "식물",
+		note = "도끼로 치면 통째로 쓰러져 통나무와 묘목을 줌",
+		sx = 1,
+		sz = 1,
+		sy = 6,
+		height = 17,
+		icon = "plant_sapling",
+		ports = {},
+		behavior = "tree",
+		hidden = true,
+		needsPower = false,
+		cost = "sapling",
+	},
 	belt_corner_l = {
 		name = "코너 벨트 (왼쪽)",
 		family = "운반",
@@ -3971,24 +3986,6 @@ local function wobble(x: number, z: number): number
 	return 0.55 * math.sin(x * 1.3 + z * 0.7) + 0.35 * math.cos(z * 1.9 - x * 0.4)
 end
 
--- A tree whose lowest log sits at (x, base, z).
-function IslandGen.tree(out: { Block }, x: number, base: number, z: number, height: number)
-	local top = base + height - 1
-	for y = base, top do
-		table.insert(out, { x = x, y = y, z = z, id = "log" })
-	end
-	for dy = 0, 1 do
-		for dx = -1, 1 do
-			for dz = -1, 1 do
-				if not (dx == 0 and dz == 0 and dy == 0) then
-					table.insert(out, { x = x + dx, y = top + dy, z = z + dz, id = "leaves" })
-				end
-			end
-		end
-	end
-	table.insert(out, { x = x, y = top + 2, z = z, id = "leaves" })
-end
-
 function IslandGen.generate(): { Block }
 	local out: { Block } = {}
 	for _, layer in LAYERS do
@@ -4001,10 +3998,11 @@ function IslandGen.generate(): { Block }
 			end
 		end
 	end
-	IslandGen.tree(out, -4, 1, -3, 3)
-	IslandGen.tree(out, 4, 1, 3, 4)
 	return out
 end
+
+-- Where the island's first trees stand. They are grown things, not blocks.
+IslandGen.TREES = { { x = -4, y = 1, z = -3 }, { x = 4, y = 1, z = 3 } }
 
 -- Cell the player stands on when they arrive.
 IslandGen.SPAWN = { x = 0, y = 1, z = 0 }
@@ -11593,10 +11591,10 @@ function ToolLogic.machineHardness(def: { cost: string?, behavior: string? }): n
 	return MACHINE_HARDNESS.heavy
 end
 
--- How many swings a machine of that hardness takes with what is in the bag. A pickaxe is the
--- tool for it; anything else counts as the wrong tool. Always at least one.
-function ToolLogic.machineHits(hardness: number, bag: Bag): number
-	local rank = ToolLogic.best(bag, "pick")
+-- How many swings a thing of that hardness takes with what is in the bag. A pickaxe is the tool
+-- for a machine and an axe for a tree; anything else counts as the wrong tool. Always at least one.
+function ToolLogic.machineHits(hardness: number, bag: Bag, tool: string?): number
+	local rank = ToolLogic.best(bag, tool or "pick")
 	return math.max(1, math.ceil(hardness / ToolLogic.power(rank)))
 end
 
@@ -11866,6 +11864,256 @@ return TradeLogic
       </Item>
       <Item class="ModuleScript" referent="228">
         <Properties>
+          <string name="Name">TreeGen</string>
+          <string name="Source"><![CDATA[--!strict
+-- The shape of a tree, worked out from a seed number. The same seed always gives the same tree,
+-- so a tree looks the same after the island is saved and loaded again. Trees differ a little from
+-- one another, never a lot; now and then a sapling grows into a giant instead.
+--
+-- Everything is in studs, measured from the middle of the ground under the trunk, y upward.
+-- A tree is not made of blocks: it is a trunk that leans and forks, with a mass of leaves at the
+-- end of each branch. It keeps the cells its trunk and leaves pass through, so nothing can be
+-- built into it, and it will not grow where those cells are already taken.
+-- Every number here is a placeholder to be tuned by eye.
+local TreeGen = {}
+
+TreeGen.CELL = 3
+TreeGen.GIANT_CHANCE = 0.03 -- how often a sapling becomes a giant
+local GIANT_SCALE = 2.6
+local FLAT = 0.72 -- leaf masses are wider than they are tall
+local SEGMENTS = 4
+
+export type Limb = {
+	ax: number,
+	ay: number,
+	az: number,
+	bx: number,
+	by: number,
+	bz: number,
+	r: number,
+	trunk: boolean,
+}
+-- One angular lump of leaves: a box at a place, with a size, turned by three angles, in one of
+-- three shades of green.
+export type Lump = {
+	x: number,
+	y: number,
+	z: number,
+	sx: number,
+	sy: number,
+	sz: number,
+	rx: number,
+	ry: number,
+	rz: number,
+	shade: number,
+}
+export type Tree = {
+	seed: number,
+	giant: boolean,
+	height: number,
+	logs: number,
+	hardness: number,
+	limbs: { Limb },
+	lumps: { Lump },
+	cells: { { number } }, -- cells kept, as steps from the cell the trunk stands in; that cell is first
+}
+
+-- A small repeatable random source (Park-Miller). Luau's own is not repeatable across places.
+local function source(seed: number): () -> number
+	local state = math.floor(math.abs(seed)) % 2147483646 + 1
+	local function roll(): number
+		state = (state * 48271) % 2147483647
+		return state / 2147483647
+	end
+	-- The first few numbers out of a small seed are all close to zero; throw them away.
+	for _ = 1, 4 do
+		roll()
+	end
+	return roll
+end
+
+local function between(roll: () -> number, lo: number, hi: number): number
+	return lo + (hi - lo) * roll()
+end
+
+-- Distance from a point to the stretch between two points.
+local function toStretch(
+	px: number,
+	py: number,
+	pz: number,
+	ax: number,
+	ay: number,
+	az: number,
+	bx: number,
+	by: number,
+	bz: number
+): number
+	local dx, dy, dz = bx - ax, by - ay, bz - az
+	local len2 = dx * dx + dy * dy + dz * dz
+	local t = 0
+	if len2 > 0 then
+		t = math.clamp(((px - ax) * dx + (py - ay) * dy + (pz - az) * dz) / len2, 0, 1)
+	end
+	local cx, cy, cz = ax + dx * t, ay + dy * t, az + dz * t
+	return math.sqrt((px - cx) ^ 2 + (py - cy) ^ 2 + (pz - cz) ^ 2)
+end
+
+function TreeGen.make(seed: number, giant: boolean?): Tree
+	local roll = source(seed)
+	local scale = if giant then GIANT_SCALE else 1
+	local height = between(roll, 15, 18.5) * scale
+	local trunkTop = height * 0.6
+	local base = between(roll, 0.95, 1.15) * scale
+	local leanX, leanZ = between(roll, -1.6, 1.6) * scale, between(roll, -1.6, 1.6) * scale
+	local bendTurn = between(roll, 0, math.pi * 2)
+	local bend = between(roll, 0.3, 0.8) * scale
+
+	local limbs: { Limb } = {}
+	local lumps: { Lump } = {}
+	local masses: { { number } } = {} -- x, y, z, radius of each mass of leaves
+
+	-- The trunk: a few pieces, each thinner than the last, bowing gently to one side.
+	local px, py, pz = 0, 0, 0
+	for i = 1, SEGMENTS do
+		local t = i / SEGMENTS
+		local bow = math.sin(t * math.pi) * bend
+		local nx = leanX * t + math.cos(bendTurn) * bow
+		local nz = leanZ * t + math.sin(bendTurn) * bow
+		local ny = trunkTop * t
+		local radius = base * (1.3 - 0.8 * ((i - 0.5) / SEGMENTS) ^ 0.7)
+		table.insert(
+			limbs,
+			{ ax = px, ay = py, az = pz, bx = nx, by = ny, bz = nz, r = radius, trunk = true }
+		)
+		px, py, pz = nx, ny, nz
+	end
+
+	-- Branches fork from the top of the trunk, spread evenly around it, each ending in leaves.
+	local forks = if roll() < 0.5 then 3 else 4
+	local leafRadius = between(roll, 3.4, 4.0) * scale
+	local turn = between(roll, 0, math.pi * 2)
+	local function mass(x: number, y: number, z: number, radius: number)
+		table.insert(masses, { x, y, z, radius })
+		for i = 1, 4 do
+			local spread = if i == 1 then 0 else radius * 0.5
+			local size = radius * (if i == 1 then 1.5 else between(roll, 0.95, 1.25))
+			table.insert(lumps, {
+				x = x + between(roll, -1, 1) * spread,
+				y = y + between(roll, -0.4, 0.6) * spread,
+				z = z + between(roll, -1, 1) * spread,
+				sx = size,
+				sy = size * FLAT,
+				sz = size,
+				rx = between(roll, -0.45, 0.45),
+				ry = between(roll, 0, math.pi),
+				rz = between(roll, -0.45, 0.45),
+				shade = (i - 1) % 3 + 1,
+			})
+		end
+	end
+	for k = 1, forks do
+		local angle = turn + math.pi * 2 * (k - 1) / forks + between(roll, -0.4, 0.4)
+		local reach = leafRadius * between(roll, 0.95, 1.4)
+		local rise = height * between(roll, 0.22, 0.34)
+		local mx, mz = px + math.cos(angle) * reach * 0.5, pz + math.sin(angle) * reach * 0.5
+		local tx, tz = px + math.cos(angle) * reach, pz + math.sin(angle) * reach
+		table.insert(limbs, {
+			ax = px,
+			ay = py,
+			az = pz,
+			bx = mx,
+			by = py + rise * 0.45,
+			bz = mz,
+			r = base * 0.4,
+			trunk = false,
+		})
+		table.insert(limbs, {
+			ax = mx,
+			ay = py + rise * 0.45,
+			az = mz,
+			bx = tx,
+			by = py + rise,
+			bz = tz,
+			r = base * 0.26,
+			trunk = false,
+		})
+		mass(tx, py + rise + leafRadius * 0.2, tz, leafRadius * between(roll, 0.82, 1.0))
+	end
+	-- and one mass straight up, so the tree has a top
+	table.insert(
+		limbs,
+		{ ax = px, ay = py, az = pz, bx = px, by = height * 0.92, bz = pz, r = base * 0.3, trunk = false }
+	)
+	mass(px, height * 0.92 + leafRadius * 0.15, pz, leafRadius * 1.12)
+
+	-- The cells kept: the one the trunk stands in, those the trunk passes through, and those the
+	-- leaves fill.
+	local cell = TreeGen.CELL
+	local cells: { { number } } = { { 0, 0, 0 } }
+	local seen: { [string]: boolean } = { ["0,0,0"] = true }
+	local reachCells = math.ceil((leafRadius * 2.6 + math.abs(leanX) + math.abs(leanZ)) / cell) + 1
+	local topCells = math.ceil((height + leafRadius * 1.5) / cell)
+	for cy = 0, topCells do
+		for cx = -reachCells, reachCells do
+			for cz = -reachCells, reachCells do
+				local x, y, z = cx * cell, cy * cell + cell / 2, cz * cell
+				local taken = false
+				for _, limb in limbs do
+					if
+						limb.trunk
+						and toStretch(x, y, z, limb.ax, limb.ay, limb.az, limb.bx, limb.by, limb.bz)
+							< limb.r + cell * 0.45
+					then
+						taken = true
+						break
+					end
+				end
+				if not taken then
+					for _, m in masses do
+						local dx, dy, dz = x - m[1], (y - m[2]) / FLAT, z - m[3]
+						if dx * dx + dy * dy + dz * dz < (m[4] * 0.95) ^ 2 then
+							taken = true
+							break
+						end
+					end
+				end
+				local key = cx .. "," .. cy .. "," .. cz
+				if taken and not seen[key] then
+					seen[key] = true
+					table.insert(cells, { cx, cy, cz })
+				end
+			end
+		end
+	end
+
+	return {
+		seed = seed,
+		giant = giant == true,
+		height = height,
+		logs = if giant then 48 else 5 + math.floor(roll() * 3),
+		hardness = if giant then 60 else 12,
+		limbs = limbs,
+		lumps = lumps,
+		cells = cells,
+	}
+end
+
+-- Does a sapling become a giant? `roll` is a random number from 0 up to 1.
+function TreeGen.isGiant(roll: number): boolean
+	return roll < TreeGen.GIANT_CHANCE
+end
+
+-- What felling a tree gives besides logs. `roll` is a random number from 0 up to 1.
+function TreeGen.saplings(roll: number): number
+	return if roll < 0.5 then 2 else 1
+end
+
+return TreeGen
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="229">
+        <Properties>
           <string name="Name">VendingLogic</string>
           <string name="Source"><![CDATA[--!strict
 -- A vending machine: one kind of thing, one price, and a stock held inside the machine.
@@ -12105,7 +12353,7 @@ return VendingLogic
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="229">
+      <Item class="ModuleScript" referent="230">
         <Properties>
           <string name="Name">Wallet</string>
           <string name="Source"><![CDATA[--!strict
@@ -12148,15 +12396,15 @@ return Wallet
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="230">
+  <Item class="ServerScriptService" referent="231">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Folder" referent="231">
+    <Item class="Folder" referent="232">
       <Properties>
         <string name="Name">Server</string>
       </Properties>
-      <Item class="ModuleScript" referent="232">
+      <Item class="ModuleScript" referent="233">
         <Properties>
           <string name="Name">Commands</string>
           <string name="Source"><![CDATA[-- Chat commands. Each is registered once and reached from both chat systems; when both report the
@@ -12231,7 +12479,7 @@ return Commands
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="233">
+      <Item class="ModuleScript" referent="234">
         <Properties>
           <string name="Name">CraftService</string>
           <string name="Source"><![CDATA[-- Crafting, hand work and workbench upgrades. The rules live in shared/CraftLogic; this module
@@ -12449,7 +12697,7 @@ return CraftService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="234">
+      <Item class="ModuleScript" referent="235">
         <Properties>
           <string name="Name">DayCycle</string>
           <string name="Source"><![CDATA[-- Moves the sun. One in-game day takes Config.DAY_MINUTES real minutes.
@@ -12477,7 +12725,7 @@ return DayCycle
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="235">
+      <Item class="ModuleScript" referent="236">
         <Properties>
           <string name="Name">DebugService</string>
           <string name="Source"><![CDATA[-- Measurement tools for this test build: live numbers for the client to show, and chat commands.
@@ -12529,7 +12777,7 @@ return DebugService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="236">
+      <Item class="ModuleScript" referent="237">
         <Properties>
           <string name="Name">DeviceKit</string>
           <string name="Source"><![CDATA[-- Pieces shared by the devices: movers, farm machines and signal devices.
@@ -12711,7 +12959,7 @@ return DeviceKit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="237">
+      <Item class="ModuleScript" referent="238">
         <Properties>
           <string name="Name">GameCommands</string>
           <string name="Source"><![CDATA[-- Chat commands for trying the real game's rules before there are screens for them.
@@ -12877,7 +13125,7 @@ return GameCommands
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="238">
+      <Item class="ModuleScript" referent="239">
         <Properties>
           <string name="Name">HubService</string>
           <string name="Source"><![CDATA[-- The hub: one shared place per server with the merchants, the mine and the way to the monster
@@ -13154,7 +13402,7 @@ return HubService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="239">
+      <Item class="ModuleScript" referent="240">
         <Properties>
           <string name="Name">IslandService</string>
           <string name="Source"><![CDATA[-- One island per player: where it sits in the world and what is in each cell.
@@ -13369,7 +13617,7 @@ return IslandService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="240">
+      <Item class="ModuleScript" referent="241">
         <Properties>
           <string name="Name">ItemService</string>
           <string name="Source"><![CDATA[-- Loose items: real parts moved by the physics engine. Only the server makes or removes them.
@@ -13582,7 +13830,7 @@ end
 -- The stack a player standing at `position` picks up: the nearest one lying still, and only if
 -- there is none, the nearest one on the move. A moving item is one riding a belt, and taking
 -- those by accident would empty the player's own factory line.
-function ItemService.pick(position: Vector3, range: number): BasePart?
+function ItemService.pick(position: Vector3, range: number, stillOnly: boolean?): BasePart?
 	local still: BasePart? = nil
 	local stillDistance = range
 	local moving: BasePart? = nil
@@ -13599,7 +13847,7 @@ function ItemService.pick(position: Vector3, range: number): BasePart?
 			end
 		end
 	end
-	return still or moving
+	return still or (if stillOnly then nil else moving)
 end
 
 -- Counts what is really there, which also corrects the running total if the engine removed anything.
@@ -13645,7 +13893,7 @@ return ItemService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="241">
+      <Item class="ModuleScript" referent="242">
         <Properties>
           <string name="Name">MachineActs</string>
           <string name="Source"><![CDATA[-- One door for everything a player does to a placed machine beyond placing and breaking it:
@@ -13716,7 +13964,7 @@ return MachineActs
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="242">
+      <Item class="ModuleScript" referent="243">
         <Properties>
           <string name="Name">MachineKit</string>
           <string name="Source"><![CDATA[-- Shared pieces machines are assembled from.
@@ -13910,7 +14158,7 @@ return MachineKit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="243">
+      <Item class="ModuleScript" referent="244">
         <Properties>
           <string name="Name">MachineService</string>
           <string name="Source"><![CDATA[-- Keeps track of every placed machine and runs each one on a fixed beat.
@@ -13957,6 +14205,7 @@ local MODULES = {
 	power = "Power",
 	vending = "Vending",
 	sign = "Sign",
+	tree = "Tree",
 }
 
 local machines: { [any]: boolean } = {}
@@ -13972,33 +14221,50 @@ local function moduleFor(behavior: string)
 end
 
 -- The keys of every cell a machine would cover, or nil if any of them is taken or out of range.
+-- The keys of every cell a machine would keep, or nil if any of them is taken or out of range,
+-- and the state it should be built from. Most machines keep a box of cells; a machine whose
+-- module has `claim` (a tree) names its own cells and may fill in its state while doing so.
+-- Cells held by `ignore` count as free: a sapling asks whether the tree it will become fits.
 function MachineService.freeCells(
 	island: IslandService.Island,
 	id: string,
 	x: number,
 	y: number,
 	z: number,
-	dir: number
-): { string }?
+	dir: number,
+	saved: any?,
+	ignore: any?
+): ({ string }?, any?)
 	local def = Defs.Machines[id]
 	if not def then
-		return nil
+		return nil, saved
 	end
-	-- The anchor cell comes first; tall machines also keep the cells above them.
-	local keys = {}
-	for layer = 0, def.sy - 1 do
-		for _, cell in Grid.footprint(x, z, dir, def.sx, def.sz) do
-			if not Grid.inBounds(cell[1], y + layer, cell[2], Config.MAX_COORD) then
-				return nil
+	local mod = moduleFor(def.behavior)
+	local cells: { { number } } = {}
+	local state = saved
+	if mod.claim then
+		cells, state = mod.claim(x, y, z, saved)
+	else
+		-- The anchor cell comes first; tall machines also keep the cells above them.
+		for layer = 0, def.sy - 1 do
+			for _, cell in Grid.footprint(x, z, dir, def.sx, def.sz) do
+				table.insert(cells, { cell[1], y + layer, cell[2] })
 			end
-			local key = Grid.key(cell[1], y + layer, cell[2])
-			if island.cells[key] then
-				return nil
-			end
-			table.insert(keys, key)
 		end
 	end
-	return keys
+	local keys = {}
+	for _, cell in cells do
+		if not Grid.inBounds(cell[1], cell[2], cell[3], Config.MAX_COORD) then
+			return nil, state
+		end
+		local key = Grid.key(cell[1], cell[2], cell[3])
+		local taken = island.cells[key]
+		if taken and not (ignore and taken.kind == "machine" and taken.machine == ignore) then
+			return nil, state
+		end
+		table.insert(keys, key)
+	end
+	return keys, state
 end
 
 function MachineService.create(
@@ -14011,10 +14277,11 @@ function MachineService.create(
 	saved: any?
 )
 	local def = Defs.Machines[id]
-	local keys = MachineService.freeCells(island, id, x, y, z, dir)
+	local keys, state = MachineService.freeCells(island, id, x, y, z, dir, saved)
 	if not def or not keys then
 		return nil
 	end
+	saved = state
 	local model = Instance.new("Model")
 	model.Name = id
 	model:SetAttribute("Machine", id)
@@ -14078,6 +14345,10 @@ function MachineService.remove(machine, dropContents: boolean)
 	end
 	for _, key in machine.keys do
 		machine.island.cells[key] = nil
+	end
+	-- A last word for the machine before it goes (a felled tree tips over).
+	if machine.mod.removed then
+		pcall(machine.mod.removed, machine)
 	end
 	machine.model:Destroy()
 end
@@ -14164,7 +14435,7 @@ return MachineService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Script" referent="244">
+      <Item class="Script" referent="245">
         <Properties>
           <string name="Name">Main</string>
           <token name="RunContext">0</token>
@@ -14195,6 +14466,9 @@ local FALL_DEPTH = 90 -- studs below the island at which a falling player is bro
 local function buildStarter(island: IslandService.Island)
 	for _, b in IslandGen.generate() do
 		IslandService.setBlock(island, b.x, b.y, b.z, b.id)
+	end
+	for _, t in IslandGen.TREES do
+		MachineService.create(island, "tree", t.x, t.y, t.z, 0, nil)
 	end
 end
 
@@ -14355,7 +14629,7 @@ end
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="245">
+      <Item class="ModuleScript" referent="246">
         <Properties>
           <string name="Name">MineService</string>
           <string name="Source"><![CDATA[-- The mine in the hub: rocks that anyone can break with a pickaxe. Each gives its ore straight to
@@ -14601,7 +14875,7 @@ return MineService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="246">
+      <Item class="ModuleScript" referent="247">
         <Properties>
           <string name="Name">MonsterService</string>
           <string name="Source"><![CDATA[-- The monster island: a place apart from the hub where slimes live. They come at anyone who gets
@@ -14908,7 +15182,7 @@ return MonsterService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="247">
+      <Item class="ModuleScript" referent="248">
         <Properties>
           <string name="Name">Outlet</string>
           <string name="Source"><![CDATA[-- How a finished item leaves a machine. Normally it drops just outside the mouth, onto a belt or the
@@ -14984,7 +15258,7 @@ return Outlet
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="248">
+      <Item class="ModuleScript" referent="249">
         <Properties>
           <string name="Name">PlacementService</string>
           <string name="Source"><![CDATA[-- Handles requests to place, break and pick up. Nothing a client sends is trusted:
@@ -15187,7 +15461,12 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 		if cell.kind == "block" then
 			needed = ToolLogic.blockHits(cell.id, hand)
 		else
-			needed = ToolLogic.machineHits(ToolLogic.machineHardness(cell.machine.def), hand)
+			local target = cell.machine
+			local hardness = if target.mod.hardness
+				then target.mod.hardness(target)
+				else ToolLogic.machineHardness(target.def)
+			needed =
+				ToolLogic.machineHits(hardness, hand, if target.def.behavior == "tree" then "axe" else "pick")
 			swingAt = cell.machine.key
 		end
 		if needed > 1 then
@@ -15237,7 +15516,7 @@ end
 
 -- Picks up one loose stack. The one the player is pointing at is taken if it is close enough;
 -- otherwise the nearest one lying still, and items riding a belt only when nothing else is near.
-local function pickup(player: Player, aimed: any)
+local function pickup(player: Player, aimed: any, repeated: any)
 	local island = IslandService.get(player)
 	local position = rootPosition(player)
 	if not island or not position or not allowed(player) then
@@ -15249,7 +15528,8 @@ local function pickup(player: Player, aimed: any)
 			part = aimed
 		end
 	end
-	part = part or ItemService.pick(position, Config.PICKUP_RANGE)
+	-- A key held down only gathers what lies still: it would otherwise strip a running belt.
+	part = part or ItemService.pick(position, Config.PICKUP_RANGE, repeated == true)
 	-- Only what lies on the player's own island can be picked up, so a visitor cannot walk off
 	-- with what is lying on their host's.
 	if not part or not IslandService.owns(island, part.Position) then
@@ -15282,7 +15562,7 @@ return PlacementService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="249">
+      <Item class="ModuleScript" referent="250">
         <Properties>
           <string name="Name">PowerService</string>
           <string name="Source"><![CDATA[-- Runs the electricity on every island. Once a beat it gathers each island's power machines and
@@ -15448,7 +15728,7 @@ return PowerService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="250">
+      <Item class="ModuleScript" referent="251">
         <Properties>
           <string name="Name">PrefsService</string>
           <string name="Source"><![CDATA[-- Keeps each player's hotbar and settings: sends them when the island is ready and takes changes.
@@ -15501,7 +15781,7 @@ return PrefsService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="251">
+      <Item class="ModuleScript" referent="252">
         <Properties>
           <string name="Name">Profile</string>
           <string name="Source"><![CDATA[-- What a player owns apart from the island itself: the bag, coins, workbench tiers and play mode.
@@ -15595,7 +15875,7 @@ return Profile
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="252">
+      <Item class="ModuleScript" referent="253">
         <Properties>
           <string name="Name">RateLimit</string>
           <string name="Source"><![CDATA[-- A small allowance per player that refills over time. Requests beyond it are dropped.
@@ -15632,7 +15912,7 @@ return RateLimit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="253">
+      <Item class="ModuleScript" referent="254">
         <Properties>
           <string name="Name">SaveService</string>
           <string name="Source"><![CDATA[-- Saving and loading islands. Uses Roblox's data store when it is available, and a store that only
@@ -15799,7 +16079,7 @@ return SaveService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="254">
+      <Item class="ModuleScript" referent="255">
         <Properties>
           <string name="Name">ShopService</string>
           <string name="Source"><![CDATA[-- The hub's merchants. The rules live in shared/ShopLogic and the prices in shared/Prices; this
@@ -15894,7 +16174,7 @@ return ShopService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="255">
+      <Item class="ModuleScript" referent="256">
         <Properties>
           <string name="Name">SocialService</string>
           <string name="Source"><![CDATA[-- What players may learn about each other. A client asks about a player (by clicking on them) and
@@ -15959,7 +16239,7 @@ return SocialService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="256">
+      <Item class="ModuleScript" referent="257">
         <Properties>
           <string name="Name">StatusKit</string>
           <string name="Source"><![CDATA[-- The lamp on top of a machine that says what it is doing, and the count of what it puts out.
@@ -16045,7 +16325,7 @@ return StatusKit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="257">
+      <Item class="ModuleScript" referent="258">
         <Properties>
           <string name="Name">TradeService</string>
           <string name="Source"><![CDATA[-- Trades between two players on the same server. The rules live in shared/TradeLogic; this module
@@ -16272,7 +16552,7 @@ return TradeService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="258">
+      <Item class="ModuleScript" referent="259">
         <Properties>
           <string name="Name">Tuning</string>
           <string name="Source"><![CDATA[-- Values the debug commands change while the game runs.
@@ -16282,7 +16562,7 @@ return {
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="259">
+      <Item class="ModuleScript" referent="260">
         <Properties>
           <string name="Name">VisitService</string>
           <string name="Source"><![CDATA[-- Going to other players' islands on this server, and home again. A visitor can look around and
@@ -16410,7 +16690,7 @@ return VisitService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="260">
+      <Item class="ModuleScript" referent="261">
         <Properties>
           <string name="Name">Watch</string>
           <string name="Source"><![CDATA[-- Keeps a machine's window current while a player has it open. A machine's module opens the
@@ -16478,7 +16758,7 @@ return Watch
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="261">
+      <Item class="ModuleScript" referent="262">
         <Properties>
           <string name="Name">World</string>
           <string name="Source"><![CDATA[-- Where the shared places are, and what the systems that build them tell each other.
@@ -16501,11 +16781,11 @@ return World
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Folder" referent="262">
+      <Item class="Folder" referent="263">
         <Properties>
           <string name="Name">machines</string>
         </Properties>
-        <Item class="ModuleScript" referent="263">
+        <Item class="ModuleScript" referent="264">
           <Properties>
             <string name="Name">Assembler</string>
             <string name="Source"><![CDATA[-- Machines that are told what to make: the assembler, the circuit maker and the manufacturer.
@@ -16611,7 +16891,7 @@ return Assembler
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="264">
+        <Item class="ModuleScript" referent="265">
           <Properties>
             <string name="Name">Belt</string>
             <string name="Source"><![CDATA[-- Belts carry anything that touches them. There is no code moving the items: the surface has a
@@ -16690,7 +16970,7 @@ return Belt
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="265">
+        <Item class="ModuleScript" referent="266">
           <Properties>
             <string name="Name">Bench</string>
             <string name="Source"><![CDATA[-- Workbenches and hand stations. They do nothing by themselves: standing near one is what lets a
@@ -16738,7 +17018,7 @@ return Bench
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="266">
+        <Item class="ModuleScript" referent="267">
           <Properties>
             <string name="Name">Blower</string>
             <string name="Source"><![CDATA[-- The blower: a steady push on every loose item in front of it. The push is the same for every
@@ -16819,7 +17099,7 @@ return Blower
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="267">
+        <Item class="ModuleScript" referent="268">
           <Properties>
             <string name="Name">Chest</string>
             <string name="Source"><![CDATA[-- Storage: the storage unit collects whatever a belt brings to its input, and the hand chest
@@ -16831,6 +17111,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared.Defs)
 local Inventory = require(Shared.Inventory)
 local StoreLogic = require(Shared.StoreLogic)
+local ToolLogic = require(Shared.ToolLogic)
 local DeviceKit = require(script.Parent.Parent.DeviceKit)
 local Kit = require(script.Parent.Parent.MachineKit)
 local ItemService = require(script.Parent.Parent.ItemService)
@@ -16929,6 +17210,9 @@ function Chest.act(machine, player: Player, action: string, arg: any)
 		Watch.close(machine, player)
 		return
 	end
+	-- Whoever is using the window is watching it, even if they wandered off and came back.
+	machine.watchers = machine.watchers or {}
+	machine.watchers[player] = true
 	local bag = machine.island.bag
 	local moved = 0
 	if action == "takeall" then
@@ -16936,6 +17220,11 @@ function Chest.act(machine, player: Player, action: string, arg: any)
 	elseif type(arg) ~= "table" or not Stock.isKey(arg.key) then
 		return
 	elseif action == "put" then
+		-- The last tool stays with the player, as it does when dropped or traded.
+		if ToolLogic.parse(arg.key) and type(arg.n) == "number" and arg.n >= ToolLogic.count(bag) then
+			Profile.hint(player, "마지막 도구는 넣어 둘 수 없습니다")
+			return
+		end
 		moved = StoreLogic.move(bag, machine.state, arg.key, arg.n)
 	elseif action == "take" then
 		moved = StoreLogic.move(machine.state, bag, arg.key, arg.n)
@@ -16979,7 +17268,7 @@ return Chest
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="268">
+        <Item class="ModuleScript" referent="269">
           <Properties>
             <string name="Name">Chute</string>
             <string name="Source"><![CDATA[-- The chute: two cells long, dropping one cell. Items enter at belt height one level up at the
@@ -17046,7 +17335,7 @@ return Chute
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="269">
+        <Item class="ModuleScript" referent="270">
           <Properties>
             <string name="Name">Decor</string>
             <string name="Source"><![CDATA[-- Machines that are in the catalogue but do nothing yet. They can be placed and looked at.
@@ -17063,7 +17352,7 @@ return Decor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="270">
+        <Item class="ModuleScript" referent="271">
           <Properties>
             <string name="Name">Extractor</string>
             <string name="Source"><![CDATA[-- Puts out one raw item at a steady pace: ore from a vein core, water from a pump.
@@ -17180,7 +17469,7 @@ return Extractor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="271">
+        <Item class="ModuleScript" referent="272">
           <Properties>
             <string name="Name">Harvester</string>
             <string name="Source"><![CDATA[-- The harvester: gathers ripe crops near it and puts what they bore out of its mouth. The crops
@@ -17257,7 +17546,7 @@ return Harvester
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="272">
+        <Item class="ModuleScript" referent="273">
           <Properties>
             <string name="Name">Launcher</string>
             <string name="Source"><![CDATA[-- The launcher: throws each item it is given in an arc, forward and up. How far is set by its
@@ -17371,7 +17660,7 @@ return Launcher
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="273">
+        <Item class="ModuleScript" referent="274">
           <Properties>
             <string name="Name">Lift</string>
             <string name="Source"><![CDATA[-- The lift: takes an item in at the bottom and puts it out at the front two levels up.
@@ -17463,21 +17752,16 @@ return Lift
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="274">
+        <Item class="ModuleScript" referent="275">
           <Properties>
             <string name="Name">Logger</string>
-            <string name="Source"><![CDATA[-- The logger: cuts the trees near it, one log at a time from the top down, and puts the logs out
--- of its mouth. When a tree is finished it clears the leaves and sets a sapling where the tree
--- stood, so a stand of trees keeps itself going.
--- It cannot tell a tree from a pillar of log blocks someone built: any log in reach is cut.
+            <string name="Source"><![CDATA[-- The logger: fells the trees near it, one at a time, and puts the logs out of its mouth. It
+-- sets a sapling back where each tree stood, so a stand of trees keeps itself going, and puts any
+-- sapling left over out with the logs.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
-local FarmLogic = require(Shared.FarmLogic)
-local Grid = require(Shared.Grid)
 local DeviceKit = require(script.Parent.Parent.DeviceKit)
-local IslandService = require(script.Parent.Parent.IslandService)
 local Kit = require(script.Parent.Parent.MachineKit)
 local MachineService = require(script.Parent.Parent.MachineService)
 local Outlet = require(script.Parent.Parent.Outlet)
@@ -17485,84 +17769,108 @@ local Tuning = require(script.Parent.Parent.Tuning)
 
 local Logger = {}
 
-local RADIUS = 3 -- cells each way
-local BELOW, ABOVE = 1, 8 -- how far under and over its own level it looks for logs
-local EVERY = 3 -- seconds per log
-local HOLDS = 8 -- cut logs waiting to come out before it stops cutting
+local RADIUS = 3 -- cells each way, measured to where the trunk stands
+local EVERY = 12 -- seconds between trees (a placeholder)
+local HOLDS = 8 -- things waiting to come out before it stops felling
 local REPLANT = true
 local SAPLING = "plant_sapling"
+
+local function count(stock: { [string]: number }): number
+	local total = 0
+	for _, n in stock do
+		total += n
+	end
+	return total
+end
 
 function Logger.build(machine)
 	Kit.visual(machine.model, machine.base, machine.id)
 	Kit.body(machine)
 	machine.out = Kit.outputs(Kit.ports(machine))[1]
-	machine.waiting = 0 -- logs cut but not yet put out
+	machine.stock = {} -- felled but not yet put out: logs, and saplings it had no use for
 	machine.wait = EVERY
 end
 
 function Logger.load(machine, saved)
-	if type(saved) == "table" and type(saved.waiting) == "number" and saved.waiting == saved.waiting then
-		machine.waiting = math.clamp(math.floor(saved.waiting), 0, HOLDS)
+	if type(saved) ~= "table" then
+		return
+	end
+	-- an older save held only a number of logs
+	local stock = if type(saved.stock) == "table" then saved.stock else { log = saved.waiting }
+	for _, id in { "log", "sapling" } do
+		local n = stock[id]
+		if type(n) == "number" and n == n and n >= 1 then
+			machine.stock[id] = math.min(math.floor(n), 999)
+		end
 	end
 end
 
 function Logger.save(machine)
-	return { waiting = machine.waiting }
+	return { stock = table.clone(machine.stock) }
 end
 
-local function cut(machine)
-	local island = machine.island
-	local function isLog(x: number, y: number, z: number): boolean
-		return DeviceKit.blockAt(island, x, y, z) == "log"
+-- The nearest tree whose trunk stands within reach, on the logger's own level or near it.
+local function nearestTree(machine)
+	local best, bestDistance = nil, math.huge
+	for _, other in MachineService.onIsland(machine.island) do
+		if other.def.behavior == "tree" then
+			local dx, dz = math.abs(other.x - machine.x), math.abs(other.z - machine.z)
+			if dx <= RADIUS and dz <= RADIUS and math.abs(other.y - machine.y) <= 1 then
+				local distance = dx + dz
+				if distance < bestDistance then
+					best, bestDistance = other, distance
+				end
+			end
+		end
 	end
-	local function isLeaf(x: number, y: number, z: number): boolean
-		return DeviceKit.blockAt(island, x, y, z) == "leaves"
-	end
-	local log = FarmLogic.nextLog(isLog, machine.x, machine.y, machine.z, RADIUS, BELOW, ABOVE)
-	if not log then
+	return best
+end
+
+local function fell(machine)
+	local tree = nearestTree(machine)
+	if not tree then
 		return
 	end
-	IslandService.clearCell(island, Grid.key(log.x, log.y, log.z))
-	machine.waiting += 1
-	if FarmLogic.trunkStands(isLog, log.x, log.z, machine.y - BELOW, machine.y + ABOVE) then
-		return
-	end
-	-- That was the last log of the tree, and since trees come down from the top, the lowest.
-	for _, leaf in FarmLogic.looseLeaves(isLeaf, isLog, log.x, log.y, log.z) do
-		IslandService.clearCell(island, Grid.key(leaf.x, leaf.y, leaf.z))
-	end
-	local ground = DeviceKit.blockAt(island, log.x, log.y - 1, log.z)
+	local island, x, y, z = machine.island, tree.x, tree.y, tree.z
+	local yield = tree.mod.drops(tree) -- this is also what makes the tree tip over
+	MachineService.remove(tree, false)
+	-- One sapling goes back where the tree stood, if the ground still suits it.
+	local ground = DeviceKit.blockAt(island, x, y - 1, z)
 	local needs = Defs.Machines[SAPLING].needsBelow or {}
-	if
-		REPLANT
-		and ground
-		and table.find(needs, ground)
-		and Grid.inBounds(log.x, log.y, log.z, Config.MAX_COORD)
-	then
-		MachineService.create(island, SAPLING, log.x, log.y, log.z, 0, nil)
+	if REPLANT and (yield.sapling or 0) >= 1 and ground and table.find(needs, ground) then
+		if MachineService.create(island, SAPLING, x, y, z, 0, nil) then
+			yield.sapling -= 1
+		end
+	end
+	for id, n in yield do
+		if n > 0 then
+			machine.stock[id] = (machine.stock[id] or 0) + n
+		end
 	end
 end
 
 function Logger.tick(machine, dt: number)
-	if machine.waiting > 0 and machine.out and Outlet.emit(machine, machine.out, "log") then
-		machine.waiting -= 1
+	local id = next(machine.stock)
+	if id and machine.out and Outlet.emit(machine, machine.out, id) then
+		local left = machine.stock[id] - 1
+		machine.stock[id] = if left > 0 then left else nil
 	end
 	machine.wait -= dt * Tuning.speed
-	if machine.wait <= 0 and machine.waiting < HOLDS then
+	if machine.wait <= 0 and count(machine.stock) < HOLDS then
 		machine.wait = EVERY
-		cut(machine)
+		fell(machine)
 	end
 end
 
 function Logger.drops(machine): { [string]: number }
-	return if machine.waiting > 0 then { log = machine.waiting } else {}
+	return table.clone(machine.stock)
 end
 
 return Logger
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="275">
+        <Item class="ModuleScript" referent="276">
           <Properties>
             <string name="Name">Passthrough</string>
             <string name="Source"><![CDATA[-- Machines that move items on without changing them: the splitter, merger, funnel and magnet
@@ -17720,16 +18028,16 @@ return Passthrough
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="276">
+        <Item class="ModuleScript" referent="277">
           <Properties>
             <string name="Name">Plant</string>
-            <string name="Source"><![CDATA[-- Things that grow: a sapling becomes a tree of blocks, a crop ripens through stages.
+            <string name="Source"><![CDATA[-- Things that grow: a sapling becomes a tree, a crop ripens through stages.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
-local IslandGen = require(Shared.IslandGen)
+local TreeGen = require(Shared.TreeGen)
 local Inventory = require(Shared.Inventory)
-local IslandService = require(script.Parent.Parent.IslandService)
+local MachineService = require(script.Parent.Parent.MachineService)
 local Kit = require(script.Parent.Parent.MachineKit)
 local Profile = require(script.Parent.Parent.Profile)
 local Tuning = require(script.Parent.Parent.Tuning)
@@ -17737,6 +18045,7 @@ local Tuning = require(script.Parent.Parent.Tuning)
 local Plant = {}
 
 Plant.WET_RATE = 2 -- how many times faster a watered plant grows
+Plant.LOOK_SECONDS = 5 -- how often a grown sapling looks for room to become a tree
 
 local function stageOf(machine): number
 	local stages = machine.def.stages
@@ -17764,6 +18073,12 @@ function Plant.build(machine)
 	machine.wetUntil = 0
 	show(machine, 1)
 	local body = Kit.body(machine)
+	machine.body = body
+	if machine.def.behavior == "sapling" then
+		-- What tree this will be is settled when it is planted, so it can be asked whether that
+		-- tree has room, and so it does not change if the island is saved in between.
+		machine.grow = { seed = math.random(1, 2 ^ 30), giant = TreeGen.isGiant(math.random()) }
+	end
 	if machine.def.stages then
 		-- F on a ripe crop gathers it by hand, the way the harvester does: what it bore goes into
 		-- the bag and the plant starts over where it stands.
@@ -17792,10 +18107,23 @@ function Plant.load(machine, saved)
 			show(machine, stage)
 		end
 	end
+	if
+		machine.grow
+		and type(saved) == "table"
+		and type(saved.seed) == "number"
+		and saved.seed == saved.seed
+	then
+		machine.grow = { seed = math.clamp(math.floor(saved.seed), 1, 2 ^ 30), giant = saved.giant == true }
+	end
 end
 
 function Plant.save(machine)
-	return { age = math.floor(machine.age) }
+	local grow = machine.grow
+	return {
+		age = math.floor(machine.age),
+		seed = if grow then grow.seed else nil,
+		giant = if grow then grow.giant else nil,
+	}
 end
 
 -- Keeps the plant watered for a while. A sprinkler calls this again and again.
@@ -17804,11 +18132,56 @@ function Plant.water(machine, seconds: number)
 end
 
 -- Returning true asks the machine service to remove this plant and then call `finish`.
+-- Is there room for the tree this sapling will become? A sapling due to be a giant settles for
+-- an ordinary tree when the giant does not fit.
+local function hasRoom(machine): boolean
+	local grow = machine.grow
+	local function fits(giant: boolean): boolean
+		local want = { seed = grow.seed, giant = giant }
+		local keys = MachineService.freeCells(
+			machine.island,
+			"tree",
+			machine.x,
+			machine.y,
+			machine.z,
+			0,
+			want,
+			machine
+		)
+		return keys ~= nil
+	end
+	if grow.giant and fits(true) then
+		return true
+	end
+	if fits(false) then
+		grow.giant = false
+		return true
+	end
+	return false
+end
+
 function Plant.tick(machine, dt: number): boolean
 	local rate = if os.clock() < machine.wetUntil then Plant.WET_RATE else 1
 	machine.age += dt * Tuning.speed * rate
 	if machine.def.behavior == "sapling" then
-		return machine.age >= Config.SAPLING_SECONDS
+		if machine.age < Config.SAPLING_SECONDS then
+			return false
+		end
+		-- Grown: it becomes a tree as soon as the tree has room. Looking is not free, so it looks
+		-- now and then rather than every beat.
+		machine.lookIn = (machine.lookIn or 0) - dt
+		if machine.lookIn > 0 then
+			return false
+		end
+		machine.lookIn = Plant.LOOK_SECONDS
+		if hasRoom(machine) then
+			return true
+		end
+		if not machine.blockedLabel then
+			machine.blockedLabel = Kit.label(machine.body, machine.def.height)
+			machine.blockedLabel.Text = "자랄 자리가 막혀 있음"
+		end
+		return false
 	end
 	local stage = stageOf(machine)
 	if stage ~= machine.stage then
@@ -17819,11 +18192,7 @@ end
 
 -- A grown sapling leaves a tree where it stood. Cells that are already taken are skipped.
 function Plant.finish(machine)
-	local blocks = {}
-	IslandGen.tree(blocks, machine.x, machine.y, machine.z, 3)
-	for _, b in blocks do
-		IslandService.setBlock(machine.island, b.x, b.y, b.z, b.id)
-	end
+	MachineService.create(machine.island, "tree", machine.x, machine.y, machine.z, 0, machine.grow)
 end
 
 function Plant.isRipe(machine): boolean
@@ -17856,7 +18225,7 @@ return Plant
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="277">
+        <Item class="ModuleScript" referent="278">
           <Properties>
             <string name="Name">Power</string>
             <string name="Source"><![CDATA[-- Everything that makes, stores or carries electricity: the coal generator, the incinerator, the
@@ -18152,7 +18521,7 @@ return Power
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="278">
+        <Item class="ModuleScript" referent="279">
           <Properties>
             <string name="Name">Processor</string>
             <string name="Source"><![CDATA[-- Any machine that turns things into other things: smelter, crusher, press, kiln and the rest.
@@ -18403,6 +18772,9 @@ function Processor.act(machine, player: Player, action: string, arg: any)
 		Watch.close(machine, player)
 		return
 	end
+	-- Whoever is using the window is watching it, even if they wandered off and came back.
+	machine.watchers = machine.watchers or {}
+	machine.watchers[player] = true
 	if type(arg) ~= "table" then
 		return
 	end
@@ -18445,7 +18817,7 @@ return Processor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="279">
+        <Item class="ModuleScript" referent="280">
           <Properties>
             <string name="Name">Pusher</string>
             <string name="Source"><![CDATA[-- The pusher: items pass straight through it, but while a signal reaches it they are pushed out
@@ -18518,7 +18890,7 @@ return Pusher
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="280">
+        <Item class="ModuleScript" referent="281">
           <Properties>
             <string name="Name">Ramp</string>
             <string name="Source"><![CDATA[-- The ramp belt: two cells long, climbing one cell. Items enter at belt height at the back and
@@ -18596,7 +18968,7 @@ return Ramp
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="281">
+        <Item class="ModuleScript" referent="282">
           <Properties>
             <string name="Name">Seeder</string>
             <string name="Source"><![CDATA[-- The seeder: sows the seeds delivered to it on empty farmland near it.
@@ -18708,7 +19080,7 @@ return Seeder
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="282">
+        <Item class="ModuleScript" referent="283">
           <Properties>
             <string name="Name">Sign</string>
             <string name="Source"><![CDATA[-- A sign: the owner writes on it and the words show on both faces.
@@ -18847,7 +19219,7 @@ return Sign
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="283">
+        <Item class="ModuleScript" referent="284">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[-- Signal devices: switch, sensor, timer, counter, logic box, gate and beacon. The rule for who is
@@ -19188,7 +19560,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="284">
+        <Item class="ModuleScript" referent="285">
           <Properties>
             <string name="Name">Sorter</string>
             <string name="Source"><![CDATA[-- The sorter: the owner names one item. That item leaves by the second mouth (the side); everything
@@ -19253,7 +19625,7 @@ return Sorter
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="285">
+        <Item class="ModuleScript" referent="286">
           <Properties>
             <string name="Name">Sprinkler</string>
             <string name="Source"><![CDATA[-- The sprinkler: crops and saplings near it grow faster. It needs nothing fed to it for now.
@@ -19290,7 +19662,151 @@ return Sprinkler
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="286">
+        <Item class="ModuleScript" referent="287">
+          <Properties>
+            <string name="Name">Tree</string>
+            <string name="Source"><![CDATA[-- A tree: one thing that stands on the island, not a pile of blocks. Its shape comes from a seed
+-- (shared/TreeGen), so no two are quite alike and each looks the same after a save and load.
+-- An axe brings the whole tree down at once; it leaves logs and a sapling or two, and no stump.
+-- It keeps the cells its trunk and leaves fill, so nothing can be built into it.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local TreeGen = require(Shared.TreeGen)
+
+local Tree = {}
+
+local CELL = Config.CELL
+local BARK = Color3.fromRGB(111, 76, 48)
+local LEAVES = { Color3.fromRGB(47, 125, 51), Color3.fromRGB(60, 149, 57), Color3.fromRGB(87, 178, 70) }
+local FALL_SECONDS = 0.9
+
+-- The cells a tree at this cell would keep, and the state it is built from. A new tree gets a
+-- seed of its own here; a saved one brings its seed with it. MachineService calls this before
+-- anything is made, and makes nothing if any of the cells is taken.
+function Tree.claim(x: number, y: number, z: number, saved: any): ({ { number } }, any)
+	local state = { seed = math.random(1, 2 ^ 30), giant = false }
+	if type(saved) == "table" then
+		if type(saved.seed) == "number" and saved.seed == saved.seed then
+			state.seed = math.clamp(math.floor(saved.seed), 1, 2 ^ 30)
+		end
+		state.giant = saved.giant == true
+	end
+	local cells = {}
+	for _, step in TreeGen.make(state.seed, state.giant).cells do
+		table.insert(cells, { x + step[1], y + step[2], z + step[3] })
+	end
+	return cells, state
+end
+
+local function piece(parent: Instance, solid: boolean): Part
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.Material = Enum.Material.SmoothPlastic
+	part.CanCollide = solid
+	part.CanQuery = solid
+	part.CanTouch = false
+	part.CastShadow = solid
+	part.Parent = parent
+	return part
+end
+
+function Tree.build(machine)
+	machine.model:SetAttribute("Solid", true)
+end
+
+-- A tree is always made with its state (see claim), so the building happens here.
+function Tree.load(machine, saved)
+	local tree = TreeGen.make(saved.seed, saved.giant)
+	machine.tree = tree
+	machine.state = { seed = saved.seed, giant = saved.giant == true }
+	-- the middle of the ground under the trunk
+	local foot = machine.center - Vector3.new(0, CELL / 2, 0)
+	local visual = Instance.new("Folder")
+	visual.Name = "Visual"
+
+	for _, limb in tree.limbs do
+		local a = foot + Vector3.new(limb.ax, limb.ay, limb.az)
+		local b = foot + Vector3.new(limb.bx, limb.by, limb.bz)
+		local part = piece(visual, limb.trunk)
+		part.Name = if limb.trunk then "Trunk" else "Branch"
+		part.Shape = Enum.PartType.Cylinder -- a cylinder lies along its own X
+		part.Size = Vector3.new((b - a).Magnitude + limb.r * 0.6, limb.r * 2, limb.r * 2)
+		part.CFrame = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.pi / 2, 0)
+		part.Color = BARK
+	end
+	for _, lump in tree.lumps do
+		local part = piece(visual, false)
+		part.Name = "Leaves"
+		part.Size = Vector3.new(lump.sx, lump.sy, lump.sz)
+		part.CFrame = CFrame.new(foot + Vector3.new(lump.x, lump.y, lump.z))
+			* CFrame.Angles(lump.rx, lump.ry, lump.rz)
+		part.Color = LEAVES[lump.shade]
+	end
+	visual.Parent = machine.model
+	machine.visual = visual
+end
+
+function Tree.save(machine)
+	return machine.state
+end
+
+-- How hard this tree is to bring down. An axe is the tool for it.
+function Tree.hardness(machine): number
+	return if machine.tree then machine.tree.hardness else 12
+end
+
+-- What comes from felling it. Asking for this is what marks the tree as felled, as opposed to
+-- being cleared away with its island.
+function Tree.drops(machine): { [string]: number }
+	machine.felled = true
+	local logs = if machine.tree then machine.tree.logs else 5
+	return { log = logs, sapling = TreeGen.saplings(math.random()) }
+end
+
+-- Called as the tree is taken off the island. A felled tree tips over and is gone; a tree that
+-- goes with its island just goes.
+function Tree.removed(machine)
+	local visual = machine.visual
+	if not machine.felled or not visual then
+		return
+	end
+	visual.Parent = Workspace
+	local foot = CFrame.new(machine.center - Vector3.new(0, CELL / 2, 0))
+		* CFrame.Angles(0, math.random() * math.pi * 2, 0)
+	local parts: { [BasePart]: CFrame } = {}
+	for _, part in visual:GetChildren() do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanQuery = false
+			parts[part] = foot:ToObjectSpace(part.CFrame)
+		end
+	end
+	local elapsed = 0
+	local connection: RBXScriptConnection
+	connection = RunService.Heartbeat:Connect(function(dt)
+		elapsed += dt
+		local t = math.min(elapsed / FALL_SECONDS, 1)
+		-- slow at first, then faster, like something toppling
+		local tipped = foot * CFrame.Angles(0, 0, -math.rad(86) * t * t)
+		for part, offset in parts do
+			part.CFrame = tipped * offset
+		end
+		if t >= 1 then
+			connection:Disconnect()
+			visual:Destroy()
+		end
+	end)
+end
+
+return Tree
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="288">
           <Properties>
             <string name="Name">Vending</string>
             <string name="Source"><![CDATA[-- The vending machine: how players sell to and buy from each other while the owner is busy.
@@ -19597,20 +20113,20 @@ return Vending
       </Item>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="287">
+  <Item class="StarterPlayer" referent="289">
     <Properties>
       <string name="Name">StarterPlayer</string>
       <bool name="EnableMouseLockOption">false</bool>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="288">
+    <Item class="StarterPlayerScripts" referent="290">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="Folder" referent="289">
+      <Item class="Folder" referent="291">
         <Properties>
           <string name="Name">Client</string>
         </Properties>
-        <Item class="ModuleScript" referent="290">
+        <Item class="ModuleScript" referent="292">
           <Properties>
             <string name="Name">BagUI</string>
             <string name="Source"><![CDATA[-- The bag screen (E): everything the player holds, always in the same sorted order, with tabs and
@@ -19766,7 +20282,7 @@ return BagUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="291">
+        <Item class="ModuleScript" referent="293">
           <Properties>
             <string name="Name">BuildController</string>
             <string name="Source"><![CDATA[-- Turns what the player does with their hand into place, break, drop and pick-up requests, and
@@ -19949,6 +20465,12 @@ local function target(): Target?
 			hy = math.clamp(hy, base, base + def.sy - 1)
 		end
 		by = hy
+		if def.behavior == "tree" then
+			-- A trunk leans through cells of its own choosing; the cell it stands in is the sure one.
+			bx = model:GetAttribute("CellX") :: number
+			by = base
+			bz = model:GetAttribute("CellZ") :: number
+		end
 	end
 	local found: Target = {
 		bx = bx,
@@ -20151,12 +20673,13 @@ end
 
 -- F: picks up one stack. F also answers whatever prompt is on screen (a portal, a workbench, a
 -- ripe crop); then it is not a pick-up as well.
-local function pickUp()
+-- `repeated` is a pick-up made by holding the key down rather than pressing it.
+local function pickUp(repeated: boolean?)
 	if promptsShown > 0 or Screens.anyOpen() then
 		return
 	end
 	SoundPlayer.play("pickup")
-	Net.get("Pickup"):FireServer(aimedItem())
+	Net.get("Pickup"):FireServer(aimedItem(), repeated == true)
 end
 
 local function setRunning(now: boolean)
@@ -20376,7 +20899,7 @@ local function keepPicking(dt: number)
 	sincePick += dt
 	if sincePick >= PICKUP_SECONDS then
 		sincePick = 0
-		pickUp()
+		pickUp(true)
 	end
 end
 
@@ -20416,11 +20939,19 @@ local function pickLooked()
 	if not entry or not Defs.isPlaceable(entry) then
 		return
 	end
+	local picked = Defs.Machines[entry]
+	if picked and picked.hidden then
+		return -- a tree or a growing crop is not something to hold
+	end
 	local slots = if hotbar.slots then hotbar.slots() else {}
 	local what, index = HandLogic.pick(Stock, slots, entry, hotbar.bag, isCreative())
 	if what == "select" and index then
 		hotbar.select(index)
 	elseif what == "assign" then
+		local empty = table.find(slots, "")
+		if empty then
+			hotbar.select(empty)
+		end
 		hotbar.assign(entry)
 	else
 		UIKit.toast("가방에 " .. Defs.name(entry) .. "이(가) 없습니다")
@@ -20457,8 +20988,10 @@ local function aimedMachine(root: BasePart, near: { Model }): Model?
 	return if model and model:GetAttribute("Machine") then model else nil
 end
 
--- Each prompt's own reach, as the server set it, and the prompts each machine has.
-local promptReach: { [ProximityPrompt]: number } = setmetatable({}, { __mode = "k" }) :: any
+-- A machine prompt's reach is always this (MachineKit.prompt sets it). It is written here rather
+-- than read back from the prompt, because what is read back may be this client's own zero.
+local PROMPT_REACH = 10
+-- The prompts each machine has.
 local promptsOf: { [Model]: { at: number, list: { ProximityPrompt } } } = setmetatable({}, { __mode = "k" }) :: any
 
 local function promptsFor(model: Model): { ProximityPrompt }
@@ -20472,9 +21005,6 @@ local function promptsFor(model: Model): { ProximityPrompt }
 	for _, child in model:GetDescendants() do
 		if child:IsA("ProximityPrompt") then
 			table.insert(list, child)
-			if promptReach[child] == nil then
-				promptReach[child] = child.MaxActivationDistance
-			end
 		end
 	end
 	promptsOf[model] = { at = now, list = list }
@@ -20516,7 +21046,7 @@ local function gatePrompts(dt: number)
 	local aimed = aimedMachine(root, near)
 	for _, model in near do
 		for _, prompt in promptsFor(model) do
-			local reach = if model == aimed then promptReach[prompt] or 10 else 0
+			local reach = if model == aimed then PROMPT_REACH else 0
 			if prompt.MaxActivationDistance ~= reach then
 				prompt.MaxActivationDistance = reach
 			end
@@ -20672,7 +21202,7 @@ return BuildController
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="292">
+        <Item class="ModuleScript" referent="294">
           <Properties>
             <string name="Name">ChestUI</string>
             <string name="Source"><![CDATA[-- A chest, opened the way one is in Minecraft: the player's bag on the left, the chest on the
@@ -20883,7 +21413,7 @@ return ChestUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="293">
+        <Item class="ModuleScript" referent="295">
           <Properties>
             <string name="Name">CraftUI</string>
             <string name="Source"><![CDATA[-- The crafting screen (C): what can be made by hand, where, and from what. Three tabs: crafting at
@@ -21637,7 +22167,7 @@ return CraftUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="294">
+        <Item class="ModuleScript" referent="296">
           <Properties>
             <string name="Name">DebugUI</string>
             <string name="Source"><![CDATA[-- Shows the server's live numbers in the corner of the screen.
@@ -21692,7 +22222,7 @@ return DebugUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="295">
+        <Item class="ModuleScript" referent="297">
           <Properties>
             <string name="Name">HandInput</string>
             <string name="Source"><![CDATA[-- One answer to "where is the player pointing, and are they pressing use?" whatever they play on.
@@ -21872,7 +22402,7 @@ return HandInput
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="296">
+        <Item class="ModuleScript" referent="298">
           <Properties>
             <string name="Name">HandView</string>
             <string name="Source"><![CDATA[-- What the player sees in their hand, and the swing when they use it.
@@ -22082,7 +22612,7 @@ return HandView
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="297">
+        <Item class="ModuleScript" referent="299">
           <Properties>
             <string name="Name">HotbarUI</string>
             <string name="Source"><![CDATA[-- The ten quick slots (keys 1 to 9, then 0), the palette of things to place, and the bag and coin
@@ -22805,7 +23335,7 @@ return HotbarUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="298">
+        <Item class="ModuleScript" referent="300">
           <Properties>
             <string name="Name">InfoCard</string>
             <string name="Source"><![CDATA[-- The card for one thing: how it is made and what it is used in. It opens when the player asks
@@ -23162,7 +23692,7 @@ return InfoCard
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="299">
+        <Item class="ModuleScript" referent="301">
           <Properties>
             <string name="Name">MachineUI</string>
             <string name="Source"><![CDATA[-- The inside of a machine.
@@ -23655,7 +24185,7 @@ return MachineUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="LocalScript" referent="300">
+        <Item class="LocalScript" referent="302">
           <Properties>
             <string name="Name">Main</string>
             <string name="Source"><![CDATA[-- Client start-up.
@@ -23701,7 +24231,7 @@ end
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="301">
+        <Item class="ModuleScript" referent="303">
           <Properties>
             <string name="Name">MenuButtons</string>
             <string name="Source"><![CDATA[-- The row of buttons at the top of the screen: bag, crafting, trade, visiting, settings, and home.
@@ -23796,7 +24326,7 @@ return MenuButtons
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="302">
+        <Item class="ModuleScript" referent="304">
           <Properties>
             <string name="Name">PowerOverlay</string>
             <string name="Source"><![CDATA[-- Shows where electricity reaches. While a pole or a generator is in the hand (at the spot it
@@ -24064,7 +24594,7 @@ return PowerOverlay
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="303">
+        <Item class="ModuleScript" referent="305">
           <Properties>
             <string name="Name">Screens</string>
             <string name="Source"><![CDATA[-- The windows that open over the game (palette, crafting, trade, shop). One is open at a time.
@@ -24211,7 +24741,7 @@ return Screens
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="304">
+        <Item class="ModuleScript" referent="306">
           <Properties>
             <string name="Name">Settings</string>
             <string name="Source"><![CDATA[-- This player's settings and saved hotbar, as last heard from the server, and the way to change
@@ -24292,7 +24822,7 @@ return Settings
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="305">
+        <Item class="ModuleScript" referent="307">
           <Properties>
             <string name="Name">SettingsUI</string>
             <string name="Source"><![CDATA[-- The settings screen: one switch for each setting. What the switches mean is decided by the code
@@ -24410,7 +24940,7 @@ return SettingsUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="306">
+        <Item class="ModuleScript" referent="308">
           <Properties>
             <string name="Name">ShopUI</string>
             <string name="Source"><![CDATA[-- Two counters: a hub merchant's, and a vending machine's. Both only ask; the server decides.
@@ -24896,7 +25426,7 @@ return ShopUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="307">
+        <Item class="ModuleScript" referent="309">
           <Properties>
             <string name="Name">SignUI</string>
             <string name="Source"><![CDATA[-- Writing on a sign. Opened when the owner presses F on one; what is typed is sent to the server,
@@ -25014,7 +25544,7 @@ return SignUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="308">
+        <Item class="ModuleScript" referent="310">
           <Properties>
             <string name="Name">SocialUI</string>
             <string name="Source"><![CDATA[-- Other players: the card that opens when one is clicked, and asking the one standing next to you
@@ -25279,7 +25809,7 @@ return SocialUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="309">
+        <Item class="ModuleScript" referent="311">
           <Properties>
             <string name="Name">SoundPlayer</string>
             <string name="Source"><![CDATA[-- Plays the game's sounds on this player's own machine. A sound with no asset chosen yet
@@ -25346,7 +25876,7 @@ return SoundPlayer
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="310">
+        <Item class="ModuleScript" referent="312">
           <Properties>
             <string name="Name">TileGrid</string>
             <string name="Source"><![CDATA[-- A grid of tiles, each a picture with a name and a count, kept in step with a list of things.
@@ -25433,7 +25963,7 @@ return TileGrid
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="311">
+        <Item class="ModuleScript" referent="313">
           <Properties>
             <string name="Name">TradeUI</string>
             <string name="Source"><![CDATA[-- The trade screen. With no trade open it lists who can be asked and who has asked; with one
@@ -25847,7 +26377,7 @@ return TradeUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="312">
+        <Item class="ModuleScript" referent="314">
           <Properties>
             <string name="Name">UIKit</string>
             <string name="Source"><![CDATA[-- The pieces every screen is built from, so they all look alike.
@@ -26280,7 +26810,7 @@ return UIKit
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="313">
+        <Item class="ModuleScript" referent="315">
           <Properties>
             <string name="Name">VisitUI</string>
             <string name="Source"><![CDATA[-- The list of islands on this server, to go and look at, and the way home. Opens with V.
@@ -26372,7 +26902,7 @@ return VisitUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="314">
+        <Item class="ModuleScript" referent="316">
           <Properties>
             <string name="Name">WorldController</string>
             <string name="Source"><![CDATA[-- What the player does away from their own island: mining rocks in the hub and fighting on the
@@ -26533,7 +27063,7 @@ return WorldController
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="315">
+  <Item class="Workspace" referent="317">
     <Properties>
       <string name="Name">Workspace</string>
       <float name="FallenPartsDestroyHeight">-300</float>

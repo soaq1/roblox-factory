@@ -208,7 +208,7 @@ end
 -- The stack a player standing at `position` picks up: the nearest one lying still, and only if
 -- there is none, the nearest one on the move. A moving item is one riding a belt, and taking
 -- those by accident would empty the player's own factory line.
-function ItemService.pick(position: Vector3, range: number): BasePart?
+function ItemService.pick(position: Vector3, range: number, stillOnly: boolean?): BasePart?
 	local still: BasePart? = nil
 	local stillDistance = range
 	local moving: BasePart? = nil
@@ -225,7 +225,7 @@ function ItemService.pick(position: Vector3, range: number): BasePart?
 			end
 		end
 	end
-	return still or moving
+	return still or (if stillOnly then nil else moving)
 end
 
 -- Counts what is really there, which also corrects the running total if the engine removed anything.

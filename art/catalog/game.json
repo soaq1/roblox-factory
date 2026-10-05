@@ -339,6 +339,10 @@
 "behavior": "power",
 "hidden": false
 },
+"tree": {
+"behavior": "tree",
+"hidden": true
+},
 "belt_corner_l": {
 "behavior": "belt",
 "hidden": false

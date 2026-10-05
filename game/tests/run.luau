@@ -443,6 +443,19 @@ test("the starter island has no two blocks in one cell and a floor under the spa
 	)
 	assert(not seen[Grid.key(IslandGen.SPAWN.x, IslandGen.SPAWN.y + 1, IslandGen.SPAWN.z)], "no head room")
 end)
+test("the starter island's trees stand on ground with nothing in their cell", function()
+	local seen = {}
+	for _, b in IslandGen.generate() do
+		seen[Grid.key(b.x, b.y, b.z)] = b.id
+	end
+	assert(#IslandGen.TREES >= 1, "an island with no tree gives a new player nothing to start with")
+	for _, t in IslandGen.TREES do
+		assert(not seen[Grid.key(t.x, t.y, t.z)], "a tree stands inside a block")
+		local below = seen[Grid.key(t.x, t.y - 1, t.z)]
+		assert(below == "grass" or below == "dirt", "a tree stands on " .. tostring(below))
+		assert(not (t.x == IslandGen.SPAWN.x and t.z == IslandGen.SPAWN.z), "a tree stands on the spawn")
+	end
+end)
 test("every palette and hotbar entry is known, and every group is on a known tab", function()
 	for _, group in Defs.Palette do
 		assert(

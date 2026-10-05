@@ -111,6 +111,10 @@ for key, m in models["machines"].items():
                          ports=[dict(side=s, kind=k, off=o) for s, k, o in m["ports"]],
                          behavior=behavior, hidden=key in HIDDEN, needsPower=key in recipes["needs_power"],
                          **extra)
+# A tree has no model file: its shape is made from a seed when it grows (shared/TreeGen).
+machines["tree"] = dict(name="나무", family="식물", note="도끼로 치면 통째로 쓰러져 통나무와 묘목을 줌",
+                        sx=1, sz=1, sy=6, height=17, icon="plant_sapling", ports=[], behavior="tree",
+                        hidden=True, needsPower=False, cost="sapling")
 # belt variants that are not separate catalog models
 machines["belt_corner_l"] = dict(machines["belt_corner"], name="코너 벨트 (왼쪽)", shape="left")
 machines["belt_corner"]["name"] = "코너 벨트 (오른쪽)"

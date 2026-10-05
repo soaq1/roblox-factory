@@ -17,24 +17,6 @@ local function wobble(x: number, z: number): number
 	return 0.55 * math.sin(x * 1.3 + z * 0.7) + 0.35 * math.cos(z * 1.9 - x * 0.4)
 end
 
--- A tree whose lowest log sits at (x, base, z).
-function IslandGen.tree(out: { Block }, x: number, base: number, z: number, height: number)
-	local top = base + height - 1
-	for y = base, top do
-		table.insert(out, { x = x, y = y, z = z, id = "log" })
-	end
-	for dy = 0, 1 do
-		for dx = -1, 1 do
-			for dz = -1, 1 do
-				if not (dx == 0 and dz == 0 and dy == 0) then
-					table.insert(out, { x = x + dx, y = top + dy, z = z + dz, id = "leaves" })
-				end
-			end
-		end
-	end
-	table.insert(out, { x = x, y = top + 2, z = z, id = "leaves" })
-end
-
 function IslandGen.generate(): { Block }
 	local out: { Block } = {}
 	for _, layer in LAYERS do
@@ -47,10 +29,11 @@ function IslandGen.generate(): { Block }
 			end
 		end
 	end
-	IslandGen.tree(out, -4, 1, -3, 3)
-	IslandGen.tree(out, 4, 1, 3, 4)
 	return out
 end
+
+-- Where the island's first trees stand. They are grown things, not blocks.
+IslandGen.TREES = { { x = -4, y = 1, z = -3 }, { x = 4, y = 1, z = 3 } }
 
 -- Cell the player stands on when they arrive.
 IslandGen.SPAWN = { x = 0, y = 1, z = 0 }

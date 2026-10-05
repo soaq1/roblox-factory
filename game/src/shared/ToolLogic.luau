@@ -159,10 +159,10 @@ function ToolLogic.machineHardness(def: { cost: string?, behavior: string? }): n
 	return MACHINE_HARDNESS.heavy
 end
 
--- How many swings a machine of that hardness takes with what is in the bag. A pickaxe is the
--- tool for it; anything else counts as the wrong tool. Always at least one.
-function ToolLogic.machineHits(hardness: number, bag: Bag): number
-	local rank = ToolLogic.best(bag, "pick")
+-- How many swings a thing of that hardness takes with what is in the bag. A pickaxe is the tool
+-- for a machine and an axe for a tree; anything else counts as the wrong tool. Always at least one.
+function ToolLogic.machineHits(hardness: number, bag: Bag, tool: string?): number
+	local rank = ToolLogic.best(bag, tool or "pick")
 	return math.max(1, math.ceil(hardness / ToolLogic.power(rank)))
 end
 
