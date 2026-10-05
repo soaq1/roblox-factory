@@ -2,6 +2,7 @@
 -- that reads them (Settings.get); this screen only shows them and flips them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Net = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Net"))
 local Prefs = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Prefs"))
 local Screens = require(script.Parent.Screens)
 local Settings = require(script.Parent.Settings)
@@ -77,8 +78,8 @@ local function row(list: Instance, order: number, key: string, name: string, not
 	switches[key] = switch
 end
 
-function SettingsUI.init(_hotbar)
-	local _, body = UIKit.window("settings", "설정", 520, 300, nil, redraw)
+function SettingsUI.init(hotbar)
+	local _, body = UIKit.window("settings", "설정", 520, 360, nil, redraw)
 	local list = UIKit.scroller(body, nil, 6)
 	list.Size = UDim2.fromScale(1, 1)
 
@@ -100,6 +101,46 @@ function SettingsUI.init(_hotbar)
 	for i, key in rest do
 		row(list, #LIST + i, key, key, "")
 	end
+
+	-- For testing only: switches between the real game and the mode where everything is free.
+	local modeRow = Instance.new("Frame")
+	modeRow.Size = UDim2.new(1, -8, 0, ROW)
+	modeRow.BackgroundColor3 = UIKit.PANEL
+	modeRow.BorderSizePixel = 0
+	modeRow.LayoutOrder = 1000
+	modeRow.Parent = list
+	UIKit.round(modeRow, 8)
+	local modeTitle = UIKit.label(modeRow, "크리에이티브 모드 (시험용)", 14)
+	modeTitle.TextXAlignment = Enum.TextXAlignment.Left
+	modeTitle.Position = UDim2.fromOffset(12, 8)
+	modeTitle.Size = UDim2.new(1, -116, 0, 20)
+	local modeNote = UIKit.label(
+		modeRow,
+		"무엇이든 무한히 놓고 한 번에 부숩니다. 출시 전에 없앱니다",
+		12
+	)
+	modeNote.TextColor3 = UIKit.DIM
+	modeNote.TextXAlignment = Enum.TextXAlignment.Left
+	modeNote.Position = UDim2.fromOffset(12, 30)
+	modeNote.Size = UDim2.new(1, -116, 0, 18)
+	local modeSwitch = UIKit.button(modeRow, "", 14)
+	modeSwitch.AutoButtonColor = false
+	modeSwitch.AnchorPoint = Vector2.new(1, 0.5)
+	modeSwitch.Position = UDim2.new(1, -10, 0.5, 0)
+	modeSwitch.Size = UDim2.fromOffset(84, 40)
+	UIKit.stroke(modeSwitch)
+	local function showMode()
+		local on = hotbar.state.mode == "creative"
+		modeSwitch.Text = if on then "켜짐" else "꺼짐"
+		modeSwitch.BackgroundColor3 = if on then UIKit.GOOD else UIKit.PANEL
+		modeSwitch.TextColor3 = if on then UIKit.BACK else UIKit.DIM
+	end
+	modeSwitch.Activated:Connect(function()
+		Net.get("Prefs")
+			:FireServer("mode", if hotbar.state.mode == "creative" then "survival" else "creative")
+	end)
+	hotbar.onChange(showMode)
+	showMode()
 
 	redraw()
 	Settings.onChange(function()

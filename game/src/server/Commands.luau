@@ -28,6 +28,7 @@ local function run(player: Player, text: string)
 		return
 	end
 	last[player] = { text = text, at = now }
+	print("chat command from " .. player.Name .. ": " .. text)
 	local ok, err = pcall(handler, player, args)
 	if not ok then
 		warn("command " .. words[1] .. " failed: " .. tostring(err))

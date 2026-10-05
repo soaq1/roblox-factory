@@ -1,7 +1,9 @@
 -- What the player sees in their hand, and the swing when they use it.
 -- Close in (first person) the thing held floats at the lower right of the view; from further out
--- it sits in the character's right hand and the arm swings. Everything here is only on this
--- player's screen: it is a picture of what the hotbar says, not something the server knows about.
+-- it sits in the character's right hand. The thing itself is only on this player's screen.
+-- The arm is moved the way Roblox moves it for any held tool: an empty Tool is put in the character
+-- while something is held, and Roblox's own animation script raises the arm for it and swings it
+-- when asked. Those animations are also what other players see.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -10,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
 local ModelBuilder = require(Shared:WaitForChild("ModelBuilder"))
+local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
 
 local HandView = {}
 
@@ -17,14 +20,19 @@ local player = Players.LocalPlayer
 local SWING_SECONDS = 0.28
 local HELD_SIZE = 1.1 -- studs: machines and blocks are shrunk to about this
 local FIRST_PERSON = 1.5 -- camera closer to its focus than this counts as first person
--- Where the held thing sits: relative to the camera, and relative to the right hand.
-local IN_VIEW = CFrame.new(0.95, -0.8, -1.9) * CFrame.Angles(0, math.rad(-20), math.rad(-8))
-local IN_HAND = CFrame.new(0, -0.35, -0.55) * CFrame.Angles(math.rad(-90), 0, 0)
+-- A tool is modelled standing up with its head across it, flat towards the front. Held, it is
+-- turned so the head points away from the holder and is seen edge-on, the way a pickaxe is swung.
+local TURNED = CFrame.Angles(0, math.rad(78), 0)
+-- Where the grip sits in first person, relative to the camera, and how far the top leans away.
+local VIEW_AT = Vector3.new(0.85, -1.15, -1.55)
+local VIEW_LEAN = math.rad(-22)
+local VIEW_SWING = math.rad(-62) -- how much further it tips at the middle of a swing
 
 type Piece = { part: BasePart, offset: CFrame }
 
 local pieces: { Piece } = {}
 local holder: Folder? = nil
+local held: Tool? = nil -- the empty Tool that makes Roblox raise and swing the arm
 local swingAt = -10
 local hotbar
 
@@ -83,7 +91,13 @@ local function build(entry: string)
 		local folder = ModelBuilder.build(camera, CFrame.new(), id, scale)
 		if folder then
 			folder.Name = "Held"
-			adopt(folder, centre * scale)
+			-- A tool is held low on its handle, so it swings about the hand; anything else is
+			-- held by its middle.
+			local grip = centre * scale
+			if item and ToolLogic.parse(item) then
+				grip -= Vector3.new(0, size.Y * 0.3, 0)
+			end
+			adopt(folder, grip)
 		end
 	elseif block or item then
 		local folder = Instance.new("Folder")
@@ -114,19 +128,19 @@ local function swingAmount(): number
 	return math.sin(t * math.pi)
 end
 
-local function rightHand(character: Model): BasePart?
-	local hand = character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm")
-	return if hand and hand:IsA("BasePart") then hand else nil
-end
-
-local function shoulder(character: Model): Motor6D?
-	local upper = character:FindFirstChild("RightUpperArm")
-	local joint = upper and upper:FindFirstChild("RightShoulder")
-	if not joint then
-		local torso = character:FindFirstChild("Torso")
-		joint = torso and torso:FindFirstChild("Right Shoulder")
+-- Where a held thing sits in the right hand: Roblox marks the spot on every character.
+local function gripFrame(character: Model): CFrame?
+	local hand = character:FindFirstChild("RightHand")
+	local spot = hand and hand:FindFirstChild("RightGripAttachment")
+	if spot and spot:IsA("Attachment") then
+		return spot.WorldCFrame
 	end
-	return if joint and joint:IsA("Motor6D") then joint else nil
+	-- the older body type has no such mark: the end of the right arm, turned the same way
+	local arm = character:FindFirstChild("Right Arm")
+	if arm and arm:IsA("BasePart") then
+		return arm.CFrame * CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+	end
+	return nil
 end
 
 local function isFirstPerson(camera: Camera): boolean
@@ -140,17 +154,17 @@ local function place()
 	if #pieces == 0 or not camera then
 		return
 	end
-	local amount = swingAmount()
 	local base: CFrame? = nil
 	if isFirstPerson(camera) then
+		local amount = swingAmount()
 		base = camera.CFrame
-			* IN_VIEW
-			* CFrame.new(0, -0.25 * amount, -0.5 * amount)
-			* CFrame.Angles(math.rad(-70) * amount, math.rad(15) * amount, 0)
+			* CFrame.new(VIEW_AT + Vector3.new(0, -0.15 * amount, -0.35 * amount))
+			* CFrame.Angles(VIEW_LEAN + VIEW_SWING * amount, 0, 0)
+			* TURNED
 	elseif character then
-		local hand = rightHand(character)
-		if hand then
-			base = hand.CFrame * IN_HAND
+		local grip = gripFrame(character)
+		if grip then
+			base = grip * TURNED
 		end
 	end
 	for _, piece in pieces do
@@ -163,42 +177,57 @@ local function place()
 	end
 end
 
--- Raises the right arm while something is held and swings it on use. The animation system writes
--- the joint every frame, so this has to be written after it, every frame.
-local function poseArm()
+-- Keeps an empty Tool in the character while something is held, and none while the hand is empty.
+-- Roblox's animation script sees the Tool and holds the arm out for it.
+local function holdArm()
 	local character = player.Character
-	local joint = character and shoulder(character)
-	if not joint then
-		return
-	end
-	local amount = swingAmount()
-	local lift = if #pieces > 0 then math.rad(35) else 0
-	local angle = lift + math.rad(75) * amount
-	if angle == 0 then
-		return
-	end
-	-- The two body types have their shoulder joints turned differently.
-	if joint.Name == "RightShoulder" then
-		joint.Transform = CFrame.Angles(angle, 0, 0)
-	else
-		joint.Transform = CFrame.Angles(0, 0, angle)
+	local wanted = #pieces > 0 and character ~= nil
+	if wanted and character then
+		if not held or held.Parent ~= character then
+			if held then
+				held:Destroy()
+			end
+			local tool = Instance.new("Tool")
+			tool.Name = "Held"
+			tool.RequiresHandle = false
+			tool.CanBeDropped = false
+			tool.ManualActivationOnly = true
+			tool.Parent = character
+			held = tool
+		end
+	elseif held then
+		held:Destroy()
+		held = nil
 	end
 end
 
 -- Call when the player uses what is in their hand: placing, breaking, hitting, dropping.
 function HandView.swing()
 	swingAt = os.clock()
+	-- Roblox's animation script looks for this note on the held Tool and plays its slash.
+	if held and not held:FindFirstChild("toolanim") then
+		local note = Instance.new("StringValue")
+		note.Name = "toolanim"
+		note.Value = "Slash"
+		note.Parent = held
+	end
 end
 
 function HandView.init(hotbarUi)
 	hotbar = hotbarUi
 	hotbar.onSelect(function()
 		build(hotbar.selected())
+		holdArm()
 	end)
 	build(hotbar.selected())
+	holdArm()
+	-- a new body after a fall or a death needs the Tool again
+	player.CharacterAdded:Connect(function()
+		held = nil
+		task.defer(holdArm)
+	end)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
-	RunService.Stepped:Connect(poseArm)
 end
 
 return HandView

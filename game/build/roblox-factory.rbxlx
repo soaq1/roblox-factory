@@ -40350,6 +40350,7 @@ local function run(player: Player, text: string)
 		return
 	end
 	last[player] = { text = text, at = now }
+	print("chat command from " .. player.Name .. ": " .. text)
 	local ok, err = pcall(handler, player, args)
 	if not ok then
 		warn("command " .. words[1] .. " failed: " .. tostring(err))
@@ -43667,10 +43668,12 @@ return PowerService
           <string name="Source"><![CDATA[-- Keeps each player's hotbar and settings: sends them when the island is ready and takes changes.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local Net = require(Shared.Net)
 local Prefs = require(Shared.Prefs)
 local IslandService = require(script.Parent.IslandService)
+local Profile = require(script.Parent.Profile)
 local RateLimit = require(script.Parent.RateLimit)
 
 local PrefsService = {}
@@ -43694,6 +43697,12 @@ local function onPrefs(player: Player, what: any, a: any, b: any)
 	if what == "load" then
 		-- The client asks once it is ready to listen, so nothing is sent into the void.
 		Net.get("Prefs"):FireClient(player, island.prefs)
+	elseif what == "mode" then
+		-- The test switch on the settings screen.
+		if Config.ALLOW_MODE_SWITCH and (a == "creative" or a == "survival") then
+			island.mode = a
+			Profile.push(island)
+		end
 	elseif what == "bar" then
 		island.prefs.bar = Prefs.cleanBar(a, Defs.isEntry)
 	elseif
@@ -50387,8 +50396,10 @@ return HandInput
             <string name="Name">HandView</string>
             <string name="Source"><![CDATA[-- What the player sees in their hand, and the swing when they use it.
 -- Close in (first person) the thing held floats at the lower right of the view; from further out
--- it sits in the character's right hand and the arm swings. Everything here is only on this
--- player's screen: it is a picture of what the hotbar says, not something the server knows about.
+-- it sits in the character's right hand. The thing itself is only on this player's screen.
+-- The arm is moved the way Roblox moves it for any held tool: an empty Tool is put in the character
+-- while something is held, and Roblox's own animation script raises the arm for it and swings it
+-- when asked. Those animations are also what other players see.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -50397,6 +50408,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared:WaitForChild("Defs"))
 local ModelBuilder = require(Shared:WaitForChild("ModelBuilder"))
+local ToolLogic = require(Shared:WaitForChild("ToolLogic"))
 
 local HandView = {}
 
@@ -50404,14 +50416,19 @@ local player = Players.LocalPlayer
 local SWING_SECONDS = 0.28
 local HELD_SIZE = 1.1 -- studs: machines and blocks are shrunk to about this
 local FIRST_PERSON = 1.5 -- camera closer to its focus than this counts as first person
--- Where the held thing sits: relative to the camera, and relative to the right hand.
-local IN_VIEW = CFrame.new(0.95, -0.8, -1.9) * CFrame.Angles(0, math.rad(-20), math.rad(-8))
-local IN_HAND = CFrame.new(0, -0.35, -0.55) * CFrame.Angles(math.rad(-90), 0, 0)
+-- A tool is modelled standing up with its head across it, flat towards the front. Held, it is
+-- turned so the head points away from the holder and is seen edge-on, the way a pickaxe is swung.
+local TURNED = CFrame.Angles(0, math.rad(78), 0)
+-- Where the grip sits in first person, relative to the camera, and how far the top leans away.
+local VIEW_AT = Vector3.new(0.85, -1.15, -1.55)
+local VIEW_LEAN = math.rad(-22)
+local VIEW_SWING = math.rad(-62) -- how much further it tips at the middle of a swing
 
 type Piece = { part: BasePart, offset: CFrame }
 
 local pieces: { Piece } = {}
 local holder: Folder? = nil
+local held: Tool? = nil -- the empty Tool that makes Roblox raise and swing the arm
 local swingAt = -10
 local hotbar
 
@@ -50470,7 +50487,13 @@ local function build(entry: string)
 		local folder = ModelBuilder.build(camera, CFrame.new(), id, scale)
 		if folder then
 			folder.Name = "Held"
-			adopt(folder, centre * scale)
+			-- A tool is held low on its handle, so it swings about the hand; anything else is
+			-- held by its middle.
+			local grip = centre * scale
+			if item and ToolLogic.parse(item) then
+				grip -= Vector3.new(0, size.Y * 0.3, 0)
+			end
+			adopt(folder, grip)
 		end
 	elseif block or item then
 		local folder = Instance.new("Folder")
@@ -50501,19 +50524,19 @@ local function swingAmount(): number
 	return math.sin(t * math.pi)
 end
 
-local function rightHand(character: Model): BasePart?
-	local hand = character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm")
-	return if hand and hand:IsA("BasePart") then hand else nil
-end
-
-local function shoulder(character: Model): Motor6D?
-	local upper = character:FindFirstChild("RightUpperArm")
-	local joint = upper and upper:FindFirstChild("RightShoulder")
-	if not joint then
-		local torso = character:FindFirstChild("Torso")
-		joint = torso and torso:FindFirstChild("Right Shoulder")
+-- Where a held thing sits in the right hand: Roblox marks the spot on every character.
+local function gripFrame(character: Model): CFrame?
+	local hand = character:FindFirstChild("RightHand")
+	local spot = hand and hand:FindFirstChild("RightGripAttachment")
+	if spot and spot:IsA("Attachment") then
+		return spot.WorldCFrame
 	end
-	return if joint and joint:IsA("Motor6D") then joint else nil
+	-- the older body type has no such mark: the end of the right arm, turned the same way
+	local arm = character:FindFirstChild("Right Arm")
+	if arm and arm:IsA("BasePart") then
+		return arm.CFrame * CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+	end
+	return nil
 end
 
 local function isFirstPerson(camera: Camera): boolean
@@ -50527,17 +50550,17 @@ local function place()
 	if #pieces == 0 or not camera then
 		return
 	end
-	local amount = swingAmount()
 	local base: CFrame? = nil
 	if isFirstPerson(camera) then
+		local amount = swingAmount()
 		base = camera.CFrame
-			* IN_VIEW
-			* CFrame.new(0, -0.25 * amount, -0.5 * amount)
-			* CFrame.Angles(math.rad(-70) * amount, math.rad(15) * amount, 0)
+			* CFrame.new(VIEW_AT + Vector3.new(0, -0.15 * amount, -0.35 * amount))
+			* CFrame.Angles(VIEW_LEAN + VIEW_SWING * amount, 0, 0)
+			* TURNED
 	elseif character then
-		local hand = rightHand(character)
-		if hand then
-			base = hand.CFrame * IN_HAND
+		local grip = gripFrame(character)
+		if grip then
+			base = grip * TURNED
 		end
 	end
 	for _, piece in pieces do
@@ -50550,42 +50573,57 @@ local function place()
 	end
 end
 
--- Raises the right arm while something is held and swings it on use. The animation system writes
--- the joint every frame, so this has to be written after it, every frame.
-local function poseArm()
+-- Keeps an empty Tool in the character while something is held, and none while the hand is empty.
+-- Roblox's animation script sees the Tool and holds the arm out for it.
+local function holdArm()
 	local character = player.Character
-	local joint = character and shoulder(character)
-	if not joint then
-		return
-	end
-	local amount = swingAmount()
-	local lift = if #pieces > 0 then math.rad(35) else 0
-	local angle = lift + math.rad(75) * amount
-	if angle == 0 then
-		return
-	end
-	-- The two body types have their shoulder joints turned differently.
-	if joint.Name == "RightShoulder" then
-		joint.Transform = CFrame.Angles(angle, 0, 0)
-	else
-		joint.Transform = CFrame.Angles(0, 0, angle)
+	local wanted = #pieces > 0 and character ~= nil
+	if wanted and character then
+		if not held or held.Parent ~= character then
+			if held then
+				held:Destroy()
+			end
+			local tool = Instance.new("Tool")
+			tool.Name = "Held"
+			tool.RequiresHandle = false
+			tool.CanBeDropped = false
+			tool.ManualActivationOnly = true
+			tool.Parent = character
+			held = tool
+		end
+	elseif held then
+		held:Destroy()
+		held = nil
 	end
 end
 
 -- Call when the player uses what is in their hand: placing, breaking, hitting, dropping.
 function HandView.swing()
 	swingAt = os.clock()
+	-- Roblox's animation script looks for this note on the held Tool and plays its slash.
+	if held and not held:FindFirstChild("toolanim") then
+		local note = Instance.new("StringValue")
+		note.Name = "toolanim"
+		note.Value = "Slash"
+		note.Parent = held
+	end
 end
 
 function HandView.init(hotbarUi)
 	hotbar = hotbarUi
 	hotbar.onSelect(function()
 		build(hotbar.selected())
+		holdArm()
 	end)
 	build(hotbar.selected())
+	holdArm()
+	-- a new body after a fall or a death needs the Tool again
+	player.CharacterAdded:Connect(function()
+		held = nil
+		task.defer(holdArm)
+	end)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
-	RunService.Stepped:Connect(poseArm)
 end
 
 return HandView
@@ -52811,6 +52849,7 @@ return Settings
 -- that reads them (Settings.get); this screen only shows them and flips them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Net = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Net"))
 local Prefs = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Prefs"))
 local Screens = require(script.Parent.Screens)
 local Settings = require(script.Parent.Settings)
@@ -52886,8 +52925,8 @@ local function row(list: Instance, order: number, key: string, name: string, not
 	switches[key] = switch
 end
 
-function SettingsUI.init(_hotbar)
-	local _, body = UIKit.window("settings", "설정", 520, 300, nil, redraw)
+function SettingsUI.init(hotbar)
+	local _, body = UIKit.window("settings", "설정", 520, 360, nil, redraw)
 	local list = UIKit.scroller(body, nil, 6)
 	list.Size = UDim2.fromScale(1, 1)
 
@@ -52909,6 +52948,46 @@ function SettingsUI.init(_hotbar)
 	for i, key in rest do
 		row(list, #LIST + i, key, key, "")
 	end
+
+	-- For testing only: switches between the real game and the mode where everything is free.
+	local modeRow = Instance.new("Frame")
+	modeRow.Size = UDim2.new(1, -8, 0, ROW)
+	modeRow.BackgroundColor3 = UIKit.PANEL
+	modeRow.BorderSizePixel = 0
+	modeRow.LayoutOrder = 1000
+	modeRow.Parent = list
+	UIKit.round(modeRow, 8)
+	local modeTitle = UIKit.label(modeRow, "크리에이티브 모드 (시험용)", 14)
+	modeTitle.TextXAlignment = Enum.TextXAlignment.Left
+	modeTitle.Position = UDim2.fromOffset(12, 8)
+	modeTitle.Size = UDim2.new(1, -116, 0, 20)
+	local modeNote = UIKit.label(
+		modeRow,
+		"무엇이든 무한히 놓고 한 번에 부숩니다. 출시 전에 없앱니다",
+		12
+	)
+	modeNote.TextColor3 = UIKit.DIM
+	modeNote.TextXAlignment = Enum.TextXAlignment.Left
+	modeNote.Position = UDim2.fromOffset(12, 30)
+	modeNote.Size = UDim2.new(1, -116, 0, 18)
+	local modeSwitch = UIKit.button(modeRow, "", 14)
+	modeSwitch.AutoButtonColor = false
+	modeSwitch.AnchorPoint = Vector2.new(1, 0.5)
+	modeSwitch.Position = UDim2.new(1, -10, 0.5, 0)
+	modeSwitch.Size = UDim2.fromOffset(84, 40)
+	UIKit.stroke(modeSwitch)
+	local function showMode()
+		local on = hotbar.state.mode == "creative"
+		modeSwitch.Text = if on then "켜짐" else "꺼짐"
+		modeSwitch.BackgroundColor3 = if on then UIKit.GOOD else UIKit.PANEL
+		modeSwitch.TextColor3 = if on then UIKit.BACK else UIKit.DIM
+	end
+	modeSwitch.Activated:Connect(function()
+		Net.get("Prefs")
+			:FireServer("mode", if hotbar.state.mode == "creative" then "survival" else "creative")
+	end)
+	hotbar.onChange(showMode)
+	showMode()
 
 	redraw()
 	Settings.onChange(function()
