@@ -159,6 +159,7 @@ MachineActs.start()
 for _, name in
 	{
 		"DayCycle",
+		"HandArm",
 		"HubService",
 		"MineService",
 		"MonsterService",

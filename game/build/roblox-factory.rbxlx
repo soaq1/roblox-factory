@@ -41041,6 +41041,114 @@ return GameCommands
       </Item>
       <Item class="ModuleScript" referent="438">
         <Properties>
+          <string name="Name">HandArm</string>
+          <string name="Source"><![CDATA[-- Raises the character's arm while the player is holding something, and swings it when they use it.
+--
+-- Roblox's own animation script already does both for any equipped Tool, so this keeps an empty,
+-- unseen Tool in the character while the hand is not empty. The Tool has to be put there by the
+-- server: one made on the client is never really equipped (Roblox does not weld its handle to the
+-- hand, so no RightGrip appears) and Roblox takes it away again within a second or two. That is
+-- why the arm kept dropping. Being on the server also means other players see the same arm.
+--
+-- What the player sees in their hand is a separate thing, drawn only on their own screen by
+-- client/HandView.luau.
+local Players = game:GetService("Players")
+
+local HandArm = {}
+
+-- Whether each player's hand is meant to be full, remembered so a new body gets the same arm.
+local holding: { [Player]: boolean } = {}
+
+local function toolIn(character: Model): Tool?
+	local tool = character:FindFirstChild("HeldArm")
+	return if tool and tool:IsA("Tool") then tool else nil
+end
+
+-- Puts the empty Tool in the character, or takes it away. Safe to call with nothing changed.
+local function apply(player: Player)
+	local character = player.Character
+	if not character or character.Parent == nil then
+		return
+	end
+	local tool = toolIn(character)
+	if holding[player] then
+		if tool then
+			return
+		end
+		local made = Instance.new("Tool")
+		made.Name = "HeldArm"
+		made.CanBeDropped = false
+		made.ManualActivationOnly = true
+		-- Roblox only counts a Tool as equipped once it has welded a part named Handle to the
+		-- right hand, and the animation script only animates an equipped Tool.
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(0.2, 0.2, 0.2)
+		handle.Transparency = 1
+		handle.CanCollide = false
+		handle.CanQuery = false
+		handle.CanTouch = false
+		handle.Massless = true
+		handle.Parent = made
+		made.Parent = character
+	elseif tool then
+		tool:Destroy()
+	end
+end
+
+-- Call when what the player holds changes. Anything other than an empty hand counts as holding.
+function HandArm.hold(player: Player, entry: any)
+	holding[player] = type(entry) == "string" and entry ~= ""
+	apply(player)
+end
+
+-- Call when the player uses what is in their hand. Roblox's animation script looks for this note
+-- on the held Tool and plays its slash once.
+function HandArm.swing(player: Player)
+	local character = player.Character
+	local tool = character and toolIn(character)
+	if tool and not tool:FindFirstChild("toolanim") then
+		local note = Instance.new("StringValue")
+		note.Name = "toolanim"
+		note.Value = "Slash"
+		note.Parent = tool
+	end
+end
+
+-- Whether the arm is up and Roblox accepted the Tool, for the self-test to report.
+function HandArm.state(player: Player): { holding: boolean, tool: boolean, equipped: boolean }
+	local character = player.Character
+	local tool = character and toolIn(character)
+	local hand = character and character:FindFirstChild("RightHand")
+	return {
+		holding = holding[player] == true,
+		tool = tool ~= nil,
+		equipped = hand ~= nil and hand:FindFirstChild("RightGrip") ~= nil,
+	}
+end
+
+function HandArm.start()
+	local function watch(player: Player)
+		player.CharacterAdded:Connect(function()
+			-- The body arrives empty-handed; give it back the arm the player had.
+			task.defer(apply, player)
+		end)
+	end
+	Players.PlayerAdded:Connect(watch)
+	for _, player in Players:GetPlayers() do
+		watch(player)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		holding[player] = nil
+	end)
+end
+
+return HandArm
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="439">
+        <Properties>
           <string name="Name">HubService</string>
           <string name="Source"><![CDATA[-- The hub: one shared place per server with the merchants, the mine and the way to the monster
 -- island. It is built from plain parts when the server starts, so nobody can edit it. This module
@@ -41316,7 +41424,7 @@ return HubService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="439">
+      <Item class="ModuleScript" referent="440">
         <Properties>
           <string name="Name">IslandService</string>
           <string name="Source"><![CDATA[-- One island per player: where it sits in the world and what is in each cell.
@@ -41531,7 +41639,7 @@ return IslandService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="440">
+      <Item class="ModuleScript" referent="441">
         <Properties>
           <string name="Name">ItemService</string>
           <string name="Source"><![CDATA[-- Loose items: real parts moved by the physics engine. Only the server makes or removes them.
@@ -41827,7 +41935,7 @@ return ItemService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="441">
+      <Item class="ModuleScript" referent="442">
         <Properties>
           <string name="Name">MachineActs</string>
           <string name="Source"><![CDATA[-- One door for everything a player does to a placed machine beyond placing and breaking it:
@@ -41898,7 +42006,7 @@ return MachineActs
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="442">
+      <Item class="ModuleScript" referent="443">
         <Properties>
           <string name="Name">MachineKit</string>
           <string name="Source"><![CDATA[-- Shared pieces machines are assembled from.
@@ -42092,7 +42200,7 @@ return MachineKit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="443">
+      <Item class="ModuleScript" referent="444">
         <Properties>
           <string name="Name">MachineService</string>
           <string name="Source"><![CDATA[-- Keeps track of every placed machine and runs each one on a fixed beat.
@@ -42369,7 +42477,7 @@ return MachineService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Script" referent="444">
+      <Item class="Script" referent="445">
         <Properties>
           <string name="Name">Main</string>
           <token name="RunContext">0</token>
@@ -42534,6 +42642,7 @@ MachineActs.start()
 for _, name in
 	{
 		"DayCycle",
+		"HandArm",
 		"HubService",
 		"MineService",
 		"MonsterService",
@@ -42564,7 +42673,7 @@ end
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="445">
+      <Item class="ModuleScript" referent="446">
         <Properties>
           <string name="Name">MineService</string>
           <string name="Source"><![CDATA[-- The mine in the hub: rocks that anyone can break with a pickaxe. Each gives its ore straight to
@@ -42810,7 +42919,7 @@ return MineService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="446">
+      <Item class="ModuleScript" referent="447">
         <Properties>
           <string name="Name">MonsterService</string>
           <string name="Source"><![CDATA[-- The monster island: a place apart from the hub where slimes live. They come at anyone who gets
@@ -43117,7 +43226,7 @@ return MonsterService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="447">
+      <Item class="ModuleScript" referent="448">
         <Properties>
           <string name="Name">Outlet</string>
           <string name="Source"><![CDATA[-- How a finished item leaves a machine. Normally it drops just outside the mouth, onto a belt or the
@@ -43193,7 +43302,7 @@ return Outlet
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="448">
+      <Item class="ModuleScript" referent="449">
         <Properties>
           <string name="Name">PlacementService</string>
           <string name="Source"><![CDATA[-- Handles requests to place, break and pick up. Nothing a client sends is trusted:
@@ -43208,6 +43317,7 @@ local Grid = require(Shared.Grid)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
 local ToolLogic = require(Shared.ToolLogic)
+local HandArm = require(script.Parent.HandArm)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
@@ -43292,6 +43402,7 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	if not island or not Defs.isPlaceable(id) then
 		return
 	end
+	HandArm.swing(player)
 	local cost = payment(island, id)
 	if cost == nil then
 		Net.get("Notify"):FireClient(player, "가방에 " .. Defs.name(id) .. "이(가) 없습니다")
@@ -43368,6 +43479,7 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 	if not island then
 		return
 	end
+	HandArm.swing(player)
 	local key = Grid.key(x, y, z)
 	local cell = island.cells[key]
 	if not cell then
@@ -43485,6 +43597,7 @@ function PlacementService.start()
 		local island = IslandService.get(player)
 		if island and allowed(player) then
 			Profile.hold(island, entry)
+			HandArm.hold(player, entry)
 		end
 	end)
 	Net.get("Pickup").OnServerEvent:Connect(pickup)
@@ -43497,7 +43610,7 @@ return PlacementService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="449">
+      <Item class="ModuleScript" referent="450">
         <Properties>
           <string name="Name">PowerService</string>
           <string name="Source"><![CDATA[-- Runs the electricity on every island. Once a beat it gathers each island's power machines and
@@ -43663,7 +43776,7 @@ return PowerService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="450">
+      <Item class="ModuleScript" referent="451">
         <Properties>
           <string name="Name">PrefsService</string>
           <string name="Source"><![CDATA[-- Keeps each player's hotbar and settings: sends them when the island is ready and takes changes.
@@ -43724,7 +43837,7 @@ return PrefsService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="451">
+      <Item class="ModuleScript" referent="452">
         <Properties>
           <string name="Name">Profile</string>
           <string name="Source"><![CDATA[-- What a player owns apart from the island itself: the bag, coins, workbench tiers and play mode.
@@ -43818,7 +43931,7 @@ return Profile
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="452">
+      <Item class="ModuleScript" referent="453">
         <Properties>
           <string name="Name">RateLimit</string>
           <string name="Source"><![CDATA[-- A small allowance per player that refills over time. Requests beyond it are dropped.
@@ -43855,7 +43968,7 @@ return RateLimit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="453">
+      <Item class="ModuleScript" referent="454">
         <Properties>
           <string name="Name">SaveService</string>
           <string name="Source"><![CDATA[-- Saving and loading islands. Uses Roblox's data store when it is available, and a store that only
@@ -44022,7 +44135,7 @@ return SaveService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="454">
+      <Item class="ModuleScript" referent="455">
         <Properties>
           <string name="Name">SelfTest</string>
           <string name="Source"><![CDATA[-- Tests the game can run on itself inside Studio, started from outside by the test plugin
@@ -44039,6 +44152,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
+local HandArm = require(script.Parent.HandArm)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
@@ -44206,6 +44320,70 @@ function scenarios.idle(_player, _island, args)
 	return { pass = true }
 end
 
+-- How far the right upper arm is turned away from the body, in degrees. Raised for a held tool it
+-- reads about 80; hanging down it reads about 0. The arm is animated on the player's own machine,
+-- so this is the pose as it reaches everyone else.
+local function armAngle(player: Player): number?
+	local character = player.Character
+	local upper = character and character:FindFirstChild("RightUpperArm")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (upper and root and upper:IsA("BasePart") and root:IsA("BasePart")) then
+		return nil
+	end
+	local x = select(1, root.CFrame:ToObjectSpace(upper.CFrame):ToOrientation())
+	return math.deg(x)
+end
+
+-- Holding something has to raise the arm, and keep it raised. Passes if the empty Tool stays in the
+-- character, Roblox really equips it (it welds the handle to the hand as RightGrip), the arm comes
+-- up, and letting go brings it down again.
+function scenarios.arm(player, _island, args)
+	local problems: { string } = {}
+	local rounds = tonumber(args.seconds) or 10
+	HandArm.hold(player, "item:pick_wood")
+	task.wait(1.5) -- the animation takes a moment to blend in
+	local raised = 0
+	for t = 1, rounds do
+		local state = HandArm.state(player)
+		local angle = armAngle(player)
+		say(
+			string.format("arm t=%d", t),
+			"tool=" .. tostring(state.tool),
+			"equipped=" .. tostring(state.equipped),
+			"angle=" .. (if angle then string.format("%.0f", angle) else "?")
+		)
+		if not state.tool then
+			table.insert(problems, "the tool was gone by second " .. t)
+		elseif not state.equipped then
+			table.insert(problems, "Roblox never equipped the tool (no RightGrip) by second " .. t)
+		end
+		if angle and angle > 40 then
+			raised += 1
+		end
+		task.wait(1)
+	end
+	if raised < rounds - 1 then
+		table.insert(problems, "the arm was only up for " .. raised .. " of " .. rounds .. " seconds")
+	end
+
+	HandArm.hold(player, "")
+	task.wait(1.5)
+	local after = HandArm.state(player)
+	local down = armAngle(player)
+	say(
+		"arm let go",
+		"tool=" .. tostring(after.tool),
+		"angle=" .. (if down then string.format("%.0f", down) else "?")
+	)
+	if after.tool then
+		table.insert(problems, "the tool stayed after letting go")
+	end
+	if down and down > 40 then
+		table.insert(problems, string.format("the arm stayed up after letting go (%.0f degrees)", down))
+	end
+	return { pass = #problems == 0, raisedSeconds = raised, of = rounds, problems = problems }
+end
+
 function SelfTest.start()
 	if not RunService:IsStudio() then
 		return
@@ -44220,6 +44398,9 @@ function SelfTest.start()
 			task.wait(0.25)
 		end
 		if type(raw) ~= "string" then
+			-- Normal when the game is just being played in Studio by hand. Said out loud anyway,
+			-- because when a test *was* asked for, this silence is the only sign it went astray.
+			say("no scenario was handed over in 20 seconds; nothing to run")
 			return
 		end
 		local args = HttpService:JSONDecode(raw)
@@ -44257,7 +44438,7 @@ return SelfTest
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="455">
+      <Item class="ModuleScript" referent="456">
         <Properties>
           <string name="Name">ShopService</string>
           <string name="Source"><![CDATA[-- The hub's merchants. The rules live in shared/ShopLogic and the prices in shared/Prices; this
@@ -44352,7 +44533,7 @@ return ShopService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="456">
+      <Item class="ModuleScript" referent="457">
         <Properties>
           <string name="Name">SocialService</string>
           <string name="Source"><![CDATA[-- What players may learn about each other. A client asks about a player (by clicking on them) and
@@ -44417,7 +44598,7 @@ return SocialService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="457">
+      <Item class="ModuleScript" referent="458">
         <Properties>
           <string name="Name">StatusKit</string>
           <string name="Source"><![CDATA[-- The lamp on top of a machine that says what it is doing, and the count of what it puts out.
@@ -44503,7 +44684,7 @@ return StatusKit
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="458">
+      <Item class="ModuleScript" referent="459">
         <Properties>
           <string name="Name">TradeService</string>
           <string name="Source"><![CDATA[-- Trades between two players on the same server. The rules live in shared/TradeLogic; this module
@@ -44730,7 +44911,7 @@ return TradeService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="459">
+      <Item class="ModuleScript" referent="460">
         <Properties>
           <string name="Name">Tuning</string>
           <string name="Source"><![CDATA[-- Values the debug commands change while the game runs.
@@ -44740,7 +44921,7 @@ return {
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="460">
+      <Item class="ModuleScript" referent="461">
         <Properties>
           <string name="Name">VisitService</string>
           <string name="Source"><![CDATA[-- Going to other players' islands on this server, and home again. A visitor can look around and
@@ -44868,7 +45049,7 @@ return VisitService
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="461">
+      <Item class="ModuleScript" referent="462">
         <Properties>
           <string name="Name">Watch</string>
           <string name="Source"><![CDATA[-- Keeps a machine's window current while a player has it open. A machine's module opens the
@@ -44936,7 +45117,7 @@ return Watch
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="462">
+      <Item class="ModuleScript" referent="463">
         <Properties>
           <string name="Name">World</string>
           <string name="Source"><![CDATA[-- Where the shared places are, and what the systems that build them tell each other.
@@ -44959,11 +45140,11 @@ return World
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Folder" referent="463">
+      <Item class="Folder" referent="464">
         <Properties>
           <string name="Name">machines</string>
         </Properties>
-        <Item class="ModuleScript" referent="464">
+        <Item class="ModuleScript" referent="465">
           <Properties>
             <string name="Name">Assembler</string>
             <string name="Source"><![CDATA[-- Machines that are told what to make: the assembler, the circuit maker and the manufacturer.
@@ -45069,7 +45250,7 @@ return Assembler
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="465">
+        <Item class="ModuleScript" referent="466">
           <Properties>
             <string name="Name">Belt</string>
             <string name="Source"><![CDATA[-- Belts carry anything that touches them. There is no code moving the items: the surface has a
@@ -45159,7 +45340,7 @@ return Belt
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="466">
+        <Item class="ModuleScript" referent="467">
           <Properties>
             <string name="Name">Bench</string>
             <string name="Source"><![CDATA[-- Workbenches and hand stations. They do nothing by themselves: standing near one is what lets a
@@ -45207,7 +45388,7 @@ return Bench
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="467">
+        <Item class="ModuleScript" referent="468">
           <Properties>
             <string name="Name">Blower</string>
             <string name="Source"><![CDATA[-- The blower: a steady push on every loose item in front of it. The push is the same for every
@@ -45288,7 +45469,7 @@ return Blower
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="468">
+        <Item class="ModuleScript" referent="469">
           <Properties>
             <string name="Name">Chest</string>
             <string name="Source"><![CDATA[-- Storage: the storage unit collects whatever a belt brings to its input, and the hand chest
@@ -45457,7 +45638,7 @@ return Chest
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="469">
+        <Item class="ModuleScript" referent="470">
           <Properties>
             <string name="Name">Chute</string>
             <string name="Source"><![CDATA[-- The chute: two cells long, dropping one cell. Items enter at belt height one level up at the
@@ -45524,7 +45705,7 @@ return Chute
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="470">
+        <Item class="ModuleScript" referent="471">
           <Properties>
             <string name="Name">Decor</string>
             <string name="Source"><![CDATA[-- Machines that are in the catalogue but do nothing yet. They can be placed and looked at.
@@ -45541,7 +45722,7 @@ return Decor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="471">
+        <Item class="ModuleScript" referent="472">
           <Properties>
             <string name="Name">Extractor</string>
             <string name="Source"><![CDATA[-- Puts out one raw item at a steady pace: ore from a vein core, water from a pump.
@@ -45658,7 +45839,7 @@ return Extractor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="472">
+        <Item class="ModuleScript" referent="473">
           <Properties>
             <string name="Name">Harvester</string>
             <string name="Source"><![CDATA[-- The harvester: gathers ripe crops near it and puts what they bore out of its mouth. The crops
@@ -45735,7 +45916,7 @@ return Harvester
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="473">
+        <Item class="ModuleScript" referent="474">
           <Properties>
             <string name="Name">Launcher</string>
             <string name="Source"><![CDATA[-- The launcher: throws each item it is given in an arc, forward and up. How far is set by its
@@ -45849,7 +46030,7 @@ return Launcher
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="474">
+        <Item class="ModuleScript" referent="475">
           <Properties>
             <string name="Name">Lift</string>
             <string name="Source"><![CDATA[-- The lift: takes an item in at the bottom and puts it out at the front two levels up.
@@ -45941,7 +46122,7 @@ return Lift
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="475">
+        <Item class="ModuleScript" referent="476">
           <Properties>
             <string name="Name">Logger</string>
             <string name="Source"><![CDATA[-- The logger: fells the trees near it, one at a time, and puts the logs out of its mouth. It
@@ -46059,7 +46240,7 @@ return Logger
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="476">
+        <Item class="ModuleScript" referent="477">
           <Properties>
             <string name="Name">Passthrough</string>
             <string name="Source"><![CDATA[-- Machines that move items on without changing them: the splitter, merger, funnel and magnet
@@ -46217,7 +46398,7 @@ return Passthrough
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="477">
+        <Item class="ModuleScript" referent="478">
           <Properties>
             <string name="Name">Plant</string>
             <string name="Source"><![CDATA[-- Things that grow: a sapling becomes a tree, a crop ripens through stages.
@@ -46414,7 +46595,7 @@ return Plant
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="478">
+        <Item class="ModuleScript" referent="479">
           <Properties>
             <string name="Name">Power</string>
             <string name="Source"><![CDATA[-- Everything that makes, stores or carries electricity: the coal generator, the incinerator, the
@@ -46710,7 +46891,7 @@ return Power
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="479">
+        <Item class="ModuleScript" referent="480">
           <Properties>
             <string name="Name">Processor</string>
             <string name="Source"><![CDATA[-- Any machine that turns things into other things: smelter, crusher, press, kiln and the rest.
@@ -47006,7 +47187,7 @@ return Processor
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="480">
+        <Item class="ModuleScript" referent="481">
           <Properties>
             <string name="Name">Pusher</string>
             <string name="Source"><![CDATA[-- The pusher: items pass straight through it, but while a signal reaches it they are pushed out
@@ -47079,7 +47260,7 @@ return Pusher
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="481">
+        <Item class="ModuleScript" referent="482">
           <Properties>
             <string name="Name">Ramp</string>
             <string name="Source"><![CDATA[-- The ramp belt: two cells long, climbing one cell. Items enter at belt height at the back and
@@ -47157,7 +47338,7 @@ return Ramp
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="482">
+        <Item class="ModuleScript" referent="483">
           <Properties>
             <string name="Name">Seeder</string>
             <string name="Source"><![CDATA[-- The seeder: sows the seeds delivered to it on empty farmland near it.
@@ -47269,7 +47450,7 @@ return Seeder
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="483">
+        <Item class="ModuleScript" referent="484">
           <Properties>
             <string name="Name">Sign</string>
             <string name="Source"><![CDATA[-- A sign: the owner writes on it and the words show on both faces.
@@ -47408,7 +47589,7 @@ return Sign
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="484">
+        <Item class="ModuleScript" referent="485">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[-- Signal devices: switch, sensor, timer, counter, logic box, gate and beacon. The rule for who is
@@ -47749,7 +47930,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="485">
+        <Item class="ModuleScript" referent="486">
           <Properties>
             <string name="Name">Sorter</string>
             <string name="Source"><![CDATA[-- The sorter: the owner names one item. That item leaves by the second mouth (the side); everything
@@ -47814,7 +47995,7 @@ return Sorter
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="486">
+        <Item class="ModuleScript" referent="487">
           <Properties>
             <string name="Name">Sprinkler</string>
             <string name="Source"><![CDATA[-- The sprinkler: crops and saplings near it grow faster. It needs nothing fed to it for now.
@@ -47851,7 +48032,7 @@ return Sprinkler
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="487">
+        <Item class="ModuleScript" referent="488">
           <Properties>
             <string name="Name">Tree</string>
             <string name="Source"><![CDATA[-- A tree: one thing that stands on the island, not a pile of blocks. Its shape comes from a seed
@@ -48031,7 +48212,7 @@ return Tree
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="488">
+        <Item class="ModuleScript" referent="489">
           <Properties>
             <string name="Name">Vending</string>
             <string name="Source"><![CDATA[-- The vending machine: how players sell to and buy from each other while the owner is busy.
@@ -48338,20 +48519,20 @@ return Vending
       </Item>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="489">
+  <Item class="StarterPlayer" referent="490">
     <Properties>
       <string name="Name">StarterPlayer</string>
       <bool name="EnableMouseLockOption">false</bool>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="490">
+    <Item class="StarterPlayerScripts" referent="491">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="Folder" referent="491">
+      <Item class="Folder" referent="492">
         <Properties>
           <string name="Name">Client</string>
         </Properties>
-        <Item class="ModuleScript" referent="492">
+        <Item class="ModuleScript" referent="493">
           <Properties>
             <string name="Name">BagUI</string>
             <string name="Source"><![CDATA[-- The bag screen (E): everything the player holds, always in the same sorted order, with tabs and
@@ -48507,7 +48688,7 @@ return BagUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="493">
+        <Item class="ModuleScript" referent="494">
           <Properties>
             <string name="Name">BuildController</string>
             <string name="Source"><![CDATA[-- Turns what the player does with their hand into place, break, drop and pick-up requests, and
@@ -49427,7 +49608,7 @@ return BuildController
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="494">
+        <Item class="ModuleScript" referent="495">
           <Properties>
             <string name="Name">ChestUI</string>
             <string name="Source"><![CDATA[-- A chest, opened the way one is in Minecraft: the player's bag on the left, the chest on the
@@ -49638,7 +49819,7 @@ return ChestUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="495">
+        <Item class="ModuleScript" referent="496">
           <Properties>
             <string name="Name">CraftUI</string>
             <string name="Source"><![CDATA[-- The crafting screen (C): what can be made by hand, where, and from what. Three tabs: crafting at
@@ -50392,7 +50573,7 @@ return CraftUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="496">
+        <Item class="ModuleScript" referent="497">
           <Properties>
             <string name="Name">DebugUI</string>
             <string name="Source"><![CDATA[-- Shows the server's live numbers in the corner of the screen.
@@ -50447,7 +50628,7 @@ return DebugUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="497">
+        <Item class="ModuleScript" referent="498">
           <Properties>
             <string name="Name">HandInput</string>
             <string name="Source"><![CDATA[-- One answer to "where is the player pointing, and are they pressing use?" whatever they play on.
@@ -50627,15 +50808,15 @@ return HandInput
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="498">
+        <Item class="ModuleScript" referent="499">
           <Properties>
             <string name="Name">HandView</string>
-            <string name="Source"><![CDATA[-- What the player sees in their hand, and the swing when they use it.
+            <string name="Source"><![CDATA[-- What the player sees in their hand, and the tip of it as they swing.
 -- Close in (first person) the thing held floats at the lower right of the view; from further out
 -- it sits in the character's right hand. The thing itself is only on this player's screen.
--- The arm is moved the way Roblox moves it for any held tool: an empty Tool is put in the character
--- while something is held, and Roblox's own animation script raises the arm for it and swings it
--- when asked. Those animations are also what other players see.
+-- The arm itself is not moved here. The server does that (server/HandArm.luau), because a Tool put
+-- in the character by the client is never really equipped and Roblox takes it away again within a
+-- second or two, which is why the arm used to drop straight back down.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -50664,7 +50845,6 @@ type Piece = { part: BasePart, offset: CFrame }
 
 local pieces: { Piece } = {}
 local holder: Folder? = nil
-local held: Tool? = nil -- the empty Tool that makes Roblox raise and swing the arm
 local swingAt = -10
 local hotbar
 
@@ -50809,65 +50989,18 @@ local function place()
 	end
 end
 
--- Keeps an empty Tool in the character while something is held, and none while the hand is empty.
--- Roblox's animation script sees the Tool and holds the arm out for it.
-local function holdArm()
-	local character = player.Character
-	local wanted = #pieces > 0 and character ~= nil
-	if wanted and character then
-		if not held or held.Parent ~= character then
-			if held then
-				held:Destroy()
-			end
-			local tool = Instance.new("Tool")
-			tool.Name = "Held"
-			tool.CanBeDropped = false
-			tool.ManualActivationOnly = true
-			-- Roblox's animation script only treats a Tool as held if it has a part named
-			-- Handle, so it gets one: tiny, unseen, weightless.
-			local handle = Instance.new("Part")
-			handle.Name = "Handle"
-			handle.Size = Vector3.new(0.2, 0.2, 0.2)
-			handle.Transparency = 1
-			handle.CanCollide = false
-			handle.CanQuery = false
-			handle.CanTouch = false
-			handle.Massless = true
-			handle.Parent = tool
-			tool.Parent = character
-			held = tool
-		end
-	elseif held then
-		held:Destroy()
-		held = nil
-	end
-end
-
--- Call when the player uses what is in their hand: placing, breaking, hitting, dropping.
+-- Call when the player uses what is in their hand: placing, breaking, hitting, dropping. This is
+-- only the tip of the held thing in first person; the arm swing comes from the server.
 function HandView.swing()
 	swingAt = os.clock()
-	-- Roblox's animation script looks for this note on the held Tool and plays its slash.
-	if held and not held:FindFirstChild("toolanim") then
-		local note = Instance.new("StringValue")
-		note.Name = "toolanim"
-		note.Value = "Slash"
-		note.Parent = held
-	end
 end
 
 function HandView.init(hotbarUi)
 	hotbar = hotbarUi
 	hotbar.onSelect(function()
 		build(hotbar.selected())
-		holdArm()
 	end)
 	build(hotbar.selected())
-	holdArm()
-	-- a new body after a fall or a death needs the Tool again
-	player.CharacterAdded:Connect(function()
-		held = nil
-		task.defer(holdArm)
-	end)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
 	-- TEMPORARY: say what the arm is doing, so the log can be read instead of the screen.
@@ -50911,10 +51044,6 @@ function HandView.init(hotbarUi)
 				lines,
 				"tool="
 					.. tostring(tool and tool.Name)
-					.. " heldSame="
-					.. tostring(tool == held)
-					.. " heldParent="
-					.. tostring(held and held.Parent and held.Parent.Name)
 					.. " handle="
 					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
 					.. " requiresHandle="
@@ -50962,7 +51091,7 @@ return HandView
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="499">
+        <Item class="ModuleScript" referent="500">
           <Properties>
             <string name="Name">HotbarUI</string>
             <string name="Source"><![CDATA[-- The ten quick slots (keys 1 to 9, then 0), the palette of things to place, and the bag and coin
@@ -51687,7 +51816,7 @@ return HotbarUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="500">
+        <Item class="ModuleScript" referent="501">
           <Properties>
             <string name="Name">InfoCard</string>
             <string name="Source"><![CDATA[-- The card for one thing: how it is made and what it is used in. It opens when the player asks
@@ -52044,7 +52173,7 @@ return InfoCard
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="501">
+        <Item class="ModuleScript" referent="502">
           <Properties>
             <string name="Name">MachineUI</string>
             <string name="Source"><![CDATA[-- The inside of a machine.
@@ -52537,7 +52666,7 @@ return MachineUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="LocalScript" referent="502">
+        <Item class="LocalScript" referent="503">
           <Properties>
             <string name="Name">Main</string>
             <string name="Source"><![CDATA[-- Client start-up.
@@ -52583,7 +52712,7 @@ end
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="503">
+        <Item class="ModuleScript" referent="504">
           <Properties>
             <string name="Name">MenuButtons</string>
             <string name="Source"><![CDATA[-- The row of buttons at the top of the screen: bag, crafting, trade, visiting, settings, and home.
@@ -52678,7 +52807,7 @@ return MenuButtons
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="504">
+        <Item class="ModuleScript" referent="505">
           <Properties>
             <string name="Name">PowerOverlay</string>
             <string name="Source"><![CDATA[-- Shows where electricity reaches. While a pole or a generator is in the hand (at the spot it
@@ -52946,7 +53075,7 @@ return PowerOverlay
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="505">
+        <Item class="ModuleScript" referent="506">
           <Properties>
             <string name="Name">Screens</string>
             <string name="Source"><![CDATA[-- The windows that open over the game (palette, crafting, trade, shop). One is open at a time.
@@ -53093,7 +53222,7 @@ return Screens
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="506">
+        <Item class="ModuleScript" referent="507">
           <Properties>
             <string name="Name">Settings</string>
             <string name="Source"><![CDATA[-- This player's settings and saved hotbar, as last heard from the server, and the way to change
@@ -53174,7 +53303,7 @@ return Settings
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="507">
+        <Item class="ModuleScript" referent="508">
           <Properties>
             <string name="Name">SettingsUI</string>
             <string name="Source"><![CDATA[-- The settings screen: one switch for each setting. What the switches mean is decided by the code
@@ -53333,7 +53462,7 @@ return SettingsUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="508">
+        <Item class="ModuleScript" referent="509">
           <Properties>
             <string name="Name">ShopUI</string>
             <string name="Source"><![CDATA[-- Two counters: a hub merchant's, and a vending machine's. Both only ask; the server decides.
@@ -53819,7 +53948,7 @@ return ShopUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="509">
+        <Item class="ModuleScript" referent="510">
           <Properties>
             <string name="Name">SignUI</string>
             <string name="Source"><![CDATA[-- Writing on a sign. Opened when the owner presses F on one; what is typed is sent to the server,
@@ -53937,7 +54066,7 @@ return SignUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="510">
+        <Item class="ModuleScript" referent="511">
           <Properties>
             <string name="Name">SocialUI</string>
             <string name="Source"><![CDATA[-- Other players: the card that opens when one is clicked, and asking the one standing next to you
@@ -54202,7 +54331,7 @@ return SocialUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="511">
+        <Item class="ModuleScript" referent="512">
           <Properties>
             <string name="Name">SoundPlayer</string>
             <string name="Source"><![CDATA[-- Plays the game's sounds on this player's own machine. A sound with no asset chosen yet
@@ -54269,7 +54398,7 @@ return SoundPlayer
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="512">
+        <Item class="ModuleScript" referent="513">
           <Properties>
             <string name="Name">TileGrid</string>
             <string name="Source"><![CDATA[-- A grid of tiles, each a picture with a name and a count, kept in step with a list of things.
@@ -54356,7 +54485,7 @@ return TileGrid
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="513">
+        <Item class="ModuleScript" referent="514">
           <Properties>
             <string name="Name">TradeUI</string>
             <string name="Source"><![CDATA[-- The trade screen. With no trade open it lists who can be asked and who has asked; with one
@@ -54770,7 +54899,7 @@ return TradeUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="514">
+        <Item class="ModuleScript" referent="515">
           <Properties>
             <string name="Name">UIKit</string>
             <string name="Source"><![CDATA[-- The pieces every screen is built from, so they all look alike.
@@ -55203,7 +55332,7 @@ return UIKit
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="515">
+        <Item class="ModuleScript" referent="516">
           <Properties>
             <string name="Name">VisitUI</string>
             <string name="Source"><![CDATA[-- The list of islands on this server, to go and look at, and the way home. Opens with V.
@@ -55295,7 +55424,7 @@ return VisitUI
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="516">
+        <Item class="ModuleScript" referent="517">
           <Properties>
             <string name="Name">WorldController</string>
             <string name="Source"><![CDATA[-- What the player does away from their own island: mining rocks in the hub and fighting on the
@@ -55456,13 +55585,13 @@ return WorldController
       </Item>
     </Item>
   </Item>
-  <Item class="TextChatService" referent="517">
+  <Item class="TextChatService" referent="518">
     <Properties>
       <string name="Name">TextChatService</string>
       <token name="ChatVersion">1</token>
     </Properties>
   </Item>
-  <Item class="Workspace" referent="518">
+  <Item class="Workspace" referent="519">
     <Properties>
       <string name="Name">Workspace</string>
       <float name="FallenPartsDestroyHeight">-300</float>

@@ -10,6 +10,7 @@ local Grid = require(Shared.Grid)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
 local ToolLogic = require(Shared.ToolLogic)
+local HandArm = require(script.Parent.HandArm)
 local IslandService = require(script.Parent.IslandService)
 local ItemService = require(script.Parent.ItemService)
 local MachineService = require(script.Parent.MachineService)
@@ -94,6 +95,7 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	if not island or not Defs.isPlaceable(id) then
 		return
 	end
+	HandArm.swing(player)
 	local cost = payment(island, id)
 	if cost == nil then
 		Net.get("Notify"):FireClient(player, "가방에 " .. Defs.name(id) .. "이(가) 없습니다")
@@ -170,6 +172,7 @@ local function breakCell(player: Player, x: any, y: any, z: any)
 	if not island then
 		return
 	end
+	HandArm.swing(player)
 	local key = Grid.key(x, y, z)
 	local cell = island.cells[key]
 	if not cell then
@@ -287,6 +290,7 @@ function PlacementService.start()
 		local island = IslandService.get(player)
 		if island and allowed(player) then
 			Profile.hold(island, entry)
+			HandArm.hold(player, entry)
 		end
 	end)
 	Net.get("Pickup").OnServerEvent:Connect(pickup)

@@ -1,9 +1,9 @@
--- What the player sees in their hand, and the swing when they use it.
+-- What the player sees in their hand, and the tip of it as they swing.
 -- Close in (first person) the thing held floats at the lower right of the view; from further out
 -- it sits in the character's right hand. The thing itself is only on this player's screen.
--- The arm is moved the way Roblox moves it for any held tool: an empty Tool is put in the character
--- while something is held, and Roblox's own animation script raises the arm for it and swings it
--- when asked. Those animations are also what other players see.
+-- The arm itself is not moved here. The server does that (server/HandArm.luau), because a Tool put
+-- in the character by the client is never really equipped and Roblox takes it away again within a
+-- second or two, which is why the arm used to drop straight back down.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -32,7 +32,6 @@ type Piece = { part: BasePart, offset: CFrame }
 
 local pieces: { Piece } = {}
 local holder: Folder? = nil
-local held: Tool? = nil -- the empty Tool that makes Roblox raise and swing the arm
 local swingAt = -10
 local hotbar
 
@@ -177,65 +176,18 @@ local function place()
 	end
 end
 
--- Keeps an empty Tool in the character while something is held, and none while the hand is empty.
--- Roblox's animation script sees the Tool and holds the arm out for it.
-local function holdArm()
-	local character = player.Character
-	local wanted = #pieces > 0 and character ~= nil
-	if wanted and character then
-		if not held or held.Parent ~= character then
-			if held then
-				held:Destroy()
-			end
-			local tool = Instance.new("Tool")
-			tool.Name = "Held"
-			tool.CanBeDropped = false
-			tool.ManualActivationOnly = true
-			-- Roblox's animation script only treats a Tool as held if it has a part named
-			-- Handle, so it gets one: tiny, unseen, weightless.
-			local handle = Instance.new("Part")
-			handle.Name = "Handle"
-			handle.Size = Vector3.new(0.2, 0.2, 0.2)
-			handle.Transparency = 1
-			handle.CanCollide = false
-			handle.CanQuery = false
-			handle.CanTouch = false
-			handle.Massless = true
-			handle.Parent = tool
-			tool.Parent = character
-			held = tool
-		end
-	elseif held then
-		held:Destroy()
-		held = nil
-	end
-end
-
--- Call when the player uses what is in their hand: placing, breaking, hitting, dropping.
+-- Call when the player uses what is in their hand: placing, breaking, hitting, dropping. This is
+-- only the tip of the held thing in first person; the arm swing comes from the server.
 function HandView.swing()
 	swingAt = os.clock()
-	-- Roblox's animation script looks for this note on the held Tool and plays its slash.
-	if held and not held:FindFirstChild("toolanim") then
-		local note = Instance.new("StringValue")
-		note.Name = "toolanim"
-		note.Value = "Slash"
-		note.Parent = held
-	end
 end
 
 function HandView.init(hotbarUi)
 	hotbar = hotbarUi
 	hotbar.onSelect(function()
 		build(hotbar.selected())
-		holdArm()
 	end)
 	build(hotbar.selected())
-	holdArm()
-	-- a new body after a fall or a death needs the Tool again
-	player.CharacterAdded:Connect(function()
-		held = nil
-		task.defer(holdArm)
-	end)
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
 	-- TEMPORARY: say what the arm is doing, so the log can be read instead of the screen.
@@ -279,10 +231,6 @@ function HandView.init(hotbarUi)
 				lines,
 				"tool="
 					.. tostring(tool and tool.Name)
-					.. " heldSame="
-					.. tostring(tool == held)
-					.. " heldParent="
-					.. tostring(held and held.Parent and held.Parent.Name)
 					.. " handle="
 					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
 					.. " requiresHandle="
