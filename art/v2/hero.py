@@ -116,3 +116,74 @@ def smelter(m):
         for z, inner in ((N + 0.26, 0.33), (N + 0.50, 0.30)):
             lo, hi = sorted((sx * inner, x))
             bx(m, (lo, hi), (-0.07, 0.07), (z, z + 0.05), D, bevel=0.0)
+
+
+def sunk_frame(m, d, yp, x, z, w, h, t=0.032, mk=T):
+    """Four bars round an opening on a side wall, standing proud of the panel so that whatever is put
+    inside sits back from the front."""
+    yf = yp + d * 0.015
+    for sz in SIDES:
+        m.box((w + 2 * t, 0.04, t), (x, yf, z + sz * (h + t) / 2), mk)
+    for sx in SIDES:
+        m.box((t, 0.04, h), (x + sx * (w + t) / 2, yf, z), mk)
+
+
+@hero
+def press(m):
+    """A four-column press. The columns stand on the neck and carry a deep crown; the hydraulic cylinder
+    stands on the crown and its ram drives a platen that slides on the columns, down onto the plate lying
+    on the bolster. Oil reaches the cylinder through one short pipe from a valve block on each end of the
+    crown. Each side wall has a pressure gauge in the middle, a sunk louvre either side of it, and the
+    frame's tie-rod nuts at each end."""
+    Z = foundation(m)
+    bx(m, (-0.47, 0.47), (-0.40, 0.40), (Z - 0.02, Z + 0.10), G, bevel=0.03)
+    N = Z + 0.10
+    C0, C1 = N + 0.52, N + 0.76
+    # bolster, the plate being pressed, and the die above it
+    bx(m, (-0.28, 0.28), (-0.24, 0.24), (N - 0.01, N + 0.09), D, bevel=0.022)
+    bx(m, (-0.20, 0.20), (-0.16, 0.16), (N + 0.09, N + 0.115), "h_steel", bevel=0.0)
+    # platen, with a die on its underside and a guide bush on each column
+    bx(m, (-0.45, 0.45), (-0.38, 0.38), (N + 0.24, N + 0.44), T, bevel=0.04)
+    bx(m, (-0.26, 0.26), (-0.22, 0.22), (N + 0.17, N + 0.25), D, bevel=0.02)
+    # crown
+    bx(m, (-0.47, 0.47), (-0.40, 0.40), (C0, C1), G, bevel=0.05)
+    for sx in SIDES:
+        for sy in SIDES:
+            x, y = sx * 0.355, sy * 0.29
+            m.cyl(0.09, 0.06, (x, y, N + 0.03), D, seg=8)
+            m.cyl(0.058, C0 - N, (x, y, (N + C0) / 2), "h_lite", seg=8)
+            m.cyl(0.085, 0.26, (x, y, N + 0.34), G, seg=8)
+            m.cyl(0.085, 0.06, (x, y, C1 + 0.03), D, seg=6)
+            m.cyl(0.04, 0.05, (x, y, C1 + 0.085), "h_lite", seg=6)
+    # ram and cylinder
+    m.cyl(0.16, 0.05, (0, 0, C0 - 0.025), D, seg=8)
+    m.cyl(0.115, C0 - N - 0.44, (0, 0, (N + 0.44 + C0) / 2), "h_steel", seg=12)
+    octa(m, 0.215, 0.215, C1 - 0.01, C1 + 0.07, D)
+    octa(m, 0.19, 0.19, C1 + 0.05, C1 + 0.34, G)
+    octa(m, 0.215, 0.215, C1 + 0.32, C1 + 0.40, D)
+    m.cyl(0.07, 0.05, (0, 0, C1 + 0.425), "h_lite", seg=6)
+    # a valve block at each end of the crown feeds the cylinder through one short pipe
+    for sx in SIDES:
+        bx(m, tuple(sorted((sx * 0.30, sx * 0.45))), (-0.12, 0.12), (C1 - 0.01, C1 + 0.22), G, bevel=0.03)
+        m.cyl(0.05, 0.13, (sx * 0.245, 0, C1 + 0.13), "h_lite", seg=8, axis="X")
+        m.cyl(0.066, 0.025, (sx * 0.203, 0, C1 + 0.13), D, seg=8, axis="X")
+        m.cyl(0.066, 0.025, (sx * 0.288, 0, C1 + 0.13), D, seg=8, axis="X")
+    for d in SIDES:
+        yp = side_panel(m, d, w=0.66)
+        y = d * BY
+        gz = 0.605
+        m.cyl(0.092, 0.035, (0, yp + d * 0.012, gz), T, seg=12, axis="Y")
+        m.cyl(0.072, 0.02, (0, yp + d * 0.014, gz), "h_lite", seg=12, axis="Y")
+        m.box((0.012, 0.012, 0.062), (0.018, yp + d * 0.026, gz + 0.018), TD, rot=(0, rad(32), 0))
+        m.cyl(0.014, 0.02, (0, yp + d * 0.024, gz), TD, seg=6, axis="Y")
+        for sx in SIDES:
+            lx = sx * 0.225
+            sunk_frame(m, d, yp, lx, gz, 0.11, 0.15, mk=T)
+            m.box((0.11, 0.008, 0.15), (lx, yp + d * 0.002, gz), SLIT)
+            for k in range(3):
+                m.box((0.11, 0.018, 0.022), (lx, yp + d * 0.018, gz + (k - 1) * 0.048), G, rot=(d * rad(-28), 0, 0))
+            for k in range(2):
+                nz = 0.47 + k * 0.26
+                m.cyl(0.042, 0.035, (sx * 0.405, y + d * 0.017, nz), G, seg=6, axis="Y")
+                m.cyl(0.022, 0.03, (sx * 0.405, y + d * 0.035, nz), TD, seg=6, axis="Y")
+
