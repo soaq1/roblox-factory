@@ -214,8 +214,12 @@ def octa(m, a0, a1, z0, z1, mk):
 
 
 def oct_ring(m, a_out, t, z0, z1, mk):
-    """An eight-sided ring with an open centre: eight bars, one per flat."""
-    side = 2 * a_out * math.tan(math.pi / 8)
-    for k in range(8):
-        a = k * math.pi / 4
-        m.box((t, side, z1 - z0), (math.cos(a) * (a_out - t / 2), math.sin(a) * (a_out - t / 2), (z0 + z1) / 2), mk, rot=a)
+    """An eight-sided ring with an open centre. Each of its eight bars is cut at an angle at both ends so
+    that neighbours meet in a mitre, with no gap at the corners."""
+    k = 1.0 / math.cos(math.pi / 8)
+    ro, ri = a_out * k, (a_out - t) * k
+    for j in range(8):
+        a0 = math.pi / 8 + j * math.pi / 4
+        a1 = a0 + math.pi / 4
+        m.prism([(ro * math.cos(a0), ro * math.sin(a0)), (ro * math.cos(a1), ro * math.sin(a1)),
+                 (ri * math.cos(a1), ri * math.sin(a1)), (ri * math.cos(a0), ri * math.sin(a0))], z0, z1, "Z", mk)
