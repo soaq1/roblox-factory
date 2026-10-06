@@ -204,3 +204,18 @@ def show(build, name, out_dir):
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_dir, name + ".blend"))
     ob.hide_render = True
     ob.hide_viewport = True
+
+
+def octa(m, a0, a1, z0, z1, mk):
+    """An eight-sided solid with flats facing along and across the belt. a0 and a1 are the distances from
+    the centre line to a flat at the bottom and at the top."""
+    k = 1.0 / math.cos(math.pi / 8)
+    m.cyl(a0 * k, z1 - z0, (0, 0, (z0 + z1) / 2), mk, seg=8, r2=a1 * k, rot=rad(22.5))
+
+
+def oct_ring(m, a_out, t, z0, z1, mk):
+    """An eight-sided ring with an open centre: eight bars, one per flat."""
+    side = 2 * a_out * math.tan(math.pi / 8)
+    for k in range(8):
+        a = k * math.pi / 4
+        m.box((t, side, z1 - z0), (math.cos(a) * (a_out - t / 2), math.sin(a) * (a_out - t / 2), (z0 + z1) / 2), mk, rot=a)
