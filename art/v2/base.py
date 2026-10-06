@@ -5,7 +5,7 @@
 # plinth with a light moulding, and six plates of alternating size wrap each tunnel mouth. What goes on
 # top of that foundation is our own design. Units are grid cells.
 import math, os
-import bpy
+import bpy, bmesh
 import factorykit as fk
 from mathutils import Vector
 from .kit import bx, arch_pts
@@ -73,9 +73,10 @@ def foundation(m, top=0.82):
     return top
 
 
-def gear(m, r, depth, loc, mk, teeth=12, root=0.78, base=0.60, tip=0.34, half_step=False):
-    """A gear cut as one outline: each tooth is wide at the root and narrower at a flat tip. It lies in
-    the X-Z plane with a tooth pointing straight up, so it is its own mirror image left to right."""
+def gear(m, r, depth, loc, mk, teeth=12, root=0.74, base=0.62, tip=0.20, half_step=False):
+    """A gear cut as one outline: each tooth is wide at the root and tapers to a narrow flat tip, so its
+    corners look cut back. Not a square stuck on a disc, and not a spike. It lies in the X-Z plane with a
+    tooth pointing straight up, so it is its own mirror image left to right."""
     x, y, z = loc
     step = 2 * math.pi / teeth
     pts = []
@@ -87,15 +88,47 @@ def gear(m, r, depth, loc, mk, teeth=12, root=0.78, base=0.60, tip=0.34, half_st
     m.prism(pts, y - depth / 2, y + depth / 2, "Y", mk)
 
 
-def wall_pipe(m, px, d, wall_y, z_top, foot=0.25, r=0.042, mk=W):
-    """A round pipe that leaves a side wall, turns down through a 45-degree elbow and runs to the plinth.
-    It is made of straight pieces so that mirrored copies are exact mirror images."""
-    out = wall_y + d * 0.062
-    m.cyl(r, 0.07, (px, wall_y + d * 0.005, z_top), mk, seg=8, axis="Y")
-    m.cyl(r, 0.075, (px, wall_y + d * 0.047, z_top - 0.022), mk, seg=8, axis="Y", rot=(d * rad(45), 0, 0))
-    m.cyl(r, z_top - 0.045 - foot, (px, out, (z_top - 0.045 + foot) / 2), mk, seg=8)
-    m.cyl(r * 1.32, 0.03, (px, out, foot + 0.012), mk, seg=8)
-    m.cyl(r * 1.32, 0.025, (px, wall_y + d * 0.012, z_top), mk, seg=8, axis="Y")
+def side_pipe(m, x, path, r=0.036, mk=W, seg=8):
+    """One continuous round pipe whose centre line lies in the plane at this x. `path` is a list of
+    (y, z) points; each bend is mitred. Because every ring is laid out from the X axis, a pipe and its
+    mirror image (across the belt or end to end) match exactly."""
+    pts = [Vector((0.0, y, z)) for y, z in path]
+    n = len(pts)
+    seg_dir = [(pts[i + 1] - pts[i]).normalized() for i in range(n - 1)]
+    bm = bmesh.new()
+    rings = []
+    for i in range(n):
+        if i == 0:
+            tan, k = seg_dir[0], 1.0
+        elif i == n - 1:
+            tan, k = seg_dir[-1], 1.0
+        else:
+            tan = (seg_dir[i - 1] + seg_dir[i]).normalized()
+            k = 1.0 / max(seg_dir[i - 1].dot(tan), 0.5)
+        nrm = Vector((0.0, -tan.z, tan.y))                    # in the plane of the path, square to it
+        ring = []
+        for j in range(seg):
+            a = 2 * math.pi * j / seg
+            ring.append(bm.verts.new(Vector((x, 0, 0)) + pts[i] + Vector((1, 0, 0)) * (r * math.cos(a))
+                                     + nrm * (r * k * math.sin(a))))
+        rings.append(ring)
+    for a, b in zip(rings, rings[1:]):
+        for j in range(seg):
+            bm.faces.new((a[j], a[(j + 1) % seg], b[(j + 1) % seg], b[j]))
+    bm.faces.new(rings[0])
+    bm.faces.new(rings[-1])
+    m._add(bm, mk)
+
+
+def pipe_from_neck(m, px, d, z, neck_y, wall_y, foot=0.25, r=0.036, mk=W):
+    """A pipe with both ends fixed to something: it leaves a flanged socket on the side of the neck above
+    the body, runs out over the body's shoulder, turns down through one clean 45-degree bend, and drops
+    into a flanged socket on top of the plinth."""
+    yc = wall_y + d * (r + 0.004)
+    c = 0.045
+    side_pipe(m, px, [(neck_y - d * 0.03, z), (yc - d * c, z), (yc, z - c), (yc, foot - 0.02)], r, mk)
+    m.cyl(r * 1.38, 0.028, (px, neck_y + d * 0.014, z), mk, seg=8, axis="Y")       # socket on the neck
+    m.cyl(r * 1.38, 0.03, (px, yc, foot + 0.015), mk, seg=8)                        # socket on the plinth
 
 
 def side_panel(m, d, w=0.74, h=0.30, z=0.60):
