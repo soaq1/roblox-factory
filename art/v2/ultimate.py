@@ -4,11 +4,12 @@ import factorykit as fk
 from factorykit import rad
 from .kit import (machine2, bx, on, stub, port, vent, panel, hexbolt, badge, gauge, buttons, slots, lamp, band,
                   chimney, frame_tower, tank, E_OUT)
+from .kit import hull
 
 
 def platform(m, half=1.9, top=1.10):
     bx(m, (-half, half), (-half, half), (0.0, 0.18), "g4")
-    bx(m, (-half + 0.06, half - 0.06), (-half + 0.06, half - 0.06), (0.18, top), "g2")
+    hull(m, (-half + 0.06, half - 0.06), (-half + 0.06, half - 0.06), top, z0=0.18, span=1.25, post=0.10)
     band(m, (-half + 0.06, half - 0.06), (-half + 0.06, half - 0.06), top, t=0.12)
     for side in ("S", "E"):
         f = half - 0.06

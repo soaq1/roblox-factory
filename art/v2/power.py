@@ -4,6 +4,7 @@ import factorykit as fk
 from factorykit import rad
 from .kit import (machine2, bx, on, stub, vent, panel, hexbolt, badge, gauge, buttons, slots, lamp, band,
                   chimney, frame_tower, tank, hopper, skirt, body, HALF, BELT_Z)
+from .kit import hull
 
 
 def insulator(m, x, y, z, n=3):
@@ -19,7 +20,7 @@ def generator(m):
         stub(m, 0.0, -1, 1.0, "in")
     bx(m, (-0.5, 1.46), (-0.96, 0.96), (0.0, 0.14), "g4")
     # firebox, where the fuel comes in
-    bx(m, (-0.5, 0.36), (-0.94, -0.06), (0.14, 1.04), "g2")
+    hull(m, (-0.5, 0.36), (-0.94, -0.06), 1.04, z0=0.14)
     band(m, (-0.5, 0.36), (-0.94, -0.06), 1.04, t=0.08)
     with on(m, "S", -0.07, -0.94, 0.56):
         slots(m, 0.52, 0.30, 5)

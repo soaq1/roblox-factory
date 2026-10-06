@@ -8,6 +8,7 @@ from .kit import (machine2, bx, on, inline, stub, vent, panel, hexbolt, badge, g
 
 E2_OUT = (("E", "out", 0),)
 W2_IN = (("W", "in", 0),)
+from .kit import hull
 
 
 def source(m, **kw):
@@ -128,7 +129,7 @@ def pumpjack(m):
     chimney(m, 1.08, 0.60, 0.82, 0.44, r=0.07)
     # barrels by the output
     with m.at((0.5, -0.5, 0)):
-        bx(m, (-0.5, 0.0), (-0.44, 0.44), (0.14, 0.86), "g2")
+        hull(m, (-0.5, 0.0), (-0.44, 0.44), 0.86, z0=0.14, post=0.07)
         band(m, (-0.5, 0.0), (-0.44, 0.44), 0.86, t=0.07)
         with on(m, "S", -0.25, -0.44, 0.52):
             vent(m, 0.30, 0.26, 4)

@@ -97,12 +97,12 @@ def arch_pts(w, top, hole_top=0.62, hw=0.33, c=0.07, ci=0.045):
             (hw, 0.0), (hw, hole_top - ci), (hw - ci, hole_top), (-hw + ci, hole_top), (-hw, hole_top - ci), (-hw, 0.0)]
 
 
-def collar(m, x, d, n=4, t=0.055, w=0.95, top=0.74, shrink=0.05, mks=("g2", "g3")):
+def collar(m, x, d, n=4, t=0.055, w=0.95, top=0.74, shrink=0.05, mks=("g2", "g3"), hole_top=0.62):
     """Ribbed plates around a tunnel mouth, n plates from x in direction d. Returns where they end."""
     for i in range(n):
         a, b = x + d * i * t, x + d * (i + 1) * t
         k = i % 2
-        m.prism(arch_pts(w - k * 2 * shrink, top - k * shrink), min(a, b), max(a, b), "X", mks[k])
+        m.prism(arch_pts(w - k * 2 * shrink, top - k * shrink, hole_top=hole_top), min(a, b), max(a, b), "X", mks[k])
     return x + d * n * t
 
 
@@ -132,14 +132,14 @@ def inline(m, x0=-0.5, x1=0.5, half=1.5, kinds=("in", "out"), **kw):
 
 # ============================ WALL DETAILS (use inside `with on(...)`) ============================
 def vent(m, w=0.40, h=0.26, n=4):
-    m.box((w + 0.07, 0.03, h + 0.07), (0, -0.015, 0), "g1")
+    m.box((w + 0.07, 0.07, h + 0.07), (0, 0.005, 0), "g1")
     m.box((w, 0.012, h), (0, -0.033, 0), "g5")
     for i in range(n):
         m.box((w - 0.03, 0.02, h / (2 * n)), (0, -0.045, -h / 2 + (i + 0.5) * h / n), "g2")
 
 
 def panel(m, w=0.4, h=0.3, mk="g1", t=0.03, bolts=True):
-    m.box((w, t, h), (0, -t / 2, 0), mk)
+    m.box((w, t + 0.04, h), (0, -t / 2 + 0.02, 0), mk)
     if bolts:
         for sx in (-1, 1):
             for sz in (-1, 1):
@@ -147,33 +147,33 @@ def panel(m, w=0.4, h=0.3, mk="g1", t=0.03, bolts=True):
 
 
 def hexbolt(m, r=0.04, mk="g3"):
-    m.cyl(r, 0.035, (0, -0.0175, 0), mk, seg=6, axis="Y")
+    m.cyl(r, 0.075, (0, 0.0025, 0), mk, seg=6, axis="Y")
     m.cyl(r * 0.55, 0.02, (0, -0.045, 0), "g1", seg=6, axis="Y")
 
 
 def badge(m, r=0.085):
     """The small red emblem Islands puts on its heavy machines."""
-    m.cyl(r, 0.03, (0, -0.015, 0), "badge", seg=5, axis="Y")
+    m.cyl(r, 0.07, (0, 0.005, 0), "badge", seg=5, axis="Y")
     m.cyl(r * 0.62, 0.02, (0, -0.036, 0), "g1", seg=5, axis="Y")
     m.cyl(r * 0.25, 0.02, (0, -0.05, 0), "g5", seg=5, axis="Y")
 
 
 def gauge(m, r=0.09):
-    m.cyl(r, 0.03, (0, -0.015, 0), "g5", seg=10, axis="Y")
+    m.cyl(r, 0.07, (0, 0.005, 0), "g5", seg=10, axis="Y")
     m.cyl(r * 0.76, 0.02, (0, -0.034, 0), "white", seg=10, axis="Y")
     m.box((0.014, 0.014, r * 0.7), (0.015, -0.05, 0.015), "red", rot=(0, rad(30), 0))
 
 
 def buttons(m, cols=("spark", "lampg", "water", "red"), s=0.055):
     w = len(cols) * (s + 0.025) + 0.045
-    m.box((w, 0.03, s + 0.09), (0, -0.015, 0), "g5")
+    m.box((w, 0.07, s + 0.09), (0, 0.005, 0), "g5")
     for i, c in enumerate(cols):
         m.box((s, 0.02, s), (-w / 2 + 0.035 + s / 2 + i * (s + 0.025), -0.038, 0), c)
 
 
 def slots(m, w=0.36, h=0.22, n=4, mk="glow", vertical=True):
     """A dark opening with glowing bars behind it: a firebox door or a status display."""
-    m.box((w + 0.07, 0.03, h + 0.07), (0, -0.015, 0), "g4")
+    m.box((w + 0.07, 0.07, h + 0.07), (0, 0.005, 0), "g4")
     m.box((w, 0.012, h), (0, -0.033, 0), "hole")
     for i in range(n):
         if vertical:
@@ -183,7 +183,7 @@ def slots(m, w=0.36, h=0.22, n=4, mk="glow", vertical=True):
 
 
 def lamp(m, mk="lampg", r=0.035):
-    m.cyl(r + 0.012, 0.02, (0, -0.01, 0), "g5", seg=8, axis="Y")
+    m.cyl(r + 0.012, 0.06, (0, 0.01, 0), "g5", seg=8, axis="Y")
     m.cyl(r, 0.03, (0, -0.03, 0), mk, seg=8, axis="Y")
 
 
@@ -262,9 +262,30 @@ def rocks(m, pts, mk="rock", jitter=0.16):
 
 
 # ============================ LAYOUTS ============================
+def hull(m, xs, ys, top, z0=0.0, mk="g2", post_mk="g3", rail_mk="g1", plinth_mk="g4",
+         plinth=0.12, post=0.08, inset=0.024, rail=0.07, span=1.0):
+    """A machine block that does not read as a plain box: a plinth course at the foot, a rail round
+    the top, posts at the corners (and along long sides), and the wall panels set back between them."""
+    x0, x1 = xs
+    y0, y1 = ys
+    bx(m, xs, ys, (z0, z0 + plinth), plinth_mk, bevel=0.025)
+    bx(m, (x0 + inset, x1 - inset), (y0 + inset, y1 - inset), (z0 + plinth - 0.01, top - 0.01), mk, bevel=0.0)
+    bx(m, xs, ys, (top - rail, top), rail_mk, bevel=0.02)
+
+    def along(a0, a1):
+        n = max(1, round((a1 - a0) / span))
+        return [a0 + (a1 - a0 - post) * i / n for i in range(n + 1)]
+
+    spots = [(x, y) for x in along(x0, x1) for y in (y0, y1 - post)]
+    spots += [(x, y) for y in along(y0, y1)[1:-1] for x in (x0, x1 - post)]
+    for x, y in spots:
+        bx(m, (x, x + post), (y, y + post), (z0 + plinth, top - rail), post_mk, bevel=0.0)
+    return top
+
+
 def body(m, top=0.80, mk="g2", band_mk="g4", t=0.08, xs=(-0.5, 0.5), ys=(-0.44, 0.44), out=0.04):
     """The lower block of a machine with a trim band on it. Returns the height of the deck."""
-    bx(m, xs, ys, (0.0, top), mk)
+    hull(m, xs, ys, top, mk=mk)
     band(m, xs, ys, top, t=t, mk=band_mk, out=out)
     return top + t
 

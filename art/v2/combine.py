@@ -5,6 +5,7 @@ from factorykit import rad
 from .kit import (machine2, bx, on, inline, stub, vent, panel, hexbolt, badge, gauge, buttons, slots, lamp, band,
                   chimney, frame_tower, tank, flange, hopper, skirt, port, body, tee, tee_body, TEE_IN, TEE_OUT,
                   HALF, BELT_Z, W_IN, E_OUT)
+from .kit import hull
 
 
 @machine2("blast", (3, 3), (W_IN, ("S", "in", 0), E_OUT))
@@ -15,7 +16,7 @@ def blast(m):
     port(m, "S", 0, -0.9, "in", L=0.6)
     # machine block
     bx(m, (-0.9, 0.9), (-0.9, 0.9), (0.0, 0.14), "g4")
-    bx(m, (-0.86, 0.86), (-0.86, 0.86), (0.14, 1.10), "g2")
+    hull(m, (-0.86, 0.86), (-0.86, 0.86), 1.10, z0=0.14)
     band(m, (-0.86, 0.86), (-0.86, 0.86), 1.10, t=0.10)
     bx(m, (-0.70, 0.70), (-0.70, 0.70), (1.20, 1.60), "g1")
     band(m, (-0.70, 0.70), (-0.70, 0.70), 1.60, t=0.07, mk="g3", out=0.03)
@@ -160,7 +161,7 @@ def manufacturer(m):
     port(m, "S", 0, -0.9, "in", L=0.6)
     port(m, "N", 0, 0.9, "in", L=0.6)
     bx(m, (-0.9, 0.9), (-0.9, 0.9), (0.0, 0.14), "g4")
-    bx(m, (-0.86, 0.86), (-0.86, 0.86), (0.14, 1.12), "g2")
+    hull(m, (-0.86, 0.86), (-0.86, 0.86), 1.12, z0=0.14)
     band(m, (-0.86, 0.86), (-0.86, 0.86), 1.12, t=0.10)
     T = 1.22
     frame_tower(m, (-0.98, 0.98), (-0.98, 0.98), 0.0, (T + 0.62, T + 1.30), post=0.06, beam=0.14)
