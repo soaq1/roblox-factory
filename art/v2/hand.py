@@ -1,271 +1,227 @@
-# v2 models: the places where things are made by hand (손 작업).
-# These are not factory steel. Like Islands' early stations they are wood, stone and clay, with tools lying on them.
+# v2 hand work: the fire, the furnace, the chest and the benches where things are made by hand. They are
+# timber and stone with steel fittings, to set them apart from the machines.
 import math
-import factorykit as fk
-from factorykit import rad
-from .kit import machine2, bx, on, rocks, buttons, lamp, badge, vent
+from .d import *          # noqa: F401,F403
+from .d import free, K
+
+WD, WL = "h_wood", "h_wood_l"
 
 
-@machine2("campfire", (1, 1), items=False)
 def campfire(m):
-    """A ring of stones, logs leaning together, a flame."""
-    m.cyl(0.34, 0.04, (0, 0, 0.02), "charcoal", seg=10)
+    """Campfire, 1x1: a ring of stones, crossed logs, flame."""
     for k in range(8):
         a = k * math.pi / 4
-        m.ico(0.15, (math.cos(a) * 0.37, math.sin(a) * 0.37, 0.09), "rock" if k % 2 else "rock_dark", squash=0.8, jitter=0.18)
-    for k in range(4):
-        with m.at((0, 0, 0), k * math.pi / 2 + 0.4):
-            m.cyl(0.065, 0.52, (0.13, 0, 0.24), "wood", seg=6, rot=(0, rad(-30), 0))
-            m.cyl(0.066, 0.012, (0.26, 0, 0.018), "wood_light", seg=6, rot=(0, rad(-30), 0))
-    m.cyl(0.13, 0.40, (0, 0, 0.44), "glow", seg=6, r2=0.01)
-    m.cyl(0.08, 0.26, (0.05, -0.06, 0.36), "spark", seg=5, r2=0.005)
-    m.cyl(0.06, 0.20, (-0.07, 0.04, 0.34), "spark", seg=5, r2=0.005)
+        m.box((0.20, 0.15, 0.13), (0.34 * math.cos(a), 0.34 * math.sin(a), 0.065), "h_stone", bevel=0.03, rot=a + math.pi / 2)
+    for y in (-0.11, 0.11):
+        m.cyl(0.065, 0.50, (0, y, 0.085), WD, seg=8, axis="X")
+        m.cyl(0.065, 0.50, (y, 0, 0.20), WD, seg=8, axis="Y")
+    m.cyl(0.15, 0.36, (0, 0, 0.44), "h_glow", seg=6, r2=0.0)
+    m.cyl(0.09, 0.22, (0.08, 0.05, 0.37), "h_oil", seg=6, r2=0.0)
+    m.cyl(0.08, 0.20, (-0.08, -0.05, 0.36), "h_oil", seg=6, r2=0.0)
 
 
-@machine2("hand_furnace", (1, 1), items=False)
 def hand_furnace(m):
-    """A clay furnace shaped like a bottle, standing in a bed of stones."""
-    for k in range(9):
-        a = k * 2 * math.pi / 9
-        m.ico(0.17, (math.cos(a) * 0.33, math.sin(a) * 0.33, 0.12), "rock" if k % 2 else "rock_dark", squash=0.85, jitter=0.2)
-    m.cyl(0.36, 0.30, (0, 0, 0.36), "clayp", seg=8, r2=0.32)
-    m.cyl(0.32, 0.50, (0, 0, 0.76), "clayp", seg=8, r2=0.17)
-    m.cyl(0.17, 0.18, (0, 0, 1.10), "clayp", seg=8, r2=0.22)
-    m.cyl(0.225, 0.04, (0, 0, 1.21), "g4", seg=8)
-    m.cyl(0.16, 0.012, (0, 0, 1.232), "glow", seg=8)
-    with m.at((0, 0, 0), rad(45)):
-        m.box((0.26, 0.10, 0.26), (0, -0.33, 0.46), "g4")
-        m.box((0.18, 0.04, 0.18), (0, -0.375, 0.46), "glow")
-    m.cyl(0.07, 0.34, (0.34, 0.30, 0.30), "wood", seg=6, axis="Y", rot=rad(30))
+    """Hand furnace, 1x1: a small stone furnace, its fire set back behind bars in each side, with a
+    stub of chimney."""
+    bx(m, (-0.42, 0.42), (-0.40, 0.40), (0.0, 0.12), T, bevel=0.03)
+    bx(m, (-0.38, 0.38), (-0.36, 0.36), (0.08, 0.74), "h_stone", bevel=0.045)
+    bx(m, (-0.41, 0.41), (-0.39, 0.39), (0.70, 0.82), D, bevel=0.03)
+    bx(m, (-0.15, 0.15), (-0.15, 0.15), (0.80, 1.14), "h_stone", bevel=0.03)
+    bx(m, (-0.18, 0.18), (-0.18, 0.18), (1.10, 1.19), D, bevel=0.02)
+    m.box((0.22, 0.22, 0.012), (0, 0, 1.192), SLIT)
+    for d in SIDES:
+        y = d * 0.362
+        m.box((0.36, 0.012, 0.24), (0, y, 0.38), "h_glow")
+        for k in range(4):
+            m.box((0.025, 0.03, 0.24), (-0.12 + k * 0.08, y + d * 0.012, 0.38), TD)
+        for sz in SIDES:
+            m.box((0.46, 0.05, 0.05), (0, y + d * 0.012, 0.38 + sz * 0.145), D)
+        for sx in SIDES:
+            m.box((0.05, 0.05, 0.29), (sx * 0.205, y + d * 0.012, 0.38), D)
 
 
-@machine2("chest", (1, 1), items=False)
 def chest(m):
-    """A timber box with iron straps and a curved lid."""
-    bx(m, (-0.42, 0.42), (-0.30, 0.30), (0.05, 0.50), "wood")
-    for z in (0.16, 0.30):
-        bx(m, (-0.424, 0.424), (-0.304, 0.304), (z, z + 0.014), "wood_dark")
-    m.cyl(0.30, 0.83, (0, 0, 0.52), "wood_dark", seg=10, axis="X", rot=(rad(18), 0, 0))
-    for x in (-0.28, 0.28):
-        bx(m, (x - 0.055, x + 0.055), (-0.32, 0.32), (0.0, 0.52), "g4")
-        m.cyl(0.32, 0.11, (x, 0, 0.52), "g4", seg=10, axis="X", rot=(rad(18), 0, 0))
-    bx(m, (-0.45, 0.45), (-0.33, 0.33), (0.46, 0.54), "g4")
-    for x in (-0.40, 0.40):
-        for y in (-0.28, 0.28):
-            bx(m, (x - 0.05, x + 0.05), (y - 0.05, y + 0.05), (0.0, 0.08), "g5")
-    m.box((0.12, 0.05, 0.16), (0, -0.345, 0.48), "gold")
-    m.box((0.03, 0.02, 0.05), (0, -0.375, 0.46), "hole")
+    """Chest, 1x1: a banded timber chest with a rounded lid and a latch."""
+    bx(m, (-0.42, 0.42), (-0.30, 0.30), (0.0, 0.42), WD, bevel=0.03)
+    lid = [(-0.30, 0.42), (-0.30, 0.52), (-0.19, 0.64), (0.19, 0.64), (0.30, 0.52), (0.30, 0.42)]
+    m.prism(lid, -0.42, 0.42, "X", WL)
+    for x in (-0.27, 0.27):
+        m.prism([(y * 1.05, 0.0 + (z - 0.0) * 1.0 + (0.012 if z > 0.45 else 0.0)) for y, z in
+                 [(-0.30, 0.0)] + lid + [(0.30, 0.0)]], x - 0.045, x + 0.045, "X", D)
+    for s in SIDES:
+        m.box((0.14, 0.03, 0.16), (0, s * 0.305, 0.40), "h_lite", bevel=0.01)
+        m.box((0.05, 0.02, 0.05), (0, s * 0.322, 0.37), T)
 
 
-@machine2("wb_basic", (1, 1), items=False)
+def bench(m, x0, x1, hy=0.36, top=0.70):
+    """A work bench: a thick top on an apron and four stout legs, with a shelf between them."""
+    bx(m, (x0, x1), (-hy, hy), (top - 0.11, top), WL, bevel=0.025)
+    bx(m, (x0 + 0.05, x1 - 0.05), (-hy + 0.05, hy - 0.05), (top - 0.22, top - 0.10), WD, bevel=0.0)
+    for x in (x0 + 0.10, x1 - 0.10):
+        for s in SIDES:
+            m.box((0.11, 0.11, top - 0.11), (x, s * (hy - 0.10), (top - 0.11) / 2), WD)
+    bx(m, (x0 + 0.08, x1 - 0.08), (-hy + 0.10, hy - 0.10), (0.14, 0.20), WD, bevel=0.0)
+    return top
+
+
+def vise(m, x, y, z):
+    bx(m, (x - 0.10, x + 0.10), (y - 0.08, y + 0.08), (z, z + 0.07), T, bevel=0.015)
+    for sx in SIDES:
+        bx(m, tuple(sorted((x + sx * 0.03, x + sx * 0.10))), (y - 0.10, y + 0.10), (z + 0.06, z + 0.24), T, bevel=0.02)
+    m.cyl(0.025, 0.34, (x + 0.05, y, z + 0.13), "h_lite", seg=8, axis="X")
+    m.cyl(0.02, 0.18, (x + 0.22, y, z + 0.13), "h_lite", seg=6, axis="Y")
+
+
+def hammer(m, x, y, z, rot=0.0):
+    with m.at((x, y, z), rot):
+        m.cyl(0.022, 0.34, (0, 0, 0.03), WD, seg=6, axis="X")
+        m.box((0.09, 0.20, 0.08), (0.16, 0, 0.04), "h_steel", bevel=0.015)
+
+
+def anvil(m, x, y, z):
+    with m.at((x, y, 0)):
+        bx(m, (-0.11, 0.11), (-0.10, 0.10), (z, z + 0.07), T, bevel=0.015)
+        bx(m, (-0.06, 0.06), (-0.07, 0.07), (z + 0.06, z + 0.17), T, bevel=0.0)
+        m.prism([(-0.26, z + 0.25), (-0.13, z + 0.16), (0.16, z + 0.16), (0.16, z + 0.27), (-0.13, z + 0.27)], -0.085, 0.085, "Y", T)
+
+
+def pot(m, x, y, z):
+    m.cyl(0.12, 0.03, (x, y, z + 0.015), D, seg=10)
+    m.cyl(0.11, 0.16, (x, y, z + 0.11), "h_steel", seg=10)
+    m.cyl(0.12, 0.03, (x, y, z + 0.205), D, seg=10)
+    m.cyl(0.03, 0.04, (x, y, z + 0.24), T, seg=8)
+
+
+def screen(m, x, y, z, w=0.36):
+    bx(m, (x - 0.07, x + 0.07), (y - 0.05, y + 0.05), (z, z + 0.08), D, bevel=0.015)
+    bx(m, (x - w / 2, x + w / 2), (y - 0.04, y + 0.04), (z + 0.07, z + 0.36), D, bevel=0.02)
+    for s in SIDES:
+        m.box((w - 0.06, 0.012, 0.21), (x, y + s * 0.041, z + 0.215), "h_core")
+
+
 def wb_basic(m):
-    """A tree stump with a plan, a saw and a mallet on it: the first place anything gets made."""
-    m.cyl(0.40, 0.52, (0, 0, 0.26), "wood_dark", seg=8, r2=0.35)
-    m.cyl(0.35, 0.04, (0, 0, 0.54), "wood_light", seg=8)
-    m.cyl(0.20, 0.012, (0, 0, 0.562), "wood", seg=8)
-    for k in range(5):
-        a = k * 2 * math.pi / 5 + 0.3
-        with m.at((math.cos(a) * 0.36, math.sin(a) * 0.36, 0), a):
-            m.box((0.34, 0.16, 0.16), (0.06, 0, 0.07), "wood_dark", taper=0.4, rot=(0, rad(18), 0))
-    m.box((0.36, 0.26, 0.012), (-0.03, 0.05, 0.574), "paper", rot=rad(20))
-    with m.at((0.12, 0.10, 0.58), rad(-30)):
-        m.box((0.04, 0.04, 0.20), (0, 0, 0.10), "wood")
-        m.box((0.16, 0.10, 0.10), (0, 0, 0.24), "toolred")
-    with m.at((-0.02, -0.16, 0.578), rad(24)):
-        m.box((0.36, 0.09, 0.012), (0, 0, 0.006), "g1")
-        m.box((0.12, 0.11, 0.03), (0.23, 0, 0.015), "gold")
+    """Basic bench, 1x1: a small bench with a block of wood on it, a saw cut into the block and a
+    hammer."""
+    z = bench(m, -0.44, 0.44)
+    m.box((0.30, 0.22, 0.16), (-0.10, 0.06, z + 0.08), WD, bevel=0.015)
+    m.box((0.40, 0.012, 0.14), (-0.06, 0.06, z + 0.21), "h_steel", rot=(0, rad(-12), 0))
+    m.box((0.12, 0.04, 0.12), (0.16, 0.06, z + 0.27), WL, bevel=0.02)
+    hammer(m, 0.02, -0.22, z, rad(8))
 
 
-def mini_machine(m, x, y, z):
-    """A small v2 machine on its bit of belt, for the benches where machines are built."""
-    with m.at((x, y, z)):
-        m.box((0.46, 0.15, 0.06), (0, 0, 0.03), "g1")
-        m.box((0.44, 0.10, 0.012), (0, 0, 0.064), "tread")
-        m.box((0.18, 0.21, 0.20), (0, 0, 0.10), "g2", bevel=0.02)
-        m.box((0.20, 0.23, 0.03), (0, 0, 0.215), "g4")
-        m.cyl(0.03, 0.10, (0.03, 0.04, 0.28), "g3", seg=6)
-
-
-def bench2(m, top="wood", frame="wood_dark", back="wood", w=0.94, h=0.72, shelf=True):
-    """A two-cell bench: legs, stretcher, top, and a back board with a shelf."""
-    for x in (-w + 0.10, w - 0.10):
-        for y in (-0.30, 0.30):
-            bx(m, (x - 0.05, x + 0.05), (y - 0.05, y + 0.05), (0.0, h - 0.08), frame)
-        bx(m, (x - 0.04, x + 0.04), (-0.30, 0.30), (0.16, 0.23), frame)
-    bx(m, (-w + 0.10, w - 0.10), (0.26, 0.33), (0.16, 0.23), frame)
-    bx(m, (-w, w), (-0.42, 0.42), (h - 0.08, h), top)
-    bx(m, (-w + 0.04, w - 0.04), (-0.40, 0.40), (h - 0.16, h - 0.08), frame)
-    if shelf:
-        for x in (-w + 0.07, w - 0.07):
-            bx(m, (x - 0.045, x + 0.045), (0.33, 0.42), (h, h + 0.70), frame)
-        bx(m, (-w + 0.07, w - 0.07), (0.36, 0.40), (h + 0.10, h + 0.56), back)
-        bx(m, (-w, w), (0.18, 0.44), (h + 0.70, h + 0.76), top)
-    return h
-
-
-@machine2("wb_tool", (2, 1), items=False)
 def wb_tool(m):
-    """Anvil, hammer, and a pickaxe head hanging on the board."""
-    T = bench2(m)
-    fk.p_anvil(m, -0.36, -0.04, T)
-    fk.p_hammer(m, 0.10, -0.18, T, rad(25))
-    m.box((0.50, 0.03, 0.07), (0.34, 0.345, T + 0.36), "iron", rot=(0, rad(8), 0))
-    m.box((0.05, 0.03, 0.34), (0.34, 0.35, T + 0.26), "wood_light")
-    m.box((0.05, 0.03, 0.40), (-0.30, 0.35, T + 0.30), "g1")
-    m.box((0.14, 0.03, 0.05), (-0.30, 0.35, T + 0.14), "wood_dark")
-    fk.crate(m, (0.56, -0.02, T), s=0.24, rot=rad(12))
-    for i, c in enumerate(("iron", "copper", "gold")):
-        m.box((0.16, 0.08, 0.05), (-0.10 + i * 0.03, 0.10, T + 0.025 + i * 0.05), c, taper=0.8)
-    for i in range(3):
-        m.box((0.12, 0.10, 0.10), (-0.50 + i * 0.5, 0.30, T + 0.81), ("wood_dark", "g3", "wood_dark")[i])
+    """Tool bench, 2x1: a vise on the bench, and tools hung on a board behind it."""
+    z = bench(m, -0.94, 0.94)
+    bx(m, (-0.90, 0.90), (0.28, 0.35), (z - 0.02, z + 0.72), WD, bevel=0.02)
+    for x in (-0.84, 0.84):
+        m.box((0.09, 0.09, 0.74), (x, 0.31, z + 0.35), WD)
+    vise(m, -0.50, -0.04, z)
+    for x, w, h, mk in ((-0.55, 0.07, 0.34, "h_steel"), (-0.30, 0.20, 0.10, "h_steel"), (0.05, 0.05, 0.40, WL),
+                        (0.34, 0.30, 0.12, "h_steel"), (0.66, 0.08, 0.30, T)):
+        m.box((w, 0.03, h), (x, 0.265, z + 0.44), mk, bevel=0.008)
+    hammer(m, 0.30, -0.10, z, rad(-20))
 
 
-@machine2("wb_part", (2, 1), items=False)
 def wb_part(m):
-    """A vise, cut gears and stacked plate."""
-    T = bench2(m, top="wood_light")
-    fk.p_vise(m, -0.50, -0.16, T)
-    m.gear(0.15, 0.04, (0.02, -0.12, T + 0.02), "iron", teeth=8, axis="Z")
-    m.gear(0.10, 0.04, (0.20, 0.04, T + 0.02), "iron", teeth=6, axis="Z")
-    m.gear(0.12, 0.04, (0.04, -0.10, T + 0.06), "steel", teeth=7, axis="Z")
-    for i in range(4):
-        m.box((0.26, 0.20, 0.03), (0.56, -0.08, T + 0.015 + i * 0.032), "iron", rot=rad(i * 6))
-    for i in range(3):
-        m.cyl(0.02, 0.40, (-0.10 + i * 0.05, 0.22, T + 0.02), "steel", seg=6, axis="X")
-    m.gear(0.14, 0.03, (-0.40, 0.345, T + 0.34), "g3", teeth=8, axis="Y")
-    m.gear(0.10, 0.03, (-0.14, 0.345, T + 0.30), "g3", teeth=6, axis="Y")
-    m.box((0.30, 0.03, 0.05), (0.40, 0.345, T + 0.34), "iron")
-    m.box((0.22, 0.14, 0.12), (0.50, 0.30, T + 0.82), "toolred")
-    m.box((0.08, 0.04, 0.03), (0.50, 0.30, T + 0.895), "g5")
+    """Parts bench, 2x1: an anvil at one end and a bench drill at the other."""
+    z = bench(m, -0.94, 0.94)
+    anvil(m, -0.50, 0.0, z)
+    bx(m, (0.34, 0.66), (-0.14, 0.14), (z, z + 0.06), T, bevel=0.015)
+    m.cyl(0.045, 0.62, (0.62, 0, z + 0.33), "h_lite", seg=8)
+    bx(m, (0.30, 0.70), (-0.11, 0.11), (z + 0.50, z + 0.72), G, bevel=0.035)
+    m.cyl(0.03, 0.20, (0.42, 0, z + 0.41), "h_steel", seg=8)
+    m.cyl(0.015, 0.08, (0.42, 0, z + 0.27), "h_steel", seg=6, r2=0.03)
+    bx(m, (0.32, 0.52), (-0.10, 0.10), (z + 0.14, z + 0.19), D, bevel=0.01)
+    m.cyl(0.03, 0.14, (0.42, 0, z + 0.10), D, seg=8)
 
 
-@machine2("wb_machine", (2, 1), items=False)
 def wb_machine(m):
-    """A steel desk with drawers and wall cabinets, a plan spread out, a small machine half built."""
-    T = bench2(m, top="g2", frame="g5", shelf=False)
-    for x in (-0.60, 0.60):
-        bx(m, (x - 0.24, x + 0.24), (-0.36, 0.36), (0.20, T - 0.08), "g3")
-        for z in (0.30, 0.46):
-            m.box((0.38, 0.02, 0.12), (x, -0.37, z), "g1")
-            m.box((0.10, 0.02, 0.025), (x, -0.385, z), "g5")
-    for x in (-0.86, 0.86):
-        bx(m, (x - 0.04, x + 0.04), (0.33, 0.42), (T, T + 1.00), "g5")
-    bx(m, (-0.92, 0.92), (0.10, 0.44), (T + 0.56, T + 1.00), "g1")
-    bx(m, (-0.94, 0.94), (0.08, 0.46), (T + 1.00, T + 1.06), "g5")
-    for x in (-0.46, 0.0, 0.46):
-        m.box((0.02, 0.012, 0.36), (x, 0.094, T + 0.78), "g5")
-    for x in (-0.62, -0.30, 0.16, 0.62):
-        m.box((0.02, 0.02, 0.10), (x, 0.086, T + 0.74), "g5")
-    m.box((0.46, 0.34, 0.012), (-0.10, -0.06, T + 0.006), "paper", rot=rad(8))
-    m.cyl(0.03, 0.40, (0.14, -0.04, T + 0.03), "paper", seg=6, axis="Y", rot=rad(8))
-    mini_machine(m, 0.56, -0.02, T)
-    m.box((0.24, 0.15, 0.13), (-0.62, 0.02, T + 0.065), "toolred")
-    m.box((0.10, 0.04, 0.035), (-0.62, 0.02, T + 0.15), "g5")
-    fk.p_hammer(m, -0.14, -0.30, T, rad(-20))
-    m.cyl(0.04, 0.08, (0.22, 0.20, T + 0.04), "lampg", seg=8)
-    m.cyl(0.04, 0.08, (0.32, 0.24, T + 0.04), "spark", seg=8)
+    """Machine bench, 2x1: a machine frame under assembly with its gear fitted, and a hoist standing
+    over it."""
+    z = bench(m, -0.94, 0.94)
+    bx(m, (-0.52, 0.02), (-0.20, 0.20), (z, z + 0.30), "h_steel", bevel=0.035)
+    gear(m, 0.15, 0.06, (-0.25, -0.225, z + 0.16), T, teeth=10)
+    m.cyl(0.045, 0.09, (-0.25, -0.225, z + 0.16), "h_lite", seg=8, axis="Y")
+    bx(m, (0.62, 0.74), (-0.06, 0.06), (z, z + 0.92), G, bevel=0.025)
+    bx(m, (-0.30, 0.76), (-0.05, 0.05), (z + 0.84, z + 0.95), G, bevel=0.025)
+    m.prism([(0.62, z + 0.55), (0.62, z + 0.66), (0.36, z + 0.86), (0.28, z + 0.86)], -0.03, 0.03, "Y", D)
+    m.cyl(0.02, 0.26, (-0.24, 0, z + 0.71), "h_lite", seg=6)
+    bx(m, (-0.29, -0.19), (-0.045, 0.045), (z + 0.50, z + 0.60), T, bevel=0.015)
 
 
-@machine2("wb_cook", (2, 1), items=False)
 def wb_cook(m):
-    """A kitchen table: a pot on the fire, a board, vegetables and bread."""
-    T = bench2(m, top="wood_dark", frame="wood", shelf=False)
-    fk.p_pot(m, -0.52, 0.0, T)
-    m.box((0.36, 0.24, 0.03), (0.0, -0.10, T + 0.015), "wood_light", rot=rad(-8))
-    m.box((0.22, 0.03, 0.012), (0.02, -0.12, T + 0.036), "g1", rot=rad(30))
-    for x, y, c, r in ((0.30, 0.16, "red", 0.06), (0.40, 0.08, "red", 0.055), (0.20, 0.22, "leaf", 0.06),
-                       (0.52, 0.20, "leaf_light", 0.05)):
-        m.ico(r, (x, y, T + r * 0.8), c, squash=0.85, jitter=0.1)
-    m.box((0.22, 0.12, 0.09), (0.60, -0.18, T + 0.045), "bread", bevel=0.02, rot=rad(15))
-    for i, x in enumerate((-0.16, -0.06)):
-        m.cyl(0.04, 0.12, (x, 0.24, T + 0.06), "white", seg=8)
-        m.cyl(0.042, 0.02, (x, 0.24, T + 0.13), "g3", seg=8)
-    m.cyl(0.10, 0.12, (0.72, 0.22, T + 0.06), "brick", seg=8, r2=0.12)
-    for k in range(5):
-        m.box((0.014, 0.014, 0.20), (0.72 + math.cos(k * 1.3) * 0.04, 0.22 + math.sin(k * 1.3) * 0.04, T + 0.22), "wheat")
-        m.ico(0.025, (0.72 + math.cos(k * 1.3) * 0.04, 0.22 + math.sin(k * 1.3) * 0.04, T + 0.33), "wheat_head")
-    bx(m, (-0.70, 0.70), (-0.34, 0.34), (0.26, 0.30), "wood")
+    """Cooking bench, 2x1: a stove with a pot on it, a chopping board with a loaf, and a shelf of jars
+    behind."""
+    z = bench(m, -0.94, 0.94)
+    bx(m, (-0.84, -0.20), (-0.28, 0.24), (z, z + 0.09), D, bevel=0.02)
+    for x in (-0.68, -0.36):
+        m.cyl(0.11, 0.02, (x, -0.02, z + 0.10), T, seg=10)
+    pot(m, -0.68, -0.02, z + 0.10)
+    bx(m, (0.10, 0.70), (-0.24, 0.12), (z, z + 0.04), WD, bevel=0.012)
+    bx(m, (0.22, 0.54), (-0.14, 0.02), (z + 0.04, z + 0.15), "h_oil", bevel=0.035)
+    m.box((0.30, 0.012, 0.10), (0.56, -0.06, z + 0.09), "h_steel", rot=(0, 0, rad(30)))
+    bx(m, (-0.90, 0.90), (0.27, 0.35), (z - 0.02, z + 0.44), WD, bevel=0.02)
+    bx(m, (-0.90, 0.90), (0.16, 0.35), (z + 0.40, z + 0.46), WL, bevel=0.015)
+    for x, mk in ((-0.6, "h_red"), (-0.3, "h_oil"), (0.0, "h_paint"), (0.3, "h_cloth"), (0.6, "h_red")):
+        m.cyl(0.07, 0.15, (x, 0.24, z + 0.535), mk, seg=8)
+        m.cyl(0.055, 0.03, (x, 0.24, z + 0.625), D, seg=8)
 
 
-@machine2("wb_elec", (2, 1), items=False)
 def wb_elec(m):
-    """A dark bench under a lamp: a circuit board, a reel of wire, a meter."""
-    T = bench2(m, top="navy", frame="wood_dark", back="g2")
-    fk.p_pcb(m, -0.10, -0.12, T)
-    m.cyl(0.12, 0.14, (-0.56, 0.02, T + 0.07), "copper", seg=10)
-    for z in (0.0, 0.14):
-        m.cyl(0.15, 0.02, (-0.56, 0.02, T + z + 0.01), "g3", seg=10)
-    bx(m, (0.40, 0.70), (-0.14, 0.14), (T, T + 0.20), "g2")
-    with on(m, "S", 0.55, -0.14, T + 0.11):
-        m.box((0.22, 0.02, 0.10), (0, -0.01, 0), "hole")
-        m.box((0.16, 0.014, 0.03), (0, -0.022, 0), "lampg")
-    m.box((0.30, 0.025, 0.025), (0.14, -0.22, T + 0.03), "g5", rot=rad(35))
-    m.box((0.08, 0.035, 0.035), (0.05, -0.285, T + 0.03), "toolred", rot=rad(35))
-    m.pipe([(0.60, 0.36, T + 0.76), (0.60, 0.20, T + 0.90), (0.40, 0.0, T + 0.86)], 0.022, "g5", seg=6)
-    m.cyl(0.10, 0.10, (0.36, -0.04, T + 0.82), "spark", seg=8, r2=0.04)
-    for i, c in enumerate(("red", "spark", "lampg", "water")):
-        m.cyl(0.05, 0.10, (-0.60 + i * 0.16, 0.30, T + 0.81), c, seg=8)
-    with on(m, "S", -0.30, 0.36, T + 0.34):
-        buttons(m, ("lampg", "spark", "red"))
+    """Electrics bench, 2x1: a meter with a lit screen, a coil of copper wire, and a soldering iron in
+    its stand."""
+    z = bench(m, -0.94, 0.94)
+    screen(m, -0.48, 0.08, z, w=0.46)
+    m.cyl(0.15, 0.04, (0.20, 0.0, z + 0.02), D, seg=12)
+    m.cyl(0.12, 0.16, (0.20, 0.0, z + 0.12), "h_copper", seg=12)
+    m.cyl(0.15, 0.04, (0.20, 0.0, z + 0.22), D, seg=12)
+    bx(m, (0.52, 0.76), (-0.10, 0.10), (z, z + 0.06), T, bevel=0.015)
+    m.cyl(0.05, 0.16, (0.58, 0, z + 0.13), D, seg=8)
+    m.cyl(0.022, 0.34, (0.66, 0, z + 0.20), "h_lite", seg=6, rot=(0, rad(55), 0))
+    m.cyl(0.04, 0.16, (0.80, 0, z + 0.30), "h_red", seg=8, rot=(0, rad(55), 0))
 
 
-@machine2("wb_furn", (2, 1), items=False)
 def wb_furn(m):
-    """A joiner's bench: a chair coming together, a saw, tins of paint."""
-    T = bench2(m, top="wood_light")
-    with m.at((-0.44, -0.04, T), rad(20)):
-        for x in (-0.11, 0.11):
-            for y in (-0.11, 0.11):
-                m.box((0.035, 0.035, 0.22), (x, y, 0.11), "wood")
-        m.box((0.28, 0.28, 0.035), (0, 0, 0.235), "wood_dark")
-        m.box((0.28, 0.035, 0.26), (0, 0.125, 0.38), "wood")
-    m.box((0.44, 0.012, 0.11), (0.20, -0.24, T + 0.07), "g1", rot=(rad(80), 0, rad(-12)))
-    m.box((0.12, 0.03, 0.10), (0.44, -0.29, T + 0.03), "wood_dark", rot=rad(-12))
-    for x, c in ((0.50, "red"), (0.66, "water"), (0.58, "spark")):
-        y = 0.06 if c != "spark" else 0.20
-        m.cyl(0.07, 0.13, (x, y, T + 0.065), "g1", seg=8)
-        m.cyl(0.062, 0.012, (x, y, T + 0.132), c, seg=8)
-    for i in range(3):
-        m.box((0.60, 0.10, 0.035), (0.10, 0.16, T + 0.018 + i * 0.037), "wood", rot=rad(i * 4 - 4))
-    m.box((0.40, 0.03, 0.30), (-0.30, 0.345, T + 0.34), "wood_light")
-    m.box((0.30, 0.012, 0.20), (-0.30, 0.328, T + 0.34), "leaf_light")
-    for i in range(3):
-        m.box((0.14, 0.12, 0.12), (-0.50 + i * 0.5, 0.30, T + 0.82), ("wood", "wood_dark", "wood")[i])
+    """Furniture bench, 2x1: a chair being made stands on the bench beside the plane and the boards
+    it is being made from."""
+    z = bench(m, -0.94, 0.94)
+    for sx in SIDES:
+        for sy in SIDES:
+            m.box((0.055, 0.055, 0.30 if sy < 0 else 0.62), (-0.46 + sx * 0.13, sy * 0.13, z + (0.15 if sy < 0 else 0.31)), WL)
+    bx(m, (-0.63, -0.29), (-0.17, 0.17), (z + 0.28, z + 0.34), WL, bevel=0.012)
+    bx(m, (-0.62, -0.30), (0.10, 0.16), (z + 0.46, z + 0.62), WL, bevel=0.012)
+    for k in range(3):
+        m.box((0.60, 0.13, 0.035), (0.40, 0.06 - k * 0.012, z + 0.018 + k * 0.035), WL if k % 2 else WD)
+    bx(m, (0.18, 0.44), (-0.26, -0.14), (z, z + 0.08), WD, bevel=0.015)
+    m.box((0.06, 0.05, 0.10), (0.25, -0.20, z + 0.12), WD, bevel=0.015)
+    m.box((0.05, 0.012, 0.09), (0.34, -0.20, z + 0.09), "h_steel", rot=(0, rad(-35), 0))
 
 
-@machine2("wb_all", (3, 1), items=False)
 def wb_all(m):
-    """Every bench in one: a long steel station with cabinets overhead and all the tools laid out."""
-    w = 1.44
-    for x in (-1.20, -0.40, 0.40, 1.20):
-        bx(m, (x - 0.30, x + 0.30), (-0.36, 0.36), (0.10, 0.66), "g3")
-        for z in (0.26, 0.48):
-            m.box((0.50, 0.02, 0.16), (x, -0.37, z), "g1")
-            m.box((0.14, 0.02, 0.03), (x, -0.385, z), "g5")
-    bx(m, (-w, w), (-0.40, 0.40), (0.0, 0.10), "g5")
-    bx(m, (-w - 0.02, w + 0.02), (-0.44, 0.44), (0.66, 0.76), "g2")
-    bx(m, (-w - 0.03, w + 0.03), (-0.455, 0.455), (0.69, 0.73), "frame")
-    T = 0.76
-    for x in (-w + 0.07, 0.0, w - 0.07):
-        bx(m, (x - 0.04, x + 0.04), (0.34, 0.43), (T, T + 1.04), "g5")
-    bx(m, (-w + 0.04, w - 0.04), (0.38, 0.42), (T, T + 0.60), "g2")
-    bx(m, (-w, w), (0.08, 0.44), (T + 0.60, T + 1.06), "g1")
-    bx(m, (-w - 0.02, w + 0.02), (0.06, 0.46), (T + 1.06, T + 1.12), "g5")
-    for i in range(6):
-        x = -1.20 + i * 0.48
-        m.box((0.02, 0.012, 0.38), (x - 0.24, 0.074, T + 0.83), "g5")
-        m.box((0.02, 0.02, 0.10), (x - 0.04, 0.066, T + 0.78), "g5")
-    fk.p_anvil(m, -1.10, -0.06, T)
-    fk.p_vise(m, -0.56, -0.18, T)
-    mini_machine(m, 0.02, -0.02, T)
-    fk.p_pcb(m, 0.56, -0.14, T)
-    fk.p_pot(m, 1.10, -0.02, T)
-    m.box((0.40, 0.28, 0.012), (-0.50, 0.12, T + 0.006), "paper", rot=rad(-6))
-    m.box((0.24, 0.15, 0.13), (0.62, 0.14, T + 0.065), "toolred")
-    for x, c in ((-1.0, "lampg"), (-0.2, "spark"), (0.6, "lampr")):
-        with on(m, "S", x, 0.38, T + 0.30):
-            lamp(m, c, r=0.05)
-    with on(m, "S", 1.05, 0.38, T + 0.30):
-        badge(m, 0.10)
-    with on(m, "S", 0.25, 0.38, T + 0.30):
-        vent(m, 0.34, 0.24, 4)
+    """All-in-one bench, 3x1: a long bench carrying a vise, an anvil, a meter and a stove with its pot,
+    under a tool board."""
+    z = bench(m, -1.44, 1.44)
+    bx(m, (-1.40, 1.40), (0.28, 0.35), (z - 0.02, z + 0.70), WD, bevel=0.02)
+    for x in (-1.34, 0.0, 1.34):
+        m.box((0.09, 0.09, 0.72), (x, 0.31, z + 0.34), WD)
+    for x, w, h, mk in ((-1.05, 0.07, 0.34, "h_steel"), (-0.80, 0.22, 0.10, "h_steel"), (-0.50, 0.05, 0.40, WL),
+                        (0.45, 0.30, 0.12, "h_steel"), (0.78, 0.08, 0.30, T), (1.06, 0.18, 0.18, "h_steel")):
+        m.box((w, 0.03, h), (x, 0.265, z + 0.44), mk, bevel=0.008)
+    vise(m, -1.08, -0.04, z)
+    anvil(m, -0.42, -0.02, z)
+    screen(m, 0.34, 0.06, z, w=0.40)
+    bx(m, (0.76, 1.34), (-0.26, 0.22), (z, z + 0.09), D, bevel=0.02)
+    pot(m, 1.05, -0.02, z + 0.09)
+
+
+free("campfire", (1, 1), campfire, items=False)
+free("hand_furnace", (1, 1), hand_furnace, items=False)
+free("chest", (1, 1), chest, items=False)
+free("wb_basic", (1, 1), wb_basic, items=False)
+free("wb_tool", (2, 1), wb_tool, items=False)
+free("wb_part", (2, 1), wb_part, items=False)
+free("wb_machine", (2, 1), wb_machine, items=False)
+free("wb_cook", (2, 1), wb_cook, items=False)
+free("wb_elec", (2, 1), wb_elec, items=False)
+free("wb_furn", (2, 1), wb_furn, items=False)
+free("wb_all", (3, 1), wb_all, items=False)

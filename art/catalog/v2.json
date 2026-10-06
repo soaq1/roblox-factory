@@ -10,9 +10,9 @@
     1,
     1
    ],
-   "tris": 288,
-   "colors": 5,
-   "height": 0.38,
+   "tris": 296,
+   "colors": 4,
+   "height": 0.35,
    "v1size": [
     1,
     1
@@ -28,9 +28,9 @@
     1,
     1
    ],
-   "tris": 424,
-   "colors": 5,
-   "height": 0.46,
+   "tris": 392,
+   "colors": 4,
+   "height": 0.35,
    "v1size": [
     1,
     1
@@ -46,9 +46,9 @@
     2,
     1
    ],
-   "tris": 300,
-   "colors": 5,
-   "height": 1.39,
+   "tris": 384,
+   "colors": 4,
+   "height": 1.35,
    "v1size": [
     2,
     1
@@ -80,9 +80,9 @@
     1,
     1
    ],
-   "tris": 956,
+   "tris": 864,
    "colors": 8,
-   "height": 0.65,
+   "height": 0.9,
    "v1size": [
     1,
     1
@@ -114,9 +114,9 @@
     1,
     1
    ],
-   "tris": 952,
-   "colors": 8,
-   "height": 0.65,
+   "tris": 848,
+   "colors": 7,
+   "height": 0.88,
    "v1size": [
     1,
     1
@@ -148,9 +148,9 @@
     1,
     1
    ],
-   "tris": 924,
-   "colors": 10,
-   "height": 1.14,
+   "tris": 992,
+   "colors": 8,
+   "height": 1.22,
    "v1size": [
     1,
     1
@@ -182,9 +182,9 @@
     1,
     1
    ],
-   "tris": 964,
+   "tris": 1000,
    "colors": 9,
-   "height": 0.88,
+   "height": 1.38,
    "v1size": [
     1,
     1
@@ -216,9 +216,9 @@
     1,
     1
    ],
-   "tris": 972,
-   "colors": 9,
-   "height": 0.85,
+   "tris": 432,
+   "colors": 7,
+   "height": 0.7,
    "v1size": [
     1,
     1
@@ -245,9 +245,56 @@
     3,
     1
    ],
-   "tris": 1184,
+   "tris": 2708,
+   "colors": 11,
+   "height": 1.62,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "packer",
+   "ko": "포장기",
+   "fam": "포장·판매",
+   "recipe": "같은 아이템 8개 → 상자 1개 (물체 수를 줄임)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2544,
+   "colors": 11,
+   "height": 1.93,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "vending",
+   "ko": "자판기",
+   "fam": "포장·판매",
+   "recipe": "물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음",
+   "ports": [],
+   "size": [
+    1,
+    1
+   ],
+   "tris": 756,
    "colors": 9,
-   "height": 1.5,
+   "height": 1.55,
    "v1size": [
     1,
     1
@@ -269,9 +316,9 @@
     2,
     1
    ],
-   "tris": 812,
+   "tris": 1380,
    "colors": 8,
-   "height": 1.49,
+   "height": 1.38,
    "v1size": [
     1,
     1
@@ -287,9 +334,9 @@
     2,
     1
    ],
-   "tris": 216,
+   "tris": 412,
    "colors": 4,
-   "height": 1.62,
+   "height": 1.43,
    "v1size": [
     2,
     1
@@ -305,9 +352,9 @@
     1,
     1
    ],
-   "tris": 364,
-   "colors": 7,
-   "height": 1.28,
+   "tris": 380,
+   "colors": 5,
+   "height": 1.25,
    "v1size": [
     1,
     1
@@ -329,9 +376,9 @@
     2,
     1
    ],
-   "tris": 1068,
-   "colors": 12,
-   "height": 3.0,
+   "tris": 1924,
+   "colors": 11,
+   "height": 2.38,
    "v1size": [
     1,
     1
@@ -353,9 +400,9 @@
     2,
     1
    ],
-   "tris": 768,
-   "colors": 9,
-   "height": 1.62,
+   "tris": 1432,
+   "colors": 10,
+   "height": 1.68,
    "v1size": [
     1,
     1
@@ -371,9 +418,9 @@
     1,
     1
    ],
-   "tris": 524,
-   "colors": 8,
-   "height": 1.08,
+   "tris": 516,
+   "colors": 6,
+   "height": 1.02,
    "v1size": [
     1,
     1
@@ -390,8 +437,8 @@
     1
    ],
    "tris": 512,
-   "colors": 9,
-   "height": 1.76,
+   "colors": 6,
+   "height": 1.42,
    "v1size": [
     1,
     1
@@ -407,9 +454,9 @@
     1,
     1
    ],
-   "tris": 648,
-   "colors": 8,
-   "height": 1.4,
+   "tris": 752,
+   "colors": 7,
+   "height": 1.36,
    "v1size": [
     1,
     1
@@ -425,9 +472,9 @@
     1,
     1
    ],
-   "tris": 188,
-   "colors": 8,
-   "height": 0.99,
+   "tris": 192,
+   "colors": 6,
+   "height": 0.97,
    "v1size": [
     1,
     1
@@ -443,9 +490,9 @@
     1,
     1
    ],
-   "tris": 308,
-   "colors": 4,
-   "height": 0.42,
+   "tris": 396,
+   "colors": 5,
+   "height": 0.56,
    "v1size": [
     1,
     1
@@ -461,9 +508,9 @@
     1,
     1
    ],
-   "tris": 272,
-   "colors": 7,
-   "height": 1.83,
+   "tris": 216,
+   "colors": 4,
+   "height": 1.34,
    "v1size": [
     1,
     1
@@ -479,9 +526,9 @@
     1,
     1
    ],
-   "tris": 404,
-   "colors": 8,
-   "height": 1.17,
+   "tris": 500,
+   "colors": 4,
+   "height": 1.29,
    "v1size": [
     1,
     1
@@ -497,9 +544,9 @@
     1,
     1
    ],
-   "tris": 176,
+   "tris": 228,
    "colors": 3,
-   "height": 1.33,
+   "height": 1.2,
    "v1size": [
     1,
     1
@@ -521,9 +568,9 @@
     2,
     1
    ],
-   "tris": 936,
-   "colors": 10,
-   "height": 1.51,
+   "tris": 1580,
+   "colors": 8,
+   "height": 1.6,
    "v1size": [
     1,
     1
@@ -545,9 +592,9 @@
     2,
     1
    ],
-   "tris": 1096,
-   "colors": 11,
-   "height": 1.88,
+   "tris": 1600,
+   "colors": 10,
+   "height": 1.6,
    "v1size": [
     1,
     1
@@ -569,9 +616,9 @@
     2,
     1
    ],
-   "tris": 1096,
-   "colors": 11,
-   "height": 1.88,
+   "tris": 1600,
+   "colors": 10,
+   "height": 1.6,
    "v1size": [
     1,
     1
@@ -593,9 +640,9 @@
     2,
     1
    ],
-   "tris": 1312,
-   "colors": 13,
-   "height": 2.43,
+   "tris": 1712,
+   "colors": 11,
+   "height": 1.87,
    "v1size": [
     1,
     1
@@ -617,9 +664,9 @@
     2,
     1
    ],
-   "tris": 1024,
-   "colors": 12,
-   "height": 1.49,
+   "tris": 1864,
+   "colors": 10,
+   "height": 1.77,
    "v1size": [
     1,
     1
@@ -634,16 +681,16 @@
     [
      "E",
      "out",
-     -0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 1484,
-   "colors": 12,
-   "height": 2.34,
+   "tris": 1644,
+   "colors": 9,
+   "height": 1.9,
    "v1size": [
     2,
     1
@@ -665,9 +712,9 @@
     2,
     1
    ],
-   "tris": 960,
-   "colors": 10,
-   "height": 1.25,
+   "tris": 1996,
+   "colors": 13,
+   "height": 1.38,
    "v1size": [
     1,
     1
@@ -683,9 +730,9 @@
     1,
     1
    ],
-   "tris": 328,
-   "colors": 6,
-   "height": 1.0,
+   "tris": 252,
+   "colors": 4,
+   "height": 1.09,
    "v1size": [
     1,
     1
@@ -707,9 +754,9 @@
     2,
     1
    ],
-   "tris": 908,
-   "colors": 12,
-   "height": 1.18,
+   "tris": 1628,
+   "colors": 11,
+   "height": 1.35,
    "v1size": [
     1,
     1
@@ -720,14 +767,25 @@
    "ko": "제련로",
    "fam": "변환",
    "recipe": "광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함",
-   "ports": [],
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
    "size": [
     3,
     1
    ],
-   "tris": 1540,
+   "tris": 3360,
    "colors": 10,
-   "height": 1.95,
+   "height": 1.89,
    "v1size": [
     1,
     1
@@ -738,86 +796,25 @@
    "ko": "분쇄기",
    "fam": "변환",
    "recipe": "광석 → 분쇄 광석(수량 2배), 돌 → 모래",
-   "ports": [],
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
    "size": [
     3,
     1
    ],
-   "tris": 2464,
-   "colors": 10,
-   "height": 1.55,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "sawmill",
-   "ko": "제재기",
-   "fam": "변환",
-   "recipe": "통나무 → 판자",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1644,
-   "colors": 16,
-   "height": 1.34,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "washer",
-   "ko": "세척기",
-   "fam": "변환",
-   "recipe": "분쇄 광석 → 정제 광석 (제련 수율이 오름)",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1564,
-   "colors": 12,
-   "height": 1.6,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "kiln",
-   "ko": "가마",
-   "fam": "변환",
-   "recipe": "모래 → 유리, 통나무 → 숯",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1348,
-   "colors": 12,
-   "height": 1.83,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "stonecutter",
-   "ko": "석재 절단기",
-   "fam": "변환",
-   "recipe": "돌 → 석재 블록",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1380,
-   "colors": 14,
-   "height": 1.67,
+   "tris": 5168,
+   "colors": 11,
+   "height": 1.38,
    "v1size": [
     1,
     1
@@ -828,158 +825,54 @@
    "ko": "압연 프레스",
    "fam": "변환",
    "recipe": "주괴 → 판재",
-   "ports": [],
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
    "size": [
     3,
     1
    ],
-   "tris": 1632,
-   "colors": 12,
-   "height": 2.17,
+   "tris": 4072,
+   "colors": 11,
+   "height": 2.13,
    "v1size": [
     1,
     1
    ]
   },
   {
-   "key": "wiredraw",
-   "ko": "신선기",
+   "key": "sawmill",
+   "ko": "제재기",
    "fam": "변환",
-   "recipe": "구리 주괴 → 구리선 묶음",
-   "ports": [],
+   "recipe": "통나무 → 판자",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
    "size": [
     3,
     1
    ],
-   "tris": 1432,
+   "tris": 2960,
    "colors": 10,
-   "height": 1.59,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "mill",
-   "ko": "제분기",
-   "fam": "변환",
-   "recipe": "밀 → 밀가루",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1344,
-   "colors": 14,
-   "height": 1.59,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "briquetter",
-   "ko": "압축기",
-   "fam": "변환",
-   "recipe": "톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1428,
-   "colors": 11,
-   "height": 1.34,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "oilpress",
-   "ko": "착유기",
-   "fam": "변환",
-   "recipe": "기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1560,
-   "colors": 11,
-   "height": 1.77,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "lathe",
-   "ko": "선반",
-   "fam": "변환",
-   "recipe": "철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1504,
-   "colors": 12,
-   "height": 1.29,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "caster",
-   "ko": "주조기",
-   "fam": "변환",
-   "recipe": "철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1360,
-   "colors": 9,
-   "height": 1.65,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "loom",
-   "ko": "직조기",
-   "fam": "변환",
-   "recipe": "목화 → 천",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1420,
-   "colors": 11,
-   "height": 1.55,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "gemcutter",
-   "ko": "보석 절삭기",
-   "fam": "변환",
-   "recipe": "다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1448,
-   "colors": 12,
-   "height": 1.53,
+   "height": 1.35,
    "v1size": [
     1,
     1
@@ -990,14 +883,344 @@
    "ko": "도색기",
    "fam": "변환",
    "recipe": "블록 + 염료 → 색을 입힌 블록",
-   "ports": [],
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
    "size": [
     3,
     1
    ],
-   "tris": 1628,
+   "tris": 2448,
+   "colors": 10,
+   "height": 1.37,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "washer",
+   "ko": "세척기",
+   "fam": "변환",
+   "recipe": "분쇄 광석 → 정제 광석 (제련 수율이 오름)",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2808,
+   "colors": 11,
+   "height": 1.48,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "kiln",
+   "ko": "가마",
+   "fam": "변환",
+   "recipe": "모래 → 유리, 통나무 → 숯",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2460,
+   "colors": 10,
+   "height": 1.62,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "stonecutter",
+   "ko": "석재 절단기",
+   "fam": "변환",
+   "recipe": "돌 → 석재 블록",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 3004,
    "colors": 14,
-   "height": 1.8,
+   "height": 1.6,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "wiredraw",
+   "ko": "신선기",
+   "fam": "변환",
+   "recipe": "구리 주괴 → 구리선 묶음",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2516,
+   "colors": 10,
+   "height": 1.51,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "mill",
+   "ko": "제분기",
+   "fam": "변환",
+   "recipe": "밀 → 밀가루",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2324,
+   "colors": 10,
+   "height": 1.56,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "briquetter",
+   "ko": "압축기",
+   "fam": "변환",
+   "recipe": "톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2632,
+   "colors": 10,
+   "height": 1.32,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "oilpress",
+   "ko": "착유기",
+   "fam": "변환",
+   "recipe": "기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2932,
+   "colors": 13,
+   "height": 1.94,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "lathe",
+   "ko": "선반",
+   "fam": "변환",
+   "recipe": "철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2592,
+   "colors": 10,
+   "height": 1.38,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "caster",
+   "ko": "주조기",
+   "fam": "변환",
+   "recipe": "철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2716,
+   "colors": 11,
+   "height": 1.56,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "loom",
+   "ko": "직조기",
+   "fam": "변환",
+   "recipe": "목화 → 천",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 2484,
+   "colors": 10,
+   "height": 1.5,
+   "v1size": [
+    1,
+    1
+   ]
+  },
+  {
+   "key": "gemcutter",
+   "ko": "보석 절삭기",
+   "fam": "변환",
+   "recipe": "다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료",
+   "ports": [
+    [
+     "W",
+     "in",
+     0
+    ],
+    [
+     "E",
+     "out",
+     0
+    ]
+   ],
+   "size": [
+    3,
+    1
+   ],
+   "tris": 3124,
+   "colors": 11,
+   "height": 1.54,
    "v1size": [
     1,
     1
@@ -1012,26 +1235,31 @@
     [
      "W",
      "in",
-     0.5
-    ],
-    [
-     "E",
-     "out",
-     0.5
+     0
     ],
     [
      "S",
+     "out",
+     0
+    ],
+    [
+     "N",
+     "out",
+     0
+    ],
+    [
+     "E",
      "out",
      0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 2172,
-   "colors": 11,
-   "height": 3.0,
+   "tris": 2396,
+   "colors": 8,
+   "height": 2.36,
    "v1size": [
     1,
     1
@@ -1046,26 +1274,31 @@
     [
      "W",
      "in",
-     0.5
-    ],
-    [
-     "E",
-     "out",
-     0.5
+     0
     ],
     [
      "S",
+     "out",
+     0
+    ],
+    [
+     "N",
+     "out",
+     0
+    ],
+    [
+     "E",
      "out",
      0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 2544,
-   "colors": 11,
-   "height": 1.7,
+   "tris": 2592,
+   "colors": 9,
+   "height": 1.82,
    "v1size": [
     1,
     1
@@ -1080,26 +1313,31 @@
     [
      "W",
      "in",
-     0.5
-    ],
-    [
-     "E",
-     "out",
-     0.5
+     0
     ],
     [
      "S",
+     "out",
+     0
+    ],
+    [
+     "N",
+     "out",
+     0
+    ],
+    [
+     "E",
      "out",
      0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 2000,
-   "colors": 9,
-   "height": 1.7,
+   "tris": 2252,
+   "colors": 8,
+   "height": 1.48,
    "v1size": [
     1,
     1
@@ -1122,6 +1360,11 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
      0
@@ -1129,11 +1372,11 @@
    ],
    "size": [
     3,
-    3
+    1
    ],
-   "tris": 2652,
-   "colors": 12,
-   "height": 2.8,
+   "tris": 2528,
+   "colors": 11,
+   "height": 2.39,
    "v1size": [
     2,
     2
@@ -1148,7 +1391,7 @@
     [
      "W",
      "in",
-     0.5
+     0
     ],
     [
      "S",
@@ -1156,18 +1399,23 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
-     0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 2108,
-   "colors": 13,
-   "height": 2.04,
+   "tris": 2440,
+   "colors": 10,
+   "height": 1.62,
    "v1size": [
     1,
     1
@@ -1182,7 +1430,7 @@
     [
      "W",
      "in",
-     0.5
+     0
     ],
     [
      "S",
@@ -1190,18 +1438,23 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
-     0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 1844,
-   "colors": 16,
-   "height": 1.84,
+   "tris": 2248,
+   "colors": 11,
+   "height": 1.52,
    "v1size": [
     1,
     1
@@ -1216,7 +1469,7 @@
     [
      "W",
      "in",
-     0.5
+     0
     ],
     [
      "S",
@@ -1224,18 +1477,23 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
-     0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 1876,
-   "colors": 14,
-   "height": 2.34,
+   "tris": 2536,
+   "colors": 10,
+   "height": 1.61,
    "v1size": [
     1,
     1
@@ -1250,7 +1508,7 @@
     [
      "W",
      "in",
-     0.5
+     0
     ],
     [
      "S",
@@ -1258,18 +1516,23 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
-     0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 1920,
+   "tris": 2316,
    "colors": 10,
-   "height": 2.2,
+   "height": 1.71,
    "v1size": [
     1,
     1
@@ -1284,7 +1547,7 @@
     [
      "W",
      "in",
-     0.5
+     0
     ],
     [
      "S",
@@ -1292,18 +1555,23 @@
      0
     ],
     [
+     "N",
+     "in",
+     0
+    ],
+    [
      "E",
      "out",
-     0.5
+     0
     ]
    ],
    "size": [
     3,
-    2
+    1
    ],
-   "tris": 2044,
-   "colors": 11,
-   "height": 2.0,
+   "tris": 2436,
+   "colors": 10,
+   "height": 1.4,
    "v1size": [
     1,
     1
@@ -1321,12 +1589,12 @@
      0
     ],
     [
-     "N",
+     "S",
      "in",
      0
     ],
     [
-     "S",
+     "N",
      "in",
      0
     ],
@@ -1338,50 +1606,14 @@
    ],
    "size": [
     3,
-    3
+    1
    ],
-   "tris": 3200,
-   "colors": 16,
-   "height": 2.52,
+   "tris": 2416,
+   "colors": 8,
+   "height": 1.49,
    "v1size": [
     2,
     2
-   ]
-  },
-  {
-   "key": "packer",
-   "ko": "포장기",
-   "fam": "포장·판매",
-   "recipe": "같은 아이템 8개 → 상자 1개 (물체 수를 줄임)",
-   "ports": [],
-   "size": [
-    3,
-    1
-   ],
-   "tris": 1616,
-   "colors": 13,
-   "height": 1.79,
-   "v1size": [
-    1,
-    1
-   ]
-  },
-  {
-   "key": "vending",
-   "ko": "자판기",
-   "fam": "포장·판매",
-   "recipe": "물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음",
-   "ports": [],
-   "size": [
-    1,
-    1
-   ],
-   "tris": 340,
-   "colors": 11,
-   "height": 1.86,
-   "v1size": [
-    1,
-    1
    ]
   },
   {
@@ -1393,16 +1625,16 @@
     [
      "W",
      "in",
-     -0.5
+     0
     ]
    ],
    "size": [
-    3,
-    2
+    2,
+    1
    ],
-   "tris": 1756,
-   "colors": 15,
-   "height": 2.18,
+   "tris": 1752,
+   "colors": 10,
+   "height": 2.06,
    "v1size": [
     1,
     1
@@ -1424,9 +1656,9 @@
     2,
     1
    ],
-   "tris": 1152,
-   "colors": 9,
-   "height": 2.56,
+   "tris": 1652,
+   "colors": 10,
+   "height": 2.27,
    "v1size": [
     1,
     1
@@ -1442,9 +1674,9 @@
     1,
     1
    ],
-   "tris": 264,
-   "colors": 6,
-   "height": 4.49,
+   "tris": 230,
+   "colors": 4,
+   "height": 3.31,
    "v1size": [
     1,
     1
@@ -1460,9 +1692,9 @@
     2,
     2
    ],
-   "tris": 392,
+   "tris": 528,
    "colors": 6,
-   "height": 1.12,
+   "height": 0.96,
    "v1size": [
     1,
     1
@@ -1478,9 +1710,9 @@
     1,
     1
    ],
-   "tris": 452,
+   "tris": 484,
    "colors": 8,
-   "height": 1.17,
+   "height": 1.1,
    "v1size": [
     1,
     1
@@ -1496,9 +1728,9 @@
     1,
     1
    ],
-   "tris": 560,
-   "colors": 7,
-   "height": 3.3,
+   "tris": 344,
+   "colors": 4,
+   "height": 2.46,
    "v1size": [
     1,
     1
@@ -1514,9 +1746,9 @@
     1,
     1
    ],
-   "tris": 408,
-   "colors": 7,
-   "height": 0.64,
+   "tris": 494,
+   "colors": 4,
+   "height": 0.62,
    "v1size": [
     1,
     1
@@ -1532,9 +1764,9 @@
     1,
     1
    ],
-   "tris": 364,
+   "tris": 448,
    "colors": 6,
-   "height": 1.24,
+   "height": 1.2,
    "v1size": [
     1,
     1
@@ -1550,9 +1782,9 @@
     1,
     1
    ],
-   "tris": 348,
-   "colors": 6,
-   "height": 0.84,
+   "tris": 232,
+   "colors": 5,
+   "height": 0.65,
    "v1size": [
     1,
     1
@@ -1568,9 +1800,9 @@
     1,
     1
    ],
-   "tris": 204,
-   "colors": 7,
-   "height": 0.87,
+   "tris": 280,
+   "colors": 3,
+   "height": 1.03,
    "v1size": [
     1,
     1
@@ -1586,9 +1818,9 @@
     2,
     1
    ],
-   "tris": 484,
-   "colors": 11,
-   "height": 1.58,
+   "tris": 648,
+   "colors": 5,
+   "height": 1.42,
    "v1size": [
     1,
     1
@@ -1604,9 +1836,9 @@
     2,
     1
    ],
-   "tris": 1060,
-   "colors": 13,
-   "height": 1.63,
+   "tris": 424,
+   "colors": 7,
+   "height": 1.42,
    "v1size": [
     1,
     1
@@ -1622,9 +1854,9 @@
     2,
     1
    ],
-   "tris": 692,
-   "colors": 12,
-   "height": 1.78,
+   "tris": 508,
+   "colors": 7,
+   "height": 1.65,
    "v1size": [
     1,
     1
@@ -1640,9 +1872,9 @@
     2,
     1
    ],
-   "tris": 720,
-   "colors": 17,
-   "height": 1.07,
+   "tris": 836,
+   "colors": 9,
+   "height": 1.34,
    "v1size": [
     1,
     1
@@ -1658,9 +1890,9 @@
     2,
     1
    ],
-   "tris": 624,
-   "colors": 14,
-   "height": 1.64,
+   "tris": 480,
+   "colors": 8,
+   "height": 1.08,
    "v1size": [
     1,
     1
@@ -1676,9 +1908,9 @@
     2,
     1
    ],
-   "tris": 516,
-   "colors": 8,
-   "height": 1.6,
+   "tris": 388,
+   "colors": 3,
+   "height": 1.32,
    "v1size": [
     1,
     1
@@ -1694,9 +1926,9 @@
     3,
     1
    ],
-   "tris": 1476,
-   "colors": 23,
-   "height": 1.88,
+   "tris": 1004,
+   "colors": 7,
+   "height": 1.4,
    "v1size": [
     2,
     1
@@ -1733,9 +1965,9 @@
     5,
     5
    ],
-   "tris": 4732,
-   "colors": 15,
-   "height": 4.52,
+   "tris": 3768,
+   "colors": 10,
+   "height": 2.94,
    "v1size": [
     3,
     3
@@ -1751,9 +1983,9 @@
     5,
     5
    ],
-   "tris": 4172,
-   "colors": 10,
-   "height": 4.62,
+   "tris": 1430,
+   "colors": 5,
+   "height": 2.86,
    "v1size": [
     3,
     3

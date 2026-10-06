@@ -1,93 +1,78 @@
-# v2 models: the two end-game machines (궁극의 장치). They are five cells across and tower over everything else.
+# v2 ultimate machines: the two great works that the whole factory builds toward. Each fills 5x5 cells.
 import math
-import factorykit as fk
-from factorykit import rad
-from .kit import (machine2, bx, on, stub, port, vent, panel, hexbolt, badge, gauge, buttons, slots, lamp, band,
-                  chimney, frame_tower, tank, E_OUT)
-from .kit import hull
+from .supply import crystal
+from .d import *          # noqa: F401,F403
+from .d import free, run, cover, frame, frustum, K
 
 
-def platform(m, half=1.9, top=1.10):
-    bx(m, (-half, half), (-half, half), (0.0, 0.18), "g4")
-    hull(m, (-half + 0.06, half - 0.06), (-half + 0.06, half - 0.06), top, z0=0.18, span=1.25, post=0.10)
-    band(m, (-half + 0.06, half - 0.06), (-half + 0.06, half - 0.06), top, t=0.12)
-    for side in ("S", "E"):
-        f = half - 0.06
-        for a in (-1.2, 1.2):
-            with on(m, side, *((a, -f) if side == "S" else (f, a)), 0.66):
-                vent(m, 0.60, 0.40, 6)
-        for a in (-0.62, 0.62):
-            with on(m, side, *((a, -f) if side == "S" else (f, a)), 0.84):
-                badge(m, 0.12)
-    return top + 0.12
+def port(m, origin, inward, out=False, duct=1.2):
+    """A port in the edge of a great work: a cell of conveyor under a folding cover, then a duct that
+    runs on into the machine."""
+    with frame(m, origin, inward):
+        run(m, 0.0, 0.5, flow=-1 if out else 1)
+        cover(m, 0.13, 1)
+        bx(m, (0.47, duct), (-0.36, 0.36), (0.20, 0.72), G, bevel=0.045)
+        for x in (0.62, 0.92):
+            if x + 0.06 < duct:
+                bx(m, (x - 0.05, x + 0.05), (-0.385, 0.385), (0.20, 0.745), D, bevel=0.02)
 
 
-@machine2("coreforge", (5, 5), (("W", "in", 1), ("W", "in", -1), ("S", "in", 0), E_OUT))
+def deck(m):
+    bx(m, (-2.47, 2.47), (-2.47, 2.47), (0.0, 0.16), T, bevel=0.05)
+    bx(m, (-2.38, 2.38), (-2.38, 2.38), (0.12, 0.25), G, bevel=0.035)
+
+
 def coreforge(m):
-    """Four great claws hold a vein core while it grows over a pool of molten metal."""
-    for y in (1, -1):
-        with m.at((-1.9, y, 0)):
-            stub(m, 0.0, -1, 0.6, "in")
-    port(m, "S", 0, -1.9, "in", L=0.6)
-    stub(m, 1.9, 1, 0.6, "out")
-    T = platform(m)
-    m.cyl(1.56, 0.20, (0, 0, T + 0.10), "g3", seg=8, rot=rad(22.5))
-    m.cyl(1.26, 0.20, (0, 0, T + 0.30), "g1", seg=8, rot=rad(22.5))
-    m.cyl(0.90, 0.16, (0, 0, T + 0.48), "g5", seg=8, rot=rad(22.5))
-    m.cyl(0.74, 0.02, (0, 0, T + 0.565), "glow", seg=8, rot=rad(22.5))
-    for k in range(4):
-        a = k * math.pi / 2 + math.pi / 4
-        with m.at((math.cos(a) * 1.30, math.sin(a) * 1.30, T + 0.20), a):
-            m.box((0.36, 0.42, 1.56), (0, 0, 0.78), "g2")
-            m.box((0.42, 0.48, 0.14), (0, 0, 0.56), "g4")
-            m.box((0.42, 0.48, 0.14), (0, 0, 1.20), "g4")
-            m.box((0.28, 0.32, 1.16), (-0.36, 0, 1.92), "g1", rot=(0, rad(-36), 0))
-            m.box((0.20, 0.24, 0.40), (-0.74, 0, 2.44), "g3", rot=(0, rad(-62), 0))
-            m.cyl(0.15, 0.54, (0, 0, 1.52), "g5", seg=6, axis="Y")
-            m.box((0.04, 0.16, 0.44), (0.19, 0, 0.88), "core_gold")
-    C = (0, 0, T + 2.30)
-    fk.crystal(m, C, 0.52, "core_gold")
-    for k, (r, dz, s_) in enumerate(((0.95, 0.5, 0.14), (0.85, -0.2, 0.10), (1.0, 0.1, 0.09), (0.8, 0.8, 0.08))):
-        a = 0.6 + k * 1.7
-        fk.crystal(m, (math.cos(a) * r, math.sin(a) * r, C[2] + dz), s_, "core_gold")
-    fk.tilted_ring(m, (0, 0, C[2] + 0.4), 0.90, 0.035, (rad(22), rad(10), 0), "g5")
-    fk.tilted_ring(m, (0, 0, C[2] + 0.4), 1.04, 0.03, (rad(-18), rad(24), 0), "frame")
-    frame_tower(m, (-1.98, 1.98), (-1.98, 1.98), 0.0, (T + 1.50, T + 3.30), post=0.09, beam=0.20)
-    for x, y in ((-1.50, -1.50), (1.50, -1.50), (1.50, 1.50)):
-        chimney(m, x, y, T, 1.10, r=0.16, glow=True)
-    tank(m, -1.48, 1.48, T, 0.26, 0.90, seg=10, rings=2)
-    m.pipe([(1.50, -1.20, T + 0.30), (0.90, -1.20, T + 0.30), (0.90, -0.80, T + 0.30)], 0.07, "g1", seg=6)
-    m.pipe([(-1.50, -1.20, T + 0.30), (-0.90, -1.20, T + 0.30), (-0.90, -0.80, T + 0.30)], 0.07, "g1", seg=6)
+    """Core forge: four great pylons lean in over a banded vessel and hold a new vein core in the air
+    above the bright pool in its mouth. Two materials come in on the west, a third on the south, and
+    the finished core leaves on the east."""
+    deck(m)
+    port(m, (-2.5, 1.0), (1, 0), duct=1.45)
+    port(m, (-2.5, -1.0), (1, 0), duct=1.45)
+    port(m, (0.0, -2.5), (0, 1), duct=1.30)
+    port(m, (2.5, 0.0), (-1, 0), out=True, duct=1.30)
+    octa(m, 1.30, 1.30, 0.22, 0.64, T)
+    octa(m, 1.30, 1.08, 0.62, 1.30, G)
+    for z in (0.84, 1.08):
+        a = 1.30 - (z - 0.62) / 0.68 * 0.22
+        octa(m, a + 0.035, a + 0.02, z - 0.04, z + 0.04, D)
+    oct_ring(m, 1.15, 0.26, 1.26, 1.43, D)
+    octa(m, 0.90, 0.90, 1.20, 1.34, "h_core")
+    for sx in SIDES:
+        for sy in SIDES:
+            b = (tuple(sorted((sx * 1.50, sx * 2.10))), tuple(sorted((sy * 1.50, sy * 2.10))))
+            t = (tuple(sorted((sx * 0.62, sx * 0.92))), tuple(sorted((sy * 0.62, sy * 0.92))))
+            frustum(m, b, t, 0.22, 2.80, G)
+            bx(m, tuple(sorted((sx * 1.44, sx * 2.16))), tuple(sorted((sy * 1.44, sy * 2.16))), (0.20, 0.42), D, bevel=0.05)
+            bx(m, tuple(sorted((sx * 0.56, sx * 0.98))), tuple(sorted((sy * 0.56, sy * 0.98))), (2.76, 2.94), D, bevel=0.04)
+    crystal(m, 0, 0, 1.62, 0.40, "h_gem")
 
 
-@machine2("reactor", (5, 5), items=False)
 def reactor(m):
-    """A containment sphere ringed with coils. Four pylons draw the power off it."""
-    T = platform(m)
-    m.cyl(1.50, 0.22, (0, 0, T + 0.11), "g3", seg=10)
-    m.cyl(1.10, 0.50, (0, 0, T + 0.47), "g2", seg=10, r2=0.80)
-    m.cyl(0.84, 0.10, (0, 0, T + 0.77), "g4", seg=10)
-    Z = T + 1.80
-    m.ico(1.06, (0, 0, Z), "g1")
-    m.cyl(1.04, 0.22, (0, 0, Z), "spark", seg=12)
-    m.cyl(1.10, 0.07, (0, 0, Z + 0.15), "g5", seg=12)
-    m.cyl(1.10, 0.07, (0, 0, Z - 0.15), "g5", seg=12)
-    m.cyl(0.50, 0.14, (0, 0, Z + 0.98), "g4", seg=10)
-    m.cyl(0.34, 0.26, (0, 0, Z + 1.16), "g3", seg=10)
-    m.cyl(0.26, 0.012, (0, 0, Z + 1.296), "spark", seg=10)
-    fk.tilted_ring(m, (0, 0, Z), 1.36, 0.06, (rad(58), 0, 0), "copper")
-    fk.tilted_ring(m, (0, 0, Z), 1.36, 0.06, (rad(-58), 0, 0), "copper")
-    fk.tilted_ring(m, (0, 0, Z), 1.50, 0.05, (0, rad(64), 0), "frame")
+    """Endless engine: a ring of eight coils round a core whose light shows between its bars, joined to
+    the ring by four arms, under a tall spire."""
+    deck(m)
+    octa(m, 1.60, 1.60, 0.22, 0.30, D)
+    oct_ring(m, 2.25, 0.72, 0.22, 0.92, G)
+    for k in range(8):
+        with m.at((0, 0, 0), k * math.pi / 4):
+            bx(m, (1.47, 2.31), (-0.44, 0.44), (0.20, 1.06), T, bevel=0.06)
+            for y in (-0.22, 0.0, 0.22):
+                bx(m, (1.44, 2.34), (y - 0.045, y + 0.045), (0.18, 1.10), "h_lite", bevel=0.0)
+            bx(m, (0.60, 0.74), (-0.07, 0.07), (0.56, 1.00), D, bevel=0.0)
     for k in range(4):
-        a = k * math.pi / 2 + math.pi / 4
-        x, y = math.cos(a) * 1.46, math.sin(a) * 1.46
-        m.box((0.44, 0.44, 0.30), (x, y, T + 0.15), "g4")
-        for i in range(10):
-            m.cyl(0.17 if i % 2 == 0 else 0.12, 0.16, (x, y, T + 0.38 + i * 0.16), "copper" if i % 2 == 0 else "g5", seg=8)
-        m.cyl(0.07, 0.34, (x, y, T + 2.10), "g1", seg=6)
-        m.ico(0.13, (x, y, T + 2.36), "spark")
-        m.pipe([(x, y, T + 2.36), (x * 0.72, y * 0.72, T + 2.80), (x * 0.36, y * 0.36, Z + 1.10)], 0.025, "spark", seg=5)
-    frame_tower(m, (-1.98, 1.98), (-1.98, 1.98), 0.0, (T + 1.30, T + 3.40), post=0.09, beam=0.20)
-    for sx in (-1, 1):
-        for i in range(5):
-            bx(m, (sx * 1.66 - 0.05, sx * 1.66 + 0.05), (-0.60 + i * 0.26, -0.48 + i * 0.26), (T, T + 0.46), "g3")
+        with m.at((0, 0, 0), k * math.pi / 2 + math.pi / 4):
+            bx(m, (0.66, 1.56), (-0.17, 0.17), (0.34, 0.76), G, bevel=0.05)
+    octa(m, 0.70, 0.70, 0.22, 0.58, G)
+    octa(m, 0.60, 0.60, 0.56, 1.00, "h_core")
+    octa(m, 0.72, 0.72, 0.98, 1.32, G)
+    octa(m, 0.72, 0.42, 1.32, 1.66, G)
+    oct_ring(m, 0.50, 0.14, 1.62, 1.74, D)
+    octa(m, 0.26, 0.20, 1.66, 2.50, G)
+    for z in (1.95, 2.25):
+        octa(m, 0.29, 0.29, z - 0.035, z + 0.035, D)
+    octa(m, 0.20, 0.0, 2.50, 2.86, D)
+
+
+free("coreforge", (5, 5), coreforge, ports=(("W", "in", 1), ("W", "in", -1), ("S", "in", 0), ("E", "out", 0)))
+free("reactor", (5, 5), reactor, items=False)

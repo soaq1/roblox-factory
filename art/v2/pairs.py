@@ -167,10 +167,10 @@ def kiln_body(m, Z):
     octa(m, 0.176, 0.176, Z + 0.70, Z + 0.745, "h_glow")
 
 
-def mixer_body(m, Z):
+def mixer_body(m, Z, walls=True):
     """Mixer: a wide pan with stirring arms turning in the mix, driven from a gearbox on a bridge that
     spans the pan."""
-    for d in SIDES:
+    for d in (SIDES if walls else ()):
         zc = Z - 0.25
         yp = side_panel(m, d, w=0.46, h=0.34, z=zc)
         for sx in SIDES:                                      # discharge gate: guides, and the gate half raised

@@ -8,7 +8,8 @@ sys.path.insert(0, HERE)
 import bpy
 import factorykit as fk          # v1: Model, palette, item meshes, lights, camera
 from mathutils import Vector
-from v2 import kit
+from v2 import kit, base
+base.set_style("d")              # every machine stands on foundation D
 
 # Family modules register their models on import; this order is the catalog order.
 for name in ("transport", "devices", "supply", "process", "combine", "power", "hand", "ultimate"):
@@ -65,20 +66,25 @@ if "v2thumbs" in ARGS:
     for a in ARGS:
         if a.startswith("only="):
             only |= set(a.split("=", 1)[1].split(","))
-    fk.scene.cycles.samples = 32
+    out = next((os.path.expanduser(a.split("=", 1)[1]) for a in ARGS if a.startswith("out=")), IMG)
+    res = int(next((a.split("=", 1)[1] for a in ARGS if a.startswith("res=")), 640))
+    os.makedirs(out, exist_ok=True)
     for i, s in enumerate(kit.SPECS2):
         if only and s["key"] not in only:
             continue
         O = Vector((i * 60.0, -900, 0))
         fk.place(MESH[s["key"]], O)
+        spots = []
         if s["items"]:
             ins, outs = list(s["ins"]), list(s["outs"])
             for side, kind, off in s["ports"]:
                 name = (ins.pop(0) if ins else None) if kind == "in" else (outs.pop(0) if outs else None)
                 if name and name in fk.ITEMS:
-                    fk.place(fk.ITEMS[name], O + stub_spot(s, side, off), fk.rng.uniform(0, 1.2))
-        centre, extent = fit(MESH[s["key"]])
-        fk.shoot(os.path.join(IMG, s["key"] + ".png"), O + centre, extent * 1.12, (640, 640), True)
+                    spot = stub_spot(s, side, off)
+                    spot.z = base.BZ
+                    fk.place(fk.ITEMS[name], O + spot, fk.rng.uniform(0, 1.2))
+                    spots.append(spot + Vector((0, 0, 0.2)))
+        base.shoot_fit(MESH[s["key"]], O, os.path.join(out, s["key"] + ".png"), res=res, extra=spots)
         print("V2THUMB", s["key"])
 
 # ============================ CONNECTED FACTORY ============================
@@ -91,55 +97,52 @@ if "v2line" in ARGS:
 
     def item(name, x, y):
         if name in fk.ITEMS:
-            fk.place(fk.ITEMS[name], B + Vector((x, y, kit.BELT_Z)), fk.rng.uniform(0, 1.5))
+            fk.place(fk.ITEMS[name], B + Vector((x, y, base.BZ)), fk.rng.uniform(0, 1.5))
 
-    # iron line along the back, flowing east
-    put("extractor_fe", -6.5, 5)
-    put("belt", -5, 5)
-    put("crusher", -3, 5)
-    put("belt", -1, 5)
-    put("smelter", 1, 5)
-    put("sensor", 3, 5)
-    put("splitter", 4, 5)
-    put("belt", 5, 5)
-    put("press", 7, 5)
-    put("belt", 9, 5)
-    put("assembler", 11, 4.5)
-    put("belt", 13, 5)
-    put("storage", 15, 5)
-    # the splitter's side exit runs down to the blast furnace
-    put("belt", 4, 4, S_)
-    put("belt", 4, 3, S_)
-    put("belt_corner", 4, 2, S_, my=True)     # coming south, leaving east
-    put("belt", 5, 2)
-    put("blast", 7, 2)
-    put("belt", 9, 2)
-    put("packer", 11, 2)
-    put("belt", 13, 2)
-    put("chest", 14.2, 2)
-    # coal comes in from the south
+    # iron line along the back, flowing east. A 3x1 machine is centred on a cell; a 2x1 one between two.
+    put("extractor_fe", -7.5, 6)
+    put("belt", -6, 6)
+    put("crusher", -4, 6)
+    put("belt", -2, 6)
+    put("smelter", 0, 6)
+    put("belt", 2, 6)
+    put("splitter", 3, 6)
+    put("belt", 4, 6)
+    put("press", 6, 6)
+    put("belt", 8, 6)
+    put("assembler", 10, 6)
+    put("belt", 12, 6)
+    put("storage", 14, 6)
+    # the splitter's side exit runs south, turns east and feeds the blast furnace
+    put("belt", 3, 5, S_)
+    put("belt", 3, 4, S_)
+    put("belt_corner", 3, 3, S_, my=True)     # coming south, leaving east
+    put("belt", 4, 3)
+    put("blast", 6, 3)
+    put("belt", 8, 3)
+    put("packer", 10, 3)
+    put("belt", 12, 3)
+    put("chest", 13.1, 3)
+    # coal comes round to the blast furnace's side mouth
     put("extractor_coal", 4.5, 0)
-    put("belt", 6, 0)
-    put("belt_corner", 7, 0, my=True)         # coming east, leaving north
-    # copper wire for the assembler
-    put("belt", 11, 3, N_)
+    put("belt_corner", 6, 0, my=True)         # coming east, leaving north
+    put("belt", 6, 1, N_)
+    put("belt", 6, 2, N_)
     # things that stand on their own
-    put("generator", -4, 1.5)
-    put("pole", -1.5, 0)
-    put("pole", 1.5, -1)
-    put("windturbine", -7, -1)
-    put("wb_machine", -5.5, -1.2)
-    put("wb_basic", -3.2, -1.3)
-    put("beacon", 3, 6)
-    put("battery", -1.5, 2)
-    put("vending", 15.5, 1.6)
+    put("generator", -4.5, 2.5)
+    put("pole", -2, 1.5)
+    put("pole", 1, 0.5)
+    put("windturbine", -8.5, -1.5)
+    put("battery", -6.5, 3)
+    put("wb_machine", -4.5, -1.2)
+    put("wb_basic", -2, -1.3)
+    put("campfire", 0, -1.4)
+    put("vending", 14, 1.2)
+    put("beacon", 2, 7.4)
 
-    for n, x, y in (("ore_fe", -5.5, 5), ("ore_fe", -5.0, 5.05), ("crushed", -1.2, 5), ("crushed", -0.7, 4.95),
-                    ("ingot_fe", 2.7, 5), ("ingot_fe", 3.3, 5.03), ("ingot_fe", 5.2, 5), ("ingot_fe", 4.0, 3.6),
-                    ("ingot_fe", 4.02, 2.8), ("ingot_fe", 5.1, 2.0), ("plate_fe", 8.8, 5), ("plate_fe", 9.3, 4.97),
-                    ("coal", 5.8, 0.0), ("coal", 6.3, 0.03), ("coal", 7.0, 0.2), ("ingot_steel", 8.8, 2.0),
-                    ("ingot_steel", 9.3, 2.02), ("gear", 12.8, 5), ("gear", 13.3, 5.03), ("crate", 12.9, 2.0),
-                    ("coil", 11.0, 3.1), ("coil", 11.02, 2.7)):
+    for n, x, y in (("ore_fe", -6.1, 6), ("crushed", -2.1, 6), ("ingot_fe", 2.0, 6), ("ingot_fe", 4.0, 6.03),
+                    ("ingot_fe", 3.0, 4.6), ("ingot_fe", 4.0, 3.0), ("plate_fe", 8.0, 6), ("gear", 12.0, 6),
+                    ("coal", 6.0, 1.0), ("coal", 6.03, 1.9), ("ingot_steel", 8.0, 3.0), ("crate", 12.0, 3.0)):
         item(n, x, y)
 
     # a figure for scale: a Roblox character is about 5 studs tall, a grid cell is 3 studs
@@ -149,17 +152,24 @@ if "v2line" in ARGS:
         fig.box((0.28, 0.30, 0.62), (sx * 0.48, 0, 0.96), "sand")
     fig.box((0.64, 0.32, 0.64), (0, 0, 0.96), "water")
     fig.cyl(0.21, 0.36, (0, 0, 1.47), "sand", seg=10)
-    fk.place(fig.done(), B + Vector((1.0, 3.4, 0)), -0.6)
+    fk.place(fig.done(), B + Vector((0.6, 4.4, 0)), -0.6)
 
     fl = fk.Model("floor2")
-    fl.box((26.4, 10.4, 0.30), (4.5, 2.5, -0.15), "floor", bevel=0.04)
-    for x in range(-8, 18):
-        fl.box((0.02, 10.0, 0.004), (x + 0.5, 2.5, 0.002), "light")
-    for y in range(-3, 8):
-        fl.box((26.0, 0.02, 0.004), (4.5, y + 0.5, 0.002), "light")
+    fl.box((26.4, 12.4, 0.30), (3.3, 2.8, -0.15), "floor", bevel=0.04)
+    for x in range(-10, 17):
+        fl.box((0.02, 12.0, 0.004), (x + 0.5, 2.8, 0.002), "light")
+    for y in range(-4, 9):
+        fl.box((26.0, 0.02, 0.004), (3.3, y + 0.5, 0.002), "light")
     fk.place(fl.done(), B)
+    base.hero_light()
     fk.scene.cycles.samples = 72
-    fk.shoot(os.path.join(IMG, "_line.png"), B + Vector((4.5, 2.5, 1.1)), 27.0, (2400, 1250), False)
+    fk.cd.ortho_scale = 27.5
+    c = B + Vector((3.3, 2.8, 0.9))
+    fk.aim(fk.cam, c + base.ISO * 80, c)
+    fk.scene.render.film_transparent = False
+    fk.scene.render.resolution_x, fk.scene.render.resolution_y = 2400, 1350
+    fk.scene.render.filepath = os.path.join(IMG, "_line.png")
+    bpy.ops.render.render(write_still=True)
     print("V2LINE done")
 
 meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "height", "v1size")}

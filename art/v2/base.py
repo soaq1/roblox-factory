@@ -164,6 +164,47 @@ def symmetry_report(mesh):
     return across, along, len(pts)
 
 
+def hero_light():
+    """The lighting every v2 picture is made under: no cast shadows, a bright even sky, one key sun."""
+    fk.sun.hide_render = True
+    fk.bg.inputs[0].default_value = (1, 1, 1, 1)
+    fk.bg.inputs[1].default_value = 0.70
+    if "hero_key" not in bpy.data.objects:
+        sd = bpy.data.lights.new("hero_key", "SUN")
+        sd.energy, sd.angle = 1.9, rad(4)
+        try:
+            sd.use_shadow = False
+        except Exception:
+            pass
+        key = bpy.data.objects.new("hero_key", sd)
+        fk.col.objects.link(key)
+        fk.aim(key, (-7.0, -1.6, 9.0), (0, 0, 0))
+
+
+_E = rad(30)
+ISO = Vector((-math.cos(_E) * math.cos(rad(45)), -math.cos(_E) * math.sin(rad(45)), math.sin(_E)))
+
+
+def shoot_fit(mesh, origin, path, res=640, margin=1.10, samples=48, extra=()):
+    """Render one placed mesh from the catalog angle, framed to fit. `origin` is where it was placed;
+    `extra` are more points (in the mesh's own coordinates) that must also be in the picture."""
+    hero_light()
+    right = (-ISO).cross(Vector((0, 0, 1))).normalized()
+    up = right.cross(-ISO)
+    pts = [v.co for v in mesh.vertices] + [Vector(e) for e in extra]
+    xs, ys, ds = [p.dot(right) for p in pts], [p.dot(up) for p in pts], [p.dot(ISO) for p in pts]
+    centre = right * (min(xs) + max(xs)) / 2 + up * (min(ys) + max(ys)) / 2 + ISO * (min(ds) + max(ds)) / 2
+    fk.cd.ortho_scale = max(max(xs) - min(xs), max(ys) - min(ys)) * margin
+    c = Vector(origin) + centre
+    fk.aim(fk.cam, c + ISO * 60, c)
+    scene = fk.scene
+    scene.render.film_transparent = True
+    scene.render.resolution_x = scene.render.resolution_y = res
+    scene.cycles.samples = samples
+    scene.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+
+
 QUICK = False        # True: render only the catalog angle and save no .blend (for sheets of many machines)
 
 

@@ -1,192 +1,140 @@
-# v2 models: machines that bring materials in without being fed (공급).
+# v2 supply machines: they give without being fed, or tend the field. Each stands on a cell of its own
+# with a belt along the cell to its east (or, for the seeder, bringing seed in from the west).
 import math
-import factorykit as fk
-from factorykit import rad
-from .kit import (machine2, bx, on, inline, stub, vent, panel, hexbolt, badge, gauge, buttons, slots, lamp, band,
-                  chimney, frame_tower, tank, flange, hopper, skirt, port, body, tee, tee_body, TEE_IN, TEE_OUT,
-                  rocks, HALF, BELT_Z, W_IN, E_OUT)
-
-E2_OUT = (("E", "out", 0),)
-W2_IN = (("W", "in", 0),)
-from .kit import hull
+from .d import *          # noqa: F401,F403
+from .d import stub, free, stub_form, neck, K, frustum, strip, hatch, lamps, lever, vent_round
 
 
-def source(m, **kw):
-    """2x1 layout for a machine that only gives: body in the west cell, output stub in the east cell."""
-    stub(m, 0.0, 1, 1.0, "out", **kw)
+def crystal(m, x, y, z, r, mk):
+    m.cyl(0.0, r * 1.5, (x, y, z + r * 0.75), mk, seg=6, r2=r)
+    m.cyl(r, r * 0.9, (x, y, z + r * 1.95), mk, seg=6, r2=0.0)
 
 
 def extractor(core):
-    def build(m):
-        """A stone-and-iron plinth with four claws. A vein core floats between them and ore comes out the side."""
-        source(m)
-        with m.at((-0.5, 0, 0)):
-            bx(m, (-0.5, 0.5), (-0.46, 0.46), (0.0, 0.16), "rock_dark")
-            m.cyl(0.50, 0.50, (0, 0, 0.41), "rock", seg=8, r2=0.44, rot=rad(22.5))
-            m.cyl(0.47, 0.08, (0, 0, 0.70), "g4", seg=8, rot=rad(22.5))
-            m.cyl(0.38, 0.14, (0, 0, 0.81), "g2", seg=8, rot=rad(22.5))
-            m.cyl(0.24, 0.05, (0, 0, 0.895), "g5", seg=8, rot=rad(22.5))
-            m.cyl(0.17, 0.012, (0, 0, 0.922), core or "hole", seg=8, rot=rad(22.5))
-            for k in range(4):
-                a = k * math.pi / 2 + math.pi / 4
-                with m.at((math.cos(a) * 0.34, math.sin(a) * 0.34, 0.74), a):
-                    m.box((0.13, 0.15, 0.50), (0, 0, 0.25), "g2")
-                    m.box((0.15, 0.17, 0.07), (0, 0, 0.20), "g4")
-                    m.box((0.10, 0.11, 0.34), (-0.10, 0, 0.60), "g1", rot=(0, rad(-34), 0))
-                    m.cyl(0.05, 0.19, (0, 0, 0.48), "g5", seg=6, axis="Y")
-            # runes on the plinth: this is the one machine that runs on magic
-            for k in range(8):
-                a = k * math.pi / 4
-                m.box((0.035, 0.05, 0.16), (math.cos(a) * 0.455, math.sin(a) * 0.455, 0.42), core or "g5",
-                      rot=a)
-            if core:
-                fk.crystal(m, (0, 0, 1.52), 0.20, core)
-                for k, (r, dz, s_) in enumerate(((0.36, 0.22, 0.06), (0.33, -0.04, 0.045), (0.38, 0.10, 0.04))):
-                    a = 0.6 + k * 2.2
-                    fk.crystal(m, (math.cos(a) * r, math.sin(a) * r, 1.52 + dz), s_, core)
-    return build
+    def body(m, Z):
+        """Extractor: four pylons lean in round a socket in the deck. With a vein core set in it, the
+        core hangs in the air between them over the socket's light."""
+        neck(m, Z, 0.46, 0.41, 0.06)
+        oct_ring(m, 0.28, 0.09, Z + 0.04, Z + 0.12, D)
+        octa(m, 0.19, 0.19, Z + 0.04, Z + 0.075, "h_core" if core else SLIT)
+        for sx in SIDES:
+            for sy in SIDES:
+                xs0, xs1 = sorted((sx * 0.24, sx * 0.42)), sorted((sx * 0.13, sx * 0.24))
+                ys0, ys1 = sorted((sy * 0.22, sy * 0.39)), sorted((sy * 0.12, sy * 0.22))
+                frustum(m, (tuple(xs0), tuple(ys0)), (tuple(xs1), tuple(ys1)), Z + 0.04, Z + 0.72, G)
+                m.box((0.14, 0.13, 0.07), (sx * 0.185, sy * 0.17, Z + 0.745), D, bevel=0.015)
+        if core:
+            crystal(m, 0, 0, Z + 0.26, 0.185, core)
+    return body
 
 
-machine2("extractor_empty", (2, 1), E2_OUT)(extractor(None))
-machine2("extractor_fe", (2, 1), E2_OUT)(extractor("core_fe"))
-machine2("extractor_coal", (2, 1), E2_OUT)(extractor("core_coal"))
+def logger(m, Z):
+    """Logger: felled logs lie stacked in a cradle on the deck, and a crane at the back holds the next
+    one in its tongs."""
+    neck(m, Z, 0.46, 0.41, 0.06)
+    for x in (-0.20, 0.26):
+        bx(m, (x - 0.05, x + 0.05), (-0.34, 0.34), (Z + 0.04, Z + 0.13), D, bevel=0.015)
+    for y, z in ((-0.115, Z + 0.215), (0.115, Z + 0.215)):
+        m.cyl(0.105, 0.66, (0.03, y, z), "h_wood", seg=8, axis="X")
+        for sx in SIDES:
+            m.cyl(0.085, 0.012, (0.03 + sx * 0.33, y, z), "h_wood_l", seg=8, axis="X")
+    bx(m, (-0.47, -0.35), (-0.08, 0.08), (Z + 0.04, Z + 1.00), G, bevel=0.03)
+    bx(m, (-0.47, 0.16), (-0.065, 0.065), (Z + 0.92, Z + 1.05), G, bevel=0.03)
+    m.cyl(0.03, 0.26, (0.03, 0, Z + 0.80), "h_lite", seg=8)
+    m.cyl(0.105, 0.50, (0.03, 0, Z + 0.50), "h_wood", seg=8, axis="X")
+    for s in SIDES:
+        m.prism([(0.0, Z + 0.70), (s * 0.15, Z + 0.56), (s * 0.13, Z + 0.42), (s * 0.085, Z + 0.44), (s * 0.10, Z + 0.55),
+                 (0.0, Z + 0.63)], -0.02, 0.08, "X", D)
 
 
-@machine2("logger", (2, 1), E2_OUT)
-def logger(m):
-    """A saw on a swinging boom, with cut logs stacked on the deck."""
-    source(m)
-    with m.at((-0.5, 0, 0)):
-        T = body(m, 0.80)
-        bx(m, (-0.34, -0.10), (0.06, 0.34), (T, T + 0.70), "g2")
-        bx(m, (-0.37, -0.07), (0.03, 0.37), (T + 0.70, T + 0.78), "g4")
-        m.box((0.12, 0.12, 0.95), (-0.22, -0.16, T + 0.86), "g3", rot=(rad(38), 0, 0))
-        m.gear(0.34, 0.035, (-0.22, -0.50, T + 1.20), "white", teeth=14, axis="X")
-        m.cyl(0.09, 0.09, (-0.22, -0.50, T + 1.20), "red", seg=8, axis="X")
-        m.cyl(0.07, 0.30, (-0.22, 0.20, T + 0.50), "g5", seg=8, axis="Y")
-        for i, (y, z) in enumerate(((-0.24, 0.085), (-0.06, 0.085), (-0.15, 0.24))):
-            m.cyl(0.085, 0.46, (0.20, y, T + z), "wood_light", seg=8, axis="X")
-            m.cyl(0.086, 0.012, (0.432, y, T + z), "wood", seg=8, axis="X")
-        with on(m, "S", -0.20, -0.44, 0.42):
-            vent(m, 0.30, 0.24, 4)
-        with on(m, "S", 0.24, -0.44, 0.42):
-            buttons(m, ("lampg", "red"))
-        skirt(m, (-0.44, 0.44), y=-0.5, depth=0.06, h=0.14)
+def pump(m, Z):
+    """Water pump: a banded barrel with a flywheel each side stands in an open tank of the water it has
+    raised."""
+    neck(m, Z, 0.46, 0.41, 0.06)
+    oct_ring(m, 0.42, 0.06, Z + 0.04, Z + 0.30, G)
+    octa(m, 0.37, 0.37, Z + 0.04, Z + 0.22, "h_water")
+    oct_ring(m, 0.44, 0.09, Z + 0.27, Z + 0.33, D)
+    octa(m, 0.16, 0.16, Z + 0.04, Z + 0.86, G)
+    for z in (Z + 0.42, Z + 0.72):
+        octa(m, 0.18, 0.18, z - 0.025, z + 0.025, D)
+    octa(m, 0.16, 0.08, Z + 0.86, Z + 0.95, D)
+    m.cyl(0.045, 0.72, (0, 0, Z + 0.58), "h_lite", seg=8, axis="Y")
+    for d in SIDES:
+        m.cyl(0.19, 0.05, (0, d * 0.30, Z + 0.58), D, seg=12, axis="Y")
+        m.cyl(0.07, 0.07, (0, d * 0.305, Z + 0.58), "h_lite", seg=8, axis="Y")
 
 
-@machine2("pump", (2, 1), E2_OUT)
-def pump(m):
-    """A water tank, a pump barrel and an intake pipe going down into the ground."""
-    source(m)
-    with m.at((-0.5, 0, 0)):
-        T = body(m, 0.66, band_mk="g3", t=0.07, out=0.02)
-        m.cyl(0.30, 0.56, (-0.12, 0.08, T + 0.28), "g1", seg=10)
-        m.cyl(0.31, 0.16, (-0.12, 0.08, T + 0.40), "water", seg=10)
-        m.cyl(0.33, 0.06, (-0.12, 0.08, T + 0.59), "g3", seg=10)
-        m.cyl(0.10, 0.06, (-0.12, 0.08, T + 0.65), "g5", seg=8)
-        m.cyl(0.11, 0.40, (0.30, -0.22, T + 0.20), "g2", seg=8)
-        m.cyl(0.13, 0.05, (0.30, -0.22, T + 0.42), "g4", seg=8)
-        m.cyl(0.03, 0.26, (0.30, -0.22, T + 0.57), "g1", seg=6)
-        m.box((0.30, 0.05, 0.05), (0.22, -0.22, T + 0.70), "red", rot=(0, rad(-14), 0))
-        m.pipe([(0.30, -0.22, T + 0.30), (0.10, -0.22, T + 0.30), (0.10, 0.0, T + 0.30)], 0.045, "water_light", seg=6)
-        m.pipe([(-0.36, -0.47, 0.0), (-0.36, -0.47, T + 0.20), (-0.30, -0.20, T + 0.20)], 0.06, "water", seg=6)
-        m.cyl(0.09, 0.05, (-0.36, -0.47, 0.025), "g4", seg=8)
-        with on(m, "S", 0.10, -0.44, 0.36):
-            gauge(m, 0.10)
+def harvester(m, Z):
+    """Harvester: a reel of paddles turns at the front between two arms and sweeps the crop back into
+    the grain tank behind it."""
+    neck(m, Z, 0.46, 0.41, 0.06)
+    for d in SIDES:
+        bx(m, (-0.44, -0.02), tuple(sorted((d * 0.33, d * 0.42))), (Z + 0.04, Z + 0.46), G, bevel=0.03)
+        m.cyl(0.07, 0.05, (-0.23, d * 0.43, Z + 0.34), D, seg=8, axis="Y")
+    gear(m, 0.215, 0.62, (-0.23, 0, Z + 0.34), "h_wood_l", teeth=6, root=0.30, base=0.22, tip=0.14)
+    m.cyl(0.05, 0.70, (-0.23, 0, Z + 0.34), "h_lite", seg=8, axis="Y")
+    for s in SIDES:
+        bx(m, (0.04, 0.47), tuple(sorted((s * 0.33, s * 0.41))), (Z + 0.04, Z + 0.56), G, bevel=0.025)
+    bx(m, (0.04, 0.11), (-0.41, 0.41), (Z + 0.04, Z + 0.56), G, bevel=0.025)
+    bx(m, (0.40, 0.47), (-0.41, 0.41), (Z + 0.04, Z + 0.56), G, bevel=0.025)
+    m.box((0.32, 0.68, 0.40), (0.255, 0, Z + 0.28), "h_oil")
 
 
-@machine2("pumpjack", (3, 2), (("E", "out", -0.5),))
+def seeder(m, Z):
+    """Seeder: a long seed box feeds three drop tubes that run down its back wall into the ground."""
+    neck(m, Z, 0.46, 0.41, 0.06)
+    m.prism([(-0.30, Z + 0.50), (-0.12, Z + 0.06), (0.12, Z + 0.06), (0.30, Z + 0.50)], -0.42, 0.42, "Y", G)
+    for s in SIDES:
+        m.box((0.66, 0.05, 0.06), (0, s * 0.415, Z + 0.50), D)
+        m.box((0.05, 0.88, 0.06), (s * 0.31, 0, Z + 0.50), D)
+    m.box((0.57, 0.78, 0.012), (0, 0, Z + 0.506), "h_oil")
+    for y in (-0.27, 0.0, 0.27):
+        m.cyl(0.05, Z + 0.10, (-0.48, y, (Z + 0.10) / 2), W, seg=8)
+        m.cyl(0.07, 0.05, (-0.48, y, Z + 0.07), D, seg=8)
+        m.cyl(0.07, 0.07, (-0.48, y, 0.035), D, seg=8, r2=0.05)
+
+
 def pumpjack(m):
-    """An oil well: a walking beam on an A-frame, the horse-head at one end and the counterweight at the other."""
-    with m.at((0.5, -0.5, 0)):
-        stub(m, 0.0, 1, 1.0, "out")
-    bx(m, (-1.46, 1.46), (-0.04, 0.96), (0.0, 0.14), "g4")
-    bx(m, (-1.40, 1.40), (0.02, 0.90), (0.14, 0.22), "g2")
-    bx(m, (-1.46, 0.5), (-0.96, -0.04), (0.0, 0.14), "g4")
-    bx(m, (-1.40, 0.46), (-0.90, 0.02), (0.14, 0.22), "g2")
-    # A-frame
-    for s in (-1, 1):
-        for y in (0.22, 0.70):
-            m.box((0.08, 0.08, 1.62), (0.10 + s * 0.26, y, 1.0), "g3", rot=(0, rad(-s * 18), 0))
-        m.box((0.60, 0.06, 0.06), (0.10, 0.46 + s * 0.24, 0.80), "g3")
-    m.box((0.22, 0.62, 0.14), (0.10, 0.46, 1.80), "g5")
-    # walking beam
-    with m.at((0.10, 0.46, 1.92)):
-        a = rad(9)
-        m.box((2.20, 0.16, 0.18), (0, 0, 0), "g2", rot=(0, a, 0))
-        m.box((2.00, 0.18, 0.05), (0, 0, 0.0), "g4", rot=(0, a, 0))
-        m.prism([(-1.42, 0.16), (-1.10, 0.42), (-1.02, 0.42), (-1.02, -0.14), (-1.30, -0.30)], -0.11, 0.11, "Y", "g3")
-        m.box((0.36, 0.42, 0.46), (0.98, 0, -0.26), "badge")
-        m.box((0.40, 0.46, 0.06), (0.98, 0, -0.26), "stripe")
-    m.cyl(0.02, 1.50, (-1.20, 0.46, 0.98), "g5", seg=6)
-    m.cyl(0.10, 0.34, (-1.20, 0.46, 0.39), "g2", seg=8)
-    m.cyl(0.13, 0.06, (-1.20, 0.46, 0.25), "g4", seg=8)
-    # engine block and belt wheel
-    bx(m, (0.66, 1.24), (0.16, 0.76), (0.22, 0.74), "g2")
-    bx(m, (0.62, 1.28), (0.12, 0.80), (0.74, 0.82), "g4")
-    m.cyl(0.24, 0.07, (0.95, 0.10, 0.56), "g5", seg=12, axis="Y")
-    m.cyl(0.07, 0.10, (0.95, 0.08, 0.56), "red", seg=8, axis="Y")
-    chimney(m, 1.08, 0.60, 0.82, 0.44, r=0.07)
-    # barrels by the output
-    with m.at((0.5, -0.5, 0)):
-        hull(m, (-0.5, 0.0), (-0.44, 0.44), 0.86, z0=0.14, post=0.07)
-        band(m, (-0.5, 0.0), (-0.44, 0.44), 0.86, t=0.07)
-        with on(m, "S", -0.25, -0.44, 0.52):
-            vent(m, 0.30, 0.26, 4)
-    fk.barrel(m, (-0.60, -0.56, 0.22), mk="oil", r=0.14, h=0.36, band="g3")
-    fk.barrel(m, (-0.94, -0.44, 0.22), mk="oil", r=0.14, h=0.36, band="g3")
-    m.pipe([(-1.20, 0.34, 0.30), (-1.20, -0.10, 0.30), (-0.30, -0.10, 0.30), (-0.10, -0.40, 0.50), (0.0, -0.40, 0.50)],
-           0.05, "g1", seg=6)
+    """Pumpjack, 3x1: the engine and crank stand on the body; the beam rocks on a post over the west
+    cell and its horsehead works the well at the far end."""
+    Z = stub_form(m)
+    neck(m, Z, 0.46, 0.41, 0.06)
+    bx(m, (-1.50, -0.47), (-0.46, 0.46), (0.0, 0.12), T, bevel=0.035)
+    bx(m, (-0.02, 0.44), (-0.30, 0.30), (Z + 0.04, Z + 0.40), G, bevel=0.04)             # engine house
+    for d in SIDES:
+        m.cyl(0.22, 0.06, (-0.24, d * 0.34, Z + 0.28), D, seg=12, axis="Y")               # crank discs
+        m.box((0.16, 0.06, 0.20), (-0.24, d * 0.34, Z + 0.12), T, bevel=0.02)
+        m.box((0.05, 0.05, 0.60), (-0.20, d * 0.34, Z + 0.64), "h_lite")                  # pitman arms
+        m.prism([(-1.02, 0.10), (-0.66, 0.10), (-0.80, 1.72), (-0.88, 1.72)], *sorted((d * 0.20, d * 0.30)), "Y", G)
+    m.cyl(0.04, 0.76, (-0.24, 0, Z + 0.28), "h_lite", seg=8, axis="Y")
+    m.cyl(0.07, 0.66, (-0.84, 0, 1.72), D, seg=8, axis="Y")
+    m.box((1.42, 0.13, 0.14), (-0.60, 0, 1.80), G, bevel=0.03)
+    m.prism([(-1.25, 1.90), (-1.36, 1.84), (-1.42, 1.66), (-1.38, 1.46), (-1.25, 1.46)], -0.085, 0.085, "Y", T)
+    m.cyl(0.022, 1.02, (-1.40, 0, 0.94), "h_lite", seg=6)
+    m.cyl(0.11, 0.20, (-1.40, 0, 0.22), G, seg=8)
+    m.cyl(0.14, 0.05, (-1.40, 0, 0.145), D, seg=8)
+    m.cyl(0.075, 0.12, (-1.40, 0, 0.38), D, seg=8)
 
 
-@machine2("harvester", (2, 1), E2_OUT)
-def harvester(m):
-    """A reel of paddles sweeps the crop into the bin behind it."""
-    source(m)
-    with m.at((-0.5, 0, 0)):
-        T = body(m, 0.62, t=0.07)
-        bx(m, (-0.10, 0.46), (-0.36, 0.36), (T, T + 0.50), "g2")
-        bx(m, (-0.06, 0.42), (-0.32, 0.32), (T + 0.47, T + 0.51), "wheat")
-        band(m, (-0.10, 0.46), (-0.36, 0.36), T + 0.50, t=0.04, mk="g4", out=0.02)
-        for s in (-1, 1):
-            m.box((0.34, 0.05, 0.10), (-0.26, s * 0.40, T + 0.30), "g3")
-            m.cyl(0.24, 0.04, (-0.30, s * 0.40, T + 0.32), "g5", seg=10, axis="Y")
-        m.cyl(0.04, 0.84, (-0.30, 0, T + 0.32), "g5", seg=6, axis="Y")
-        for k in range(5):
-            a = k * 2 * math.pi / 5
-            m.box((0.03, 0.76, 0.16), (-0.30 + math.cos(a) * 0.17, 0, T + 0.32 + math.sin(a) * 0.17), "red",
-                  rot=(0, -a + math.pi / 2, 0))
-        with on(m, "S", 0.18, -0.44, 0.34):
-            vent(m, 0.30, 0.20, 3)
-
-
-@machine2("sprinkler", (1, 1), items=False)
 def sprinkler(m):
-    """A pedestal with a spinning head and four nozzles."""
-    m.cyl(0.36, 0.14, (0, 0, 0.07), "g4", seg=8)
-    m.cyl(0.26, 0.26, (0, 0, 0.27), "g2", seg=8, r2=0.14)
-    m.cyl(0.12, 0.26, (0, 0, 0.53), "g3", seg=8)
-    m.cyl(0.14, 0.20, (0, 0, 0.76), "g2", seg=8, r2=0.28)
-    m.cyl(0.30, 0.08, (0, 0, 0.90), "g1", seg=8)
-    m.cyl(0.20, 0.05, (0, 0, 0.965), "water", seg=8)
-    for k in range(4):
-        a = k * math.pi / 2 + math.pi / 4
-        with m.at((0, 0, 0.90), a):
-            m.cyl(0.035, 0.22, (0.36, 0, 0.03), "g3", seg=6, axis="X", rot=(0, rad(-12), 0))
-            m.cyl(0.05, 0.06, (0.47, 0, 0.055), "water_light", seg=6, axis="X", rot=(0, rad(-12), 0))
+    """Sprinkler, 1x1: a standpipe on a small tank, with a two-armed head that turns at the top."""
+    octa(m, 0.34, 0.34, 0.0, 0.07, T)
+    octa(m, 0.30, 0.30, 0.05, 0.34, G)
+    octa(m, 0.315, 0.315, 0.22, 0.28, D)
+    octa(m, 0.30, 0.12, 0.34, 0.44, D)
+    m.cyl(0.055, 0.56, (0, 0, 0.70), W, seg=8)
+    m.cyl(0.085, 0.09, (0, 0, 1.00), D, seg=8)
+    m.cyl(0.035, 0.80, (0, 0, 1.00), W, seg=8, axis="X")
+    for sx in SIDES:
+        m.cyl(0.03, 0.10, (sx * 0.42, 0, 1.04), D, seg=8, r2=0.055)
 
 
-@machine2("seeder", (2, 1), W2_IN)
-def seeder(m):
-    """Seed goes in the hopper; three drop tubes plant it."""
-    stub(m, 0.0, -1, 1.0, "in")
-    with m.at((0.5, 0, 0)):
-        T = body(m, 0.70)
-        Z = hopper(m, -0.08, 0, T, w=0.56, h=0.34, fill="wheat", d=0.66)
-        bx(m, (0.24, 0.46), (-0.38, 0.38), (T, T + 0.24), "g3")
-        for y in (-0.26, 0.0, 0.26):
-            m.pipe([(0.20, y, T + 0.20), (0.44, y, T + 0.12), (0.47, y, 0.30)], 0.045, "g1", seg=6)
-            m.cyl(0.07, 0.10, (0.47, y, 0.26), "red", seg=6, r2=0.03)
-        with on(m, "S", -0.12, -0.44, 0.38):
-            buttons(m, ("lampg", "spark"))
-        skirt(m, (-0.44, 0.30), y=-0.5, depth=0.06, h=0.14)
+stub("extractor_empty", extractor(None), fit=lambda m, d, yp, z: strip(m, d, yp, z, SLIT))
+stub("extractor_fe", extractor("h_ore"), fit=lambda m, d, yp, z: strip(m, d, yp, z, "h_core"))
+stub("extractor_coal", extractor("h_coal"), fit=lambda m, d, yp, z: strip(m, d, yp, z, "h_core"))
+stub("logger", logger, fit=lambda m, d, yp, z: hatch(m, d, yp, 0, z))
+stub("pump", pump, fit=lambda m, d, yp, z: vent_round(m, d, yp, 0, z))
+free("pumpjack", (3, 1), pumpjack, ports=(("E", "out", 0),))
+stub("harvester", harvester, fit=lambda m, d, yp, z: lamps(m, d, yp, z))
+free("sprinkler", (1, 1), sprinkler, items=False)
+stub("seeder", seeder, flow=-1, fit=lambda m, d, yp, z: lever(m, d, yp, 0, z))
