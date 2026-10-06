@@ -69,20 +69,36 @@ def smelter(m):
     """A firebox block carrying an eight-sided shaft as wide as the block itself: banded, narrowing
     upward, open at the top with the melt glowing inside its thick rim. An uptake flue runs up each end
     of the shaft, strapped to it, and stands clear above the rim. Each side wall carries a panel with the
-    fire door in the middle and a draught port either side of it, and cooling fins at each end."""
+    fire mouth in the middle (the glow set back behind grate bars), a damper either side of it, and a
+    finned radiator at each end."""
     Z = foundation(m)
     for d in SIDES:
         yp = side_panel(m, d, w=0.66)
         y = d * BY
-        m.box((0.30, 0.03, 0.22), (0, yp + d * 0.008, 0.60), T)
-        m.box((0.23, 0.02, 0.155), (0, yp + d * 0.02, 0.60), SLIT)
-        for i in range(4):
-            m.box((0.03, 0.012, 0.125), (-0.075 + i * 0.05, yp + d * 0.028, 0.60), "h_glow")
+        # fire mouth: a deep frame of four bars with the glow set back inside it and dark grate bars
+        # across the front, so the light comes from within; a sill under it like a hearth
+        fz, fw, fh, ft = 0.615, 0.23, 0.15, 0.04
+        yf = yp + d * 0.015
+        for sz in SIDES:
+            m.box((fw + 2 * ft, 0.04, ft), (0, yf, fz + sz * (fh + ft) / 2), T)
         for sx in SIDES:
-            m.cyl(0.05, 0.024, (sx * 0.245, yp, 0.60), T, seg=8, axis="Y")
-            m.cyl(0.028, 0.03, (sx * 0.245, yp + d * 0.002, 0.60), TD, seg=8, axis="Y")
-            for k in range(3):
-                m.box((0.02, 0.035, 0.44), (sx * (0.385 + k * 0.032), y + d * 0.012, 0.56), D)
+            m.box((ft, 0.04, fh), (sx * (fw + ft) / 2, yf, fz), T)
+        m.box((fw, 0.008, fh), (0, yp + d * 0.002, fz), "h_glow")
+        for i in range(4):
+            m.box((0.022, 0.018, fh), (-0.069 + i * 0.046, yp + d * 0.024, fz), TD)
+        m.box((0.37, 0.05, 0.03), (0, yp + d * 0.012, fz - fh / 2 - ft - 0.012), T)
+        for sx in SIDES:
+            # damper: a ring, a dark throat set back in it, a vane across the throat
+            m.cyl(0.052, 0.03, (sx * 0.255, yp + d * 0.008, fz), T, seg=8, axis="Y")
+            m.cyl(0.036, 0.02, (sx * 0.255, yp + d * 0.016, fz), SLIT, seg=8, axis="Y")
+            m.box((0.076, 0.012, 0.016), (sx * 0.255, yp + d * 0.024, fz), G, rot=(0, rad(25) * sx, 0))
+            # radiator at each end of the wall: a back plate, four fins standing out from it, capped
+            rx = sx * 0.40
+            m.box((0.105, 0.03, 0.46), (rx, y + d * 0.012, 0.56), TD)
+            for k in range(4):
+                m.box((0.012, 0.05, 0.42), (rx + (k - 1.5) * 0.0245, y + d * 0.03, 0.56), G)
+            for sz in SIDES:
+                m.box((0.105, 0.056, 0.024), (rx, y + d * 0.03, 0.56 + sz * 0.222), D)
     bx(m, (-0.47, 0.47), (-0.40, 0.40), (Z - 0.02, Z + 0.10), G, bevel=0.03)
     N = Z + 0.10
     octa(m, 0.385, 0.385, N - 0.02, N + 0.08, D)
