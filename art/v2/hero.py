@@ -3,7 +3,7 @@
 # plausibly flows, and then each is fixed at both ends to something that makes sense; the two sides of
 # the belt match and so do the two ends; small parts are few and deliberate.
 import math
-from .base import (rad, G, T, TD, W, D, SLIT, SIDES, BX, BY, foundation, gear, pipe_from_neck, side_pipe, side_panel,
+from .base import (rad, G, T, TD, W, D, SLIT, SIDES, BX, BY, foundation, foot_springs, foot_hearth, foot_anchor, gear, pipe_from_neck, side_pipe, side_panel,
                    hex_stack, octa, oct_ring, bx, frustum)
 
 HEROES = {}
@@ -20,7 +20,7 @@ def crusher(m):
     rolls down inside; its walls are ribbed and its rim is thick, with a stud at each corner. Each side
     wall carries a panel with the gear train (a big gear between two idlers) and, at each end, a bracket
     under the hopper that the hopper's rib carries on from. There are no pipes: nothing here flows."""
-    Z = foundation(m)
+    Z = foundation(m, foot=foot_springs)
     for d in SIDES:
         yp = side_panel(m, d, w=0.66)
         y = d * BY
@@ -71,7 +71,7 @@ def smelter(m, flues=True):
     of the shaft, strapped to it, and stands clear above the rim. Each side wall carries a panel with the
     fire mouth in the middle (the glow set back behind grate bars), a damper either side of it, and a
     finned radiator at each end."""
-    Z = foundation(m)
+    Z = foundation(m, foot=foot_hearth)
     for d in SIDES:
         yp = side_panel(m, d, w=0.66)
         y = d * BY
@@ -135,7 +135,7 @@ def press(m):
     on the bolster. Oil reaches the cylinder through one short pipe from a valve block on each end of the
     crown. Each side wall has a pressure gauge in the middle, a sunk louvre either side of it, and the
     frame's tie-rod nuts at each end."""
-    Z = foundation(m)
+    Z = foundation(m, foot=foot_anchor)
     bx(m, (-0.47, 0.47), (-0.40, 0.40), (Z - 0.02, Z + 0.10), G, bevel=0.03)
     N = Z + 0.10
     C0, C1 = N + 0.52, N + 0.76

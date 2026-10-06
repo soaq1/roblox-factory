@@ -32,9 +32,9 @@ def register(name, fn, frame=None):
     return fn
 
 
-def through(body):
-    """The through form of a vessel machine: its body on foundation D."""
-    return lambda m: body(m, _base.foundation(m))
+def through(body, foot=None):
+    """The through form of a vessel machine: its body on foundation D, on the foot that suits it."""
+    return lambda m: body(m, _base.foundation(m, foot=foot))
 
 
 def raised_feed(m, z):
@@ -220,9 +220,9 @@ register("smelter_x", _smelter_x, FRAME_DROP2)
 register("washer_x", tower(washer_body, items=_washer_items), FRAME_DROP1)
 register("kiln_x", tower(kiln_body, feed=2.0, spout=(-0.19, 1.70), items=_kiln_items), FRAME_DROP2)
 register("mixer_x", tower(mixer_body, items=_mixer_items), FRAME_DROP1)
-register("washer", through(washer_body))
-register("kiln", through(kiln_body))
-register("mixer", through(mixer_body))
+register("washer", through(washer_body, _base.foot_drain))
+register("kiln", through(kiln_body, _base.foot_hearth))
+register("mixer", through(mixer_body, _base.foot_springs))
 register("press_x", openpress, FRAME_OPEN)
 
 
@@ -243,7 +243,7 @@ def saw_hood(m, zc, ro, ri, foot, hw=0.07):
 def saw(m):
     """Sawmill, through form: the blade stands up through the roof between two bearing blocks, under a
     thick guard, with a flywheel on each end of its arbor."""
-    Z = _base.foundation(m)
+    Z = _base.foundation(m, foot=_base.foot_bin)
     zc = Z + 0.10
     for d in SIDES:
         yp = side_panel(m, d, w=0.62, h=0.26, z=Z - 0.32)
@@ -280,7 +280,7 @@ def saw_x(m):
 def roller(m):
     """Rolling mill, through form: a roll stand on the roof, two housings holding a work roll and a
     backing roll, tied by a cap that carries the screws."""
-    Z = _base.foundation(m)
+    Z = _base.foundation(m, foot=_base.foot_anchor)
     for d in SIDES:
         yp = side_panel(m, d, w=0.62, h=0.28, z=Z - 0.26)
         for sx in SIDES:
@@ -324,7 +324,7 @@ def tank(m, x, y, z0, r=0.16, h=0.36):
 def painter(m):
     """Painter, through form: two paint tanks on the roof with the valve block between them, and a sight
     glass on each side wall."""
-    Z = _base.foundation(m)
+    Z = _base.foundation(m, foot=_base.foot_drain)
     for d in SIDES:
         yp = side_panel(m, d, w=0.62, h=0.26, z=Z - 0.26)
         sunk_frame(m, d, yp, 0, Z - 0.26, 0.34, 0.09, mk=T)
@@ -377,7 +377,7 @@ def arm(m, d, base, elbow, wrist):
 
 def assembler(m):
     """Assembler, through form: two arms on the roof work on a part held on a turntable between them."""
-    Z = _base.foundation(m)
+    Z = _base.foundation(m, foot=_base.foot_beams)
     for d in SIDES:
         yp = side_panel(m, d, w=0.62, h=0.28, z=Z - 0.26)
         for sx in SIDES:

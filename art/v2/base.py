@@ -352,7 +352,71 @@ def chevrons2(m, x0, x1, step=0.375):
                 m.box((0.011, 0.26, 0.004), (xc + dx, s * 0.12, BZ + 0.002), "h_line", rot=s * 0.36)
 
 
-def foundation_d(m, top=0.82):
+# ---- what the body stands on -------------------------------------------------------------------
+# Under the body, outside the rail, each machine has a foot that suits its work, so the same part is not
+# repeated under every machine. A foot is a function of the model; foundation D calls it once.
+def foot_beams(m):
+    """Two cross beams under the body; their I-section ends show at each side."""
+    beam = [(-0.125, 0.0), (0.125, 0.0), (0.125, 0.065), (0.05, 0.10), (0.05, 0.175), (0.125, 0.21),
+            (0.125, 0.27), (-0.125, 0.27), (-0.125, 0.21), (-0.05, 0.175), (-0.05, 0.10), (-0.125, 0.065)]
+    for sx in SIDES:
+        m.prism([(sx * 0.27 + px, pz) for px, pz in beam], -0.499, 0.499, "Y", T)
+
+
+def foot_springs(m):
+    """For a machine that shakes: a stout spring mount near each corner, on a pad."""
+    for d in SIDES:
+        for sx in SIDES:
+            x, y = sx * 0.26, d * 0.392
+            bx(m, (x - 0.14, x + 0.14), tuple(sorted((d * 0.30, d * 0.499))), (0.0, 0.055), T, bevel=0.02)
+            for i in range(4):
+                m.cyl((0.104, 0.078)[i % 2], 0.045, (x, y, 0.0775 + i * 0.045), (D, "h_lite")[i % 2], seg=8)
+            m.cyl(0.112, 0.04, (x, y, 0.253), T, seg=8)
+
+
+def foot_hearth(m):
+    """For a machine with a fire in it: a masonry base each side, with the ash pit set into it."""
+    for d in SIDES:
+        bx(m, (-0.40, 0.40), tuple(sorted((d * 0.36, d * 0.485))), (0.0, 0.27), T, bevel=0.03)
+        for sz in SIDES:
+            m.box((0.34, 0.028, 0.03), (0, d * 0.487, 0.135 + sz * 0.07), TD)
+        for sx in SIDES:
+            m.box((0.03, 0.028, 0.11), (sx * 0.155, d * 0.487, 0.135), TD)
+        m.box((0.28, 0.008, 0.11), (0, d * 0.487, 0.135), SLIT)
+        m.box((0.24, 0.008, 0.028), (0, d * 0.4885, 0.098), "h_glow")
+
+
+def foot_anchor(m):
+    """For a heavy machine: a broad splayed foot near each corner, bolted down."""
+    for d in SIDES:
+        lo, hi = sorted((d * 0.36, d * 0.485))
+        for sx in SIDES:
+            x = sx * 0.27
+            m.prism([(x - 0.165, 0.0), (x + 0.165, 0.0), (x + 0.165, 0.05), (x + 0.085, 0.27), (x - 0.085, 0.27),
+                     (x - 0.165, 0.05)], lo, hi, "Y", T)
+            m.cyl(0.055, 0.02, (x, d * 0.489, 0.15), D, seg=6, axis="Y")
+            m.cyl(0.028, 0.012, (x, d * 0.4935, 0.15), "h_lite", seg=6, axis="Y")
+
+
+def foot_drain(m):
+    """For a machine that uses a liquid: a fat drain pipe along each side, between two valve boxes."""
+    for d in SIDES:
+        for sx in SIDES:
+            bx(m, (sx * 0.34 - 0.085, sx * 0.34 + 0.085), tuple(sorted((d * 0.36, d * 0.499))), (0.0, 0.27), G,
+               bevel=0.028)
+            m.cyl(0.082, 0.03, (sx * 0.243, d * 0.435, 0.135), D, seg=8, axis="X")
+        m.cyl(0.062, 0.52, (0, d * 0.435, 0.135), W, seg=8, axis="X")
+
+
+def foot_bin(m):
+    """For a machine that makes waste: a drawer each side that catches it, on runners."""
+    for d in SIDES:
+        bx(m, (-0.36, 0.36), tuple(sorted((d * 0.36, d * 0.499))), (0.0, 0.055), T, bevel=0.02)
+        bx(m, (-0.31, 0.31), tuple(sorted((d * 0.36, d * 0.485))), (0.04, 0.255), G, bevel=0.03)
+        m.box((0.36, 0.02, 0.045), (0, d * 0.487, 0.175), SLIT)
+
+
+def foundation_d(m, top=0.82, foot=None):
     """Foundation D, our own, with the richness of A kept and its shapes changed.
     The rail leans in all the way up to a stout eight-sided cap, and is braced by a row of triangular
     buttresses instead of bolts. Each tunnel mouth is a folding cover of our own proportions: four
@@ -368,11 +432,7 @@ def foundation_d(m, top=0.82):
         for s in SIDES:
             pts = [(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)]
             m.prism(pts, x - 0.022, x + 0.022, "X", RD)
-    # two cross beams under the body; their I-section ends show at each side
-    beam = [(-0.125, 0.0), (0.125, 0.0), (0.125, 0.065), (0.05, 0.10), (0.05, 0.175), (0.125, 0.21),
-            (0.125, 0.27), (-0.125, 0.27), (-0.125, 0.21), (-0.05, 0.175), (-0.05, 0.10), (-0.125, 0.065)]
-    for sx in SIDES:
-        m.prism([(sx * 0.27 + px, pz) for px, pz in beam], -0.499, 0.499, "Y", T)
+    (foot or foot_beams)(m)
     bx(m, (-BX - 0.02, BX + 0.02), (-BY - 0.02, BY + 0.02), (0.262, 0.345), G, bevel=0.03)      # base course
     bx(m, (-BX, BX), (-BY, BY), (0.30, top), G, bevel=0.028)
     for d in SIDES:                                           # a folding cover on a sill at each end
@@ -394,8 +454,11 @@ FOUNDATIONS = {"a": foundation_a, "b": foundation_b, "c": foundation_c, "d": fou
 DARKS["d"] = DARKS["a"]
 
 
-def foundation(m, top=0.82):
-    """Build whichever foundation set_style() chose. Returns the height of the body block's top."""
+def foundation(m, top=0.82, foot=None):
+    """Build whichever foundation set_style() chose. Returns the height of the body block's top. `foot`
+    is what the body stands on (one of the foot_ functions); only foundation D has a choice of foot."""
+    if STYLE == "d":
+        return foundation_d(m, top, foot)
     return FOUNDATIONS[STYLE](m, top)
 
 
