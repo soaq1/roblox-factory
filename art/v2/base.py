@@ -64,9 +64,9 @@ def bellows(m, d, x=BX):
     m.box((0.02, 0.62, 0.34), (d * (x + 0.012), 0, 0.47), SLIT)
 
 
-def foundation(m, top=0.82):
-    """Chassis, bellows at both ends, dark plinth, light moulding and the body block. Returns the height
-    of the block's top."""
+def foundation_a(m, top=0.82):
+    """Foundation A, the one measured from Islands: chassis, bellows at both ends, dark plinth, light
+    moulding and the body block. Returns the height of the block's top."""
     chassis(m, gap=(-0.56, 0.56))
     for d in SIDES:
         bellows(m, d)
@@ -226,3 +226,103 @@ def oct_ring(m, a_out, t, z0, z1, mk):
         a1 = a0 + math.pi / 4
         m.prism([(ro * math.cos(a0), ro * math.sin(a0)), (ro * math.cos(a1), ro * math.sin(a1)),
                  (ri * math.cos(a1), ri * math.sin(a1)), (ri * math.cos(a0), ri * math.sin(a0))], z0, z1, "Z", mk)
+
+
+# ============================ FOUNDATIONS OF OUR OWN ============================
+# Foundation A copies the proportions of Islands' conveyor, bellows and plinth closely enough to be a
+# risk. B and C keep the same body block (so every hero machine fits unchanged) but replace those three
+# things with shapes of our own. Pick one with set_style() before building.
+STYLE = "a"
+DARKS = {"a": ("#675f5e", "#544d4c"), "b": ("#56616c", "#434c56"), "c": ("#5c6063", "#484b4e")}
+
+
+def set_style(style):
+    """Choose the foundation. Call before anything is built: it also sets the dark accent colour."""
+    global STYLE
+    STYLE = style
+    fk.PAL["h_taupe"], fk.PAL["h_taupe_d"] = DARKS[style]
+
+
+def arrows(m, x0, x1, step=0.30):
+    """Small solid arrowheads down the middle of the belt."""
+    n = max(1, round((x1 - x0) / step))
+    for i in range(n):
+        x = x0 + (i + 0.5) * (x1 - x0) / n
+        m.prism([(x - 0.045, -0.075), (x - 0.045, 0.075), (x + 0.06, 0.0)], BZ, BZ + 0.004, "Z", "h_line")
+
+
+def chassis_section(m, right, x0, x1, bed_top):
+    """A conveyor whose rails and bed are one outline. `right` lists the right-hand rail's points from the
+    bed outward and down to the ground; the left rail is its mirror image."""
+    section = [(-y, z) for y, z in reversed(right)] + [(-BH, bed_top), (BH, bed_top)] + list(right)
+    m.prism(section, x0, x1, "X", G)
+    m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
+    arrows(m, x0, x1)
+
+
+def foundation_b(m, top=0.82):
+    """Foundation B. The conveyor has an upright side wall with a flat shelf on it and a low guard along
+    the belt; round axle caps run down the wall. It passes unbroken under the body, which is held to it
+    by a saddle clamp near each corner. Each tunnel mouth is a hood that narrows toward a flanged
+    opening hung with a strip curtain."""
+    right = [(BH, 0.365), (BH + 0.05, 0.365), (BH + 0.05, 0.30), (0.455, 0.30), (0.50, 0.255), (0.50, 0.0)]
+    chassis_section(m, right, -1.5, 1.5, BZ - 0.03)
+    for i in range(12):
+        x = -1.375 + i * 0.25
+        if 0.60 < abs(x):
+            for s in SIDES:
+                m.cyl(0.03, 0.02, (x, s * 0.503, 0.14), D, seg=10, axis="Y")
+    bx(m, (-BX, BX), (-BY, BY), (0.0, top), G, bevel=0.028)
+    for d in SIDES:                                           # d: which side of the belt
+        for sx in SIDES:
+            xs = tuple(sorted((sx * 0.21, sx * 0.39)))
+            ys = tuple(sorted((d * 0.40, d * 0.499)))
+            bx(m, xs, ys, (0.0, 0.42), T, bevel=0.035)
+            m.cyl(0.035, 0.02, (sx * 0.30, d * 0.505, 0.20), G, seg=6, axis="Y")
+    for d in SIDES:                                           # d: which end of the body
+        x0, x1 = d * BX, d * (BX + 0.24)
+        m.prism([(x0, 0.80), (x1, 0.69), (x1, 0.62), (x0, 0.73)], -0.385, 0.385, "Y", G)
+        for s in SIDES:
+            ylo, yhi = sorted((s * 0.325, s * 0.385))
+            m.prism([(x0, 0.28), (x1, 0.28), (x1, 0.66), (x0, 0.77)], ylo, yhi, "Y", G)
+        a, b = sorted((x1, x1 + d * 0.05))
+        m.prism(arch_pts(0.86, 0.74, hole_top=0.60, hw=0.315, c=0.05, ci=0.025), a, b, "X", D)
+        for k in range(5):                                    # strip curtain
+            m.box((0.012, 0.112, 0.27), (x1 + d * 0.02, -0.25 + k * 0.125, 0.465), SLIT)
+        m.box((0.02, 0.62, 0.40), (d * (BX + 0.012), 0, 0.50), SLIT)
+    return top
+
+
+def foundation_c(m, top=0.82):
+    """Foundation C. The conveyor has a stepped curb with long slots cut in its wall. The body stands on
+    four corner feet over a recessed kick strip, with the curb passing under it. Each tunnel mouth is
+    two deep hoods, one inside the other."""
+    right = [(BH, 0.345), (0.385, 0.345), (0.385, 0.235), (0.50, 0.235), (0.50, 0.0)]
+    chassis_section(m, right, -1.5, 1.5, BZ - 0.03)
+    for i in range(12):
+        x = -1.375 + i * 0.25
+        if 0.62 < abs(x):
+            for s in SIDES:
+                m.box((0.15, 0.012, 0.045), (x, s * 0.501, 0.12), SLIT)
+    bx(m, (-BX, BX), (-BY, BY), (0.0, top), G, bevel=0.028)
+    for d in SIDES:
+        m.box((BX * 2 - 0.10, 0.012, 0.085), (0, d * (BY + 0.002), 0.30), TD)          # kick strip
+        for sx in SIDES:
+            xs = tuple(sorted((sx * 0.33, sx * 0.50)))
+            ys = tuple(sorted((d * 0.40, d * 0.499)))
+            bx(m, xs, ys, (0.0, 0.30), T, bevel=0.035)
+    for d in SIDES:
+        x0 = d * BX
+        for depth, w, tp, mk in ((0.14, 0.88, 0.80, G), (0.27, 0.78, 0.71, D)):
+            a, b = sorted((x0, x0 + d * depth))
+            m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=0.315, c=0.07, ci=0.03), a, b, "X", mk)
+        for s in SIDES:
+            for z in (0.40, 0.70):
+                m.cyl(0.026, 0.02, (d * (BX + 0.145), s * 0.395, z), D, seg=6, axis="X")
+        m.box((0.02, 0.62, 0.40), (d * (BX + 0.012), 0, 0.50), SLIT)
+    return top
+
+
+def foundation(m, top=0.82):
+    """Build whichever foundation set_style() chose. Returns the height of the body block's top."""
+    return {"a": foundation_a, "b": foundation_b, "c": foundation_c}[STYLE](m, top)
