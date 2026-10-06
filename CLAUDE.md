@@ -80,6 +80,8 @@
 - 하나만 다시 그리려면 `-- thumbs only=<이름>`.
 - 그린 뒤 `python3 art/build_catalog.py`로 카탈로그 페이지를 다시 만듭니다. 이 페이지는 `data/recipes.json`(만드는 재료, 기계가 하는 일)과 `art/catalog/game.json`(베타에서 동작하는지, `game/tools/gen_data.py`가 씀)도 읽으므로, 레시피나 게임 동작을 바꾼 뒤에도 다시 만듭니다.
 - 기계의 문법: 공용 하부 몸체, 노란 테두리는 입구, 청록 테두리는 출구, 기계마다 용도를 알려 주는 상징물 하나. 등급에 따라 재질이나 색을 바꾸지 않습니다.
+- **모델 v2 시안**(2026-10-06)이 따로 있습니다. 개발자가 v1을 "싼티 난다"고 해서 아일랜드를 참고해 78종을 다시 만든 것이고, `art/factorykit_v2.py`와 `art/v2/`가 만듭니다. 카탈로그의 `v2.html`에 v1과 나란히 올라가 있으며 게임은 아직 v1을 씁니다. 개발자가 v2를 보고 정하기 전까지는 어느 쪽도 지우지 않습니다. 설명은 `docs/specs/2026-10-06-models-v2.md`.
+- v2를 다시 그리려면 `Blender --background --python art/factorykit_v2.py -- v2thumbs v2line` 뒤에 `python3 art/build_catalog.py`. 하나만은 `-- v2thumbs only=<이름>`.
 
 ## 스튜디오에서 돌려 보는 법
 

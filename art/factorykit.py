@@ -2637,8 +2637,11 @@ if "gamedata" in ARGS:
 meta = [{k: s[k] for k in ("key", "ko", "fam", "recipe", "ports", "size", "tris", "colors", "ins", "outs")}
         for s in SPECS if s["show"]]
 items_meta = [{k: s[k] for k in ("key", "ko", "cat", "tris")} for s in ITEM_SPECS]
-json.dump({"machines": meta, "items": items_meta}, open(os.path.join(OUT, "catalog.json"), "w", encoding="utf-8", newline="\n"),
-          ensure_ascii=False, indent=1)
+# factorykit_v2.py imports this file for its Model class, items and camera; only a direct run writes files.
+if __name__ == "__main__":
+    json.dump({"machines": meta, "items": items_meta},
+              open(os.path.join(OUT, "catalog.json"), "w", encoding="utf-8", newline="\n"),
+              ensure_ascii=False, indent=1)
 
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "factorykit.blend"))
-print("ALL done")
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "factorykit.blend"))
+    print("ALL done")

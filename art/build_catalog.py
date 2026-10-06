@@ -172,6 +172,8 @@ items_html = section("아이템", len(data["items"]),
 blocks_html = section("블록", len(blocks), "섬을 이루는 정육면체 블록. 스타일은 아직 확정하지 않은 시험 제작본",
                       small_grid(blocks, "blocks", BLOCK_CATS, "block:")) if blocks else ""
 
+v2 = load(os.path.join(OUT, "v2.json"), {}).get("machines", [])
+v2_link = '<a href="v2.html" style="border-color:var(--link)">모델 v2 시안 보기</a>' if v2 else ""
 total = len(data["machines"])
 working = sum(1 for m in data["machines"] if game.get(m["key"], {}).get("behavior", "decor") != "decor")
 nav = "".join(f'<a href="#{html.escape(t)}">{html.escape(t)}</a>'
@@ -250,6 +252,7 @@ page = f'''<!doctype html>
   <h1>공장 기계 카탈로그</h1>
   <p class="sub">기계와 장치 {total}종(베타에서 동작 {working}종) · 아이템 {len(data["items"])}종 · 블록 {len(blocks)}종 · 레시피는 초안 · 모든 모델은 스크립트로 생성</p>
   <div class="links">
+    {v2_link}
     <a href="{REPO}/raw/main/game/build/roblox-factory.rbxlx">게임 파일 받기 (스튜디오에서 열기)</a>
     <a href="{REPO}/blob/main/docs/recipes.md">레시피 표</a>
     <a href="{REPO}/blob/main/docs/game-design.md">설계 문서</a>
@@ -273,3 +276,76 @@ page = f'''<!doctype html>
 '''
 open(os.path.join(OUT, "index.html"), "w", encoding="utf-8", newline="\n").write(page)
 print("wrote index.html: machines", total, "items", len(data["items"]), "blocks", len(blocks))
+
+
+# ============================ V2 PAGE ============================
+# The v2 models are a proposal shown beside v1. Each card carries the v1 picture in its corner.
+if v2:
+    v1_by_key = {m["key"]: m for m in data["machines"]}
+    v2_cards = {f: [] for f, _ in FAMILIES}
+    for m in v2:
+        old = v1_by_key.get(m["key"])
+        was = f' <span class="was">v1 {old["size"][0]}×{old["size"][1]}칸</span>' if old and list(old["size"]) != list(m["size"]) else ""
+        inset = (f'<img class="old" src="img/{m["key"]}.png" alt="v1 {html.escape(m["ko"])}" title="v1 모델" loading="lazy">'
+                 if old else "")
+        v2_cards[m["fam"]].append(f'''
+    <figure class="card">
+      <div class="shot"><img src="img/v2/{m["key"]}.png" alt="{html.escape(m["ko"])}" loading="lazy">{inset}</div>
+      <figcaption>
+        <h3>{html.escape(m["ko"])}</h3>
+        <p class="recipe">{html.escape(m["recipe"])}</p>
+        <p class="meta">{m["size"][0]}×{m["size"][1]}칸{was} · 높이 {m["height"]:.1f}칸({m["height"] * 3:.1f}스터드) · {ports_text(m["ports"])} · 삼각형 {m["tris"]:,}</p>
+      </figcaption>
+    </figure>''')
+    v2_html = "".join(section(f, len(v2_cards[f]), d, f'<div class="grid">{"".join(v2_cards[f])}</div>')
+                      for f, d in FAMILIES if v2_cards[f])
+    v2_nav = "".join(f'<a href="#{html.escape(f)}">{html.escape(f)}</a>' for f, _ in FAMILIES if v2_cards[f])
+    css = page[page.index("<style>") + 7:page.index("</style>")]
+    v2_page = f'''<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공장 기계 카탈로그 v2 시안</title>
+<style>{css}
+  .shot {{ position: relative; }}
+  .shot .old {{ position: absolute; right: 8px; bottom: 8px; width: 31%; height: 31%; background: #101214;
+               border: 1px solid var(--line); border-radius: 8px; opacity: 0.92; }}
+  .was {{ color: var(--dim); }}
+  .notes {{ margin: 18px 0 0; padding: 14px 18px 14px 34px; background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; font-size: 15px; }}
+  .notes li {{ margin: 3px 0; }}
+</style>
+</head>
+<body>
+<main>
+  <h1>공장 기계 카탈로그 v2 <span class="count">시안</span></h1>
+  <p class="sub">기계와 장치 {len(v2)}종을 새 문법으로 다시 만든 것 · 게임에는 아직 들어가지 않음 · 각 그림 오른쪽 아래의 작은 그림이 v1</p>
+  <div class="links">
+    <a href="index.html">v1 카탈로그로 돌아가기</a>
+    <a href="{REPO}/blob/main/docs/specs/2026-10-06-models-v2.md">v2 설명 문서</a>
+  </div>
+  <nav>{v2_nav}</nav>
+  <div class="hero"><img src="img/v2/_line.png" alt="v2 기계를 벨트로 연결한 공장 예시"></div>
+  <ul class="legend">
+    <li><i style="background:var(--in)"></i>노란 아치는 입구</li>
+    <li><i style="background:var(--out)"></i>청록 아치는 출구</li>
+    <li><i style="background:#ff5a1f"></i>주황 발광은 열</li>
+    <li><i style="background:#4aa8d8"></i>파랑은 물</li>
+    <li><i style="background:#d9483b"></i>빨강은 움직이는 부품</li>
+    <li><i style="background:#8fb3d1"></i>하늘색은 큰 기계의 철골</li>
+  </ul>
+  <ul class="notes">
+    <li>기계 안으로 컨베이어가 지나갑니다. 가공 기계는 대부분 3×1칸(들어오는 벨트, 몸통, 나가는 벨트)입니다.</li>
+    <li>재료를 둘 받거나 출구가 둘인 기계는 옆으로 벨트가 하나 더 나오는 3×2칸입니다.</li>
+    <li>고로와 제조 공장은 철골 안에 든 3×3칸, 핵 제련소와 무한 동력로는 5×5칸입니다.</li>
+    <li>장면 속 사람 모형은 로블록스 캐릭터 크기(5스터드)입니다. 한 칸은 3스터드입니다.</li>
+    <li>손 작업 자리(모닥불, 화덕, 작업대, 상자)는 공장 철제가 아니라 나무·돌·흙으로 만들었습니다.</li>
+  </ul>
+  {v2_html}
+</main>
+</body>
+</html>
+'''
+    open(os.path.join(OUT, "v2.html"), "w", encoding="utf-8", newline="\n").write(v2_page)
+    print("wrote v2.html: machines", len(v2))

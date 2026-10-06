@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공장 기계 카탈로그 v2 시안</title>
+<style>
+  :root {
+    --bg: #1c1e22; --panel: #24272c; --line: #353a41; --text: #e9eaec; --dim: #9aa0a8;
+    --in: #f0b429; --out: #35b8a6; --link: #58b6e8;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.6 -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--dim); margin: 0 0 20px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  nav a { color: var(--link); text-decoration: none; font-size: 14px; padding: 5px 11px;
+          border: 1px solid var(--line); border-radius: 999px; }
+  nav a:hover { background: var(--panel); }
+  h2 { font-size: 24px; margin: 56px 0 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .count { color: var(--dim); font-size: 0.7em; font-weight: 400; margin-left: 6px; }
+  .lede { color: var(--dim); margin: 10px 0 20px; }
+  .hero img { width: 100%; display: block; border-radius: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 18px 0 0; padding: 0; list-style: none;
+            color: var(--dim); font-size: 14px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 7px;
+              vertical-align: -1px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .card { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+          overflow: hidden; }
+  .shot { aspect-ratio: 1; background: #16181b; }
+  .shot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .card figcaption { padding: 12px 14px 14px; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; color: var(--link); }
+  .recipe { margin: 0 0 8px; font-size: 14.5px; }
+  .meta { margin: 8px 0 0; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .badges { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line);
+           color: var(--dim); white-space: nowrap; }
+  .badge.on { color: #7fd18b; border-color: #3d6b45; }
+  .badge.off { color: #e58a80; border-color: #6e3b36; }
+  .badge.heat { color: #f0a15c; border-color: #6b4a2c; }
+  .badge.power { color: #e9cf5c; border-color: #6a5f2a; }
+  .make, .worktitle { margin: 0 0 4px; font-size: 13px; line-height: 1.5; }
+  .make b, .worktitle b, summary { color: var(--dim); font-weight: 500; margin-right: 4px; }
+  .where { color: var(--dim); white-space: nowrap; }
+  .where::before { content: "· "; }
+  .work { margin: 0 0 4px; padding: 0; list-style: none; font-size: 13px; line-height: 1.5; }
+  .work li { padding: 1px 0; }
+  .arrow { color: var(--out); }
+  details { font-size: 13px; }
+  summary { cursor: pointer; }
+  .how { display: block; margin-top: 3px; font-size: 11px; line-height: 1.35; color: var(--dim); }
+  .more { white-space: nowrap; opacity: 0.8; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .links a { color: var(--text); text-decoration: none; font-size: 14px; padding: 7px 14px; border-radius: 8px;
+             background: var(--panel); border: 1px solid var(--line); }
+  .links a:hover { border-color: var(--link); }
+  h3.cat { font-size: 17px; margin: 28px 0 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+  .tile { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+          overflow: hidden; }
+  .tile figcaption { padding: 7px 8px 9px; font-size: 13px; text-align: center; line-height: 1.35; }
+
+  .shot { position: relative; }
+  .shot .old { position: absolute; right: 8px; bottom: 8px; width: 31%; height: 31%; background: #101214;
+               border: 1px solid var(--line); border-radius: 8px; opacity: 0.92; }
+  .was { color: var(--dim); }
+  .notes { margin: 18px 0 0; padding: 14px 18px 14px 34px; background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; font-size: 15px; }
+  .notes li { margin: 3px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>공장 기계 카탈로그 v2 <span class="count">시안</span></h1>
+  <p class="sub">기계와 장치 78종을 새 문법으로 다시 만든 것 · 게임에는 아직 들어가지 않음 · 각 그림 오른쪽 아래의 작은 그림이 v1</p>
+  <div class="links">
+    <a href="index.html">v1 카탈로그로 돌아가기</a>
+    <a href="https://github.com/soaq1/roblox-factory/blob/main/docs/specs/2026-10-06-models-v2.md">v2 설명 문서</a>
+  </div>
+  <nav><a href="#운반">운반</a><a href="#물리 장치">물리 장치</a><a href="#판단 장치">판단 장치</a><a href="#공급">공급</a><a href="#변환">변환</a><a href="#조합">조합</a><a href="#포장·판매">포장·판매</a><a href="#동력">동력</a><a href="#궁극의 장치">궁극의 장치</a><a href="#손 작업">손 작업</a><a href="#표시">표시</a></nav>
+  <div class="hero"><img src="img/v2/_line.png" alt="v2 기계를 벨트로 연결한 공장 예시"></div>
+  <ul class="legend">
+    <li><i style="background:var(--in)"></i>노란 아치는 입구</li>
+    <li><i style="background:var(--out)"></i>청록 아치는 출구</li>
+    <li><i style="background:#ff5a1f"></i>주황 발광은 열</li>
+    <li><i style="background:#4aa8d8"></i>파랑은 물</li>
+    <li><i style="background:#d9483b"></i>빨강은 움직이는 부품</li>
+    <li><i style="background:#8fb3d1"></i>하늘색은 큰 기계의 철골</li>
+  </ul>
+  <ul class="notes">
+    <li>기계 안으로 컨베이어가 지나갑니다. 가공 기계는 대부분 3×1칸(들어오는 벨트, 몸통, 나가는 벨트)입니다.</li>
+    <li>재료를 둘 받거나 출구가 둘인 기계는 옆으로 벨트가 하나 더 나오는 3×2칸입니다.</li>
+    <li>고로와 제조 공장은 철골 안에 든 3×3칸, 핵 제련소와 무한 동력로는 5×5칸입니다.</li>
+    <li>장면 속 사람 모형은 로블록스 캐릭터 크기(5스터드)입니다. 한 칸은 3스터드입니다.</li>
+    <li>손 작업 자리(모닥불, 화덕, 작업대, 상자)는 공장 철제가 아니라 나무·돌·흙으로 만들었습니다.</li>
+  </ul>
+  
+  <section id="운반">
+    <h2>운반 <span class="count">8</span></h2>
+    <p class="lede">아이템을 옮기고, 나누고, 합치고, 골라내는 장치</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/belt.png" alt="직선 벨트" loading="lazy"><img class="old" src="img/belt.png" alt="v1 직선 벨트" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>직선 벨트</h3>
+        <p class="recipe">아이템을 한 방향으로 옮김</p>
+        <p class="meta">1×1칸 · 높이 0.4칸(1.2스터드) · 출입구 없음 · 삼각형 240</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/belt_corner.png" alt="코너 벨트" loading="lazy"><img class="old" src="img/belt_corner.png" alt="v1 코너 벨트" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>코너 벨트</h3>
+        <p class="recipe">진행 방향을 90도 꺾음 (좌·우 대칭형)</p>
+        <p class="meta">1×1칸 · 높이 0.5칸(1.4스터드) · 출입구 없음 · 삼각형 288</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/belt_ramp.png" alt="경사 벨트" loading="lazy"><img class="old" src="img/belt_ramp.png" alt="v1 경사 벨트" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>경사 벨트</h3>
+        <p class="recipe">두 칸에 걸쳐 한 칸 높이를 올림</p>
+        <p class="meta">2×1칸 · 높이 1.4칸(4.2스터드) · 출입구 없음 · 삼각형 300</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/splitter.png" alt="분배기" loading="lazy"><img class="old" src="img/splitter.png" alt="v1 분배기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>분배기</h3>
+        <p class="recipe">들어온 아이템을 두 방향으로 번갈아 내보냄</p>
+        <p class="meta">1×1칸 · 높이 1.0칸(3.1스터드) · 입구 1 · 출구 2 · 삼각형 648</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/merger.png" alt="합류기" loading="lazy"><img class="old" src="img/merger.png" alt="v1 합류기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>합류기</h3>
+        <p class="recipe">두 줄을 한 줄로 합침</p>
+        <p class="meta">1×1칸 · 높이 1.0칸(3.1스터드) · 입구 2 · 출구 1 · 삼각형 648</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sorter.png" alt="분류기" loading="lazy"><img class="old" src="img/sorter.png" alt="v1 분류기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>분류기</h3>
+        <p class="recipe">지정한 아이템만 옆으로 빼내고 나머지는 통과</p>
+        <p class="meta">1×1칸 · 높이 1.6칸(4.8스터드) · 입구 1 · 출구 2 · 삼각형 616</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/magsep.png" alt="자석 분리기" loading="lazy"><img class="old" src="img/magsep.png" alt="v1 자석 분리기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>자석 분리기</h3>
+        <p class="recipe">철이 든 것만 옆으로 끌어내고 나머지는 통과시킴</p>
+        <p class="meta">1×1칸 · 높이 1.3칸(3.9스터드) · 입구 1 · 출구 2 · 삼각형 656</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/storage.png" alt="보관함" loading="lazy"><img class="old" src="img/storage.png" alt="v1 보관함" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>보관함</h3>
+        <p class="recipe">아이템을 쌓아 두었다가 순서대로 내보내는 완충 창고</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.9스터드) · 입구 1 · 출구 1 · 삼각형 1,008</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="물리 장치">
+    <h2>물리 장치 <span class="count">6</span></h2>
+    <p class="lede">떨어뜨리고, 밀고, 올리고, 쏘아 보내는 장치. 아이템이 실제로 굴러가는 게임이라 가능한 것들</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/pusher.png" alt="밀대" loading="lazy"><img class="old" src="img/pusher.png" alt="v1 밀대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>밀대</h3>
+        <p class="recipe">신호가 오면 지나가는 아이템을 옆으로 밀어냄</p>
+        <p class="meta">1×1칸 · 높이 1.2칸(3.6스터드) · 입구 1 · 출구 2 · 삼각형 664</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/funnel.png" alt="깔때기" loading="lazy"><img class="old" src="img/funnel.png" alt="v1 깔때기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>깔때기</h3>
+        <p class="recipe">위에서 떨어지는 아이템을 받아 벨트로 내보냄. 높낮이만 맞추면 동력이 필요 없음</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.5칸(4.5스터드) · 출구 1 · 삼각형 588</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/chute.png" alt="낙하 통로" loading="lazy"><img class="old" src="img/chute.png" alt="v1 낙하 통로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>낙하 통로</h3>
+        <p class="recipe">높은 곳에서 낮은 곳으로 미끄러뜨림. 동력이 필요 없지만 내려가는 쪽으로만 감</p>
+        <p class="meta">2×1칸 · 높이 1.6칸(4.9스터드) · 출입구 없음 · 삼각형 216</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/blower.png" alt="송풍기" loading="lazy"><img class="old" src="img/blower.png" alt="v1 송풍기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>송풍기</h3>
+        <p class="recipe">바람으로 아이템을 밀어냄. 가벼운 것은 멀리, 무거운 것은 조금만 밀림</p>
+        <p class="meta">1×1칸 · 높이 1.3칸(3.8스터드) · 출입구 없음 · 삼각형 300</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/lift.png" alt="수직 승강기" loading="lazy"><img class="old" src="img/lift.png" alt="v1 수직 승강기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>수직 승강기</h3>
+        <p class="recipe">아이템을 두 칸 위로 올림</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 3.0칸(9.0스터드) · 입구 1 · 삼각형 980</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/launcher.png" alt="발사기" loading="lazy"><img class="old" src="img/launcher.png" alt="v1 발사기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>발사기</h3>
+        <p class="recipe">아이템을 포물선으로 쏘아 보냄. 벨트 없이 먼 곳이나 높은 곳으로 보낼 수 있음</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.9스터드) · 입구 1 · 삼각형 712</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="판단 장치">
+    <h2>판단 장치 <span class="count">7</span></h2>
+    <p class="lede">신호를 만들고 조건에 따라 공장을 움직이는 장치</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sensor.png" alt="감지기" loading="lazy"><img class="old" src="img/sensor.png" alt="v1 감지기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>감지기</h3>
+        <p class="recipe">벨트 위를 지나가는 아이템을 보고 신호를 냄. 종류나 개수를 조건으로 걸 수 있음</p>
+        <p class="meta">1×1칸 · 높이 1.1칸(3.2스터드) · 출입구 없음 · 삼각형 348</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/gate.png" alt="여닫이 문" loading="lazy"><img class="old" src="img/gate.png" alt="v1 여닫이 문" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>여닫이 문</h3>
+        <p class="recipe">신호에 따라 벨트를 막거나 엶</p>
+        <p class="meta">1×1칸 · 높이 1.8칸(5.3스터드) · 출입구 없음 · 삼각형 368</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/counter.png" alt="계수기" loading="lazy"><img class="old" src="img/counter.png" alt="v1 계수기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>계수기</h3>
+        <p class="recipe">지나간 아이템을 세고, 정한 수가 차면 신호를 냄</p>
+        <p class="meta">1×1칸 · 높이 1.4칸(4.2스터드) · 출입구 없음 · 삼각형 504</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/switch.png" alt="스위치" loading="lazy"><img class="old" src="img/switch.png" alt="v1 스위치" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>스위치</h3>
+        <p class="recipe">손으로 켜고 끄는 신호</p>
+        <p class="meta">1×1칸 · 높이 1.0칸(3.0스터드) · 출입구 없음 · 삼각형 124</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/logic.png" alt="논리 회로함" loading="lazy"><img class="old" src="img/logic.png" alt="v1 논리 회로함" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>논리 회로함</h3>
+        <p class="recipe">신호 둘을 받아 조건이 맞으면 신호를 내보냄 (그리고, 또는, 아니면)</p>
+        <p class="meta">1×1칸 · 높이 0.4칸(1.3스터드) · 출입구 없음 · 삼각형 244</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/beacon.png" alt="신호등" loading="lazy"><img class="old" src="img/beacon.png" alt="v1 신호등" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>신호등</h3>
+        <p class="recipe">신호를 받으면 켜짐. 공장 상태를 멀리서 확인</p>
+        <p class="meta">1×1칸 · 높이 1.8칸(5.5스터드) · 출입구 없음 · 삼각형 272</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/timer.png" alt="타이머" loading="lazy"><img class="old" src="img/timer.png" alt="v1 타이머" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>타이머</h3>
+        <p class="recipe">정해 둔 간격마다 신호를 냄</p>
+        <p class="meta">1×1칸 · 높이 1.2칸(3.5스터드) · 출입구 없음 · 삼각형 340</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="공급">
+    <h2>공급 <span class="count">9</span></h2>
+    <p class="lede">아무것도 넣지 않아도 자원을 내보내거나, 밭과 나무를 돌보는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/extractor_empty.png" alt="빈 추출기" loading="lazy"><img class="old" src="img/extractor_empty.png" alt="v1 빈 추출기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>빈 추출기</h3>
+        <p class="recipe">돌, 철 주괴, 나무, 몬스터 부품으로 조립. 광맥 핵을 꽂기 전에는 아무것도 나오지 않음</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.5칸(4.5스터드) · 출구 1 · 삼각형 880</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/extractor_fe.png" alt="추출기 (철 광맥 핵)" loading="lazy"><img class="old" src="img/extractor_fe.png" alt="v1 추출기 (철 광맥 핵)" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>추출기 (철 광맥 핵)</h3>
+        <p class="recipe">꽂은 광맥 핵에 맞는 원석을 계속 내보냄</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.9칸(5.6스터드) · 출구 1 · 삼각형 1,040</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/extractor_coal.png" alt="추출기 (석탄 광맥 핵)" loading="lazy"><img class="old" src="img/extractor_coal.png" alt="v1 추출기 (석탄 광맥 핵)" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>추출기 (석탄 광맥 핵)</h3>
+        <p class="recipe">핵만 바꿔 꽂으면 다른 원석이 나옴</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.9칸(5.6스터드) · 출구 1 · 삼각형 1,040</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/logger.png" alt="벌목기" loading="lazy"><img class="old" src="img/logger.png" alt="v1 벌목기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>벌목기</h3>
+        <p class="recipe">주변 나무를 베어 통나무를 내보냄</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 2.4칸(7.3스터드) · 출구 1 · 삼각형 1,088</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/pump.png" alt="물 펌프" loading="lazy"><img class="old" src="img/pump.png" alt="v1 물 펌프" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>물 펌프</h3>
+        <p class="recipe">물을 끌어올려 물통으로 내보냄</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.5칸(4.5스터드) · 출구 1 · 삼각형 832</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/pumpjack.png" alt="펌프잭" loading="lazy"><img class="old" src="img/pumpjack.png" alt="v1 펌프잭" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>펌프잭</h3>
+        <p class="recipe">유전 위에 놓으면 원유통을 내보냄</p>
+        <p class="meta">3×2칸 <span class="was">v1 2×1칸</span> · 높이 2.3칸(7.0스터드) · 출구 1 · 삼각형 1,196</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/harvester.png" alt="수확기" loading="lazy"><img class="old" src="img/harvester.png" alt="v1 수확기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>수확기</h3>
+        <p class="recipe">앞쪽 밭의 다 자란 작물을 거둬들임</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.2칸(3.8스터드) · 출구 1 · 삼각형 704</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sprinkler.png" alt="물뿌리개" loading="lazy"><img class="old" src="img/sprinkler.png" alt="v1 물뿌리개" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>물뿌리개</h3>
+        <p class="recipe">주변 밭에 물을 줘서 작물이 빨리 자람</p>
+        <p class="meta">1×1칸 · 높이 1.0칸(3.0스터드) · 출입구 없음 · 삼각형 328</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/seeder.png" alt="파종기" loading="lazy"><img class="old" src="img/seeder.png" alt="v1 파종기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>파종기</h3>
+        <p class="recipe">수확이 끝난 자리에 씨앗을 다시 심음</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.2칸(3.5스터드) · 입구 1 · 삼각형 684</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="변환">
+    <h2>변환 <span class="count">19</span></h2>
+    <p class="lede">재료 하나를 받아 정해진 결과물로 바꾸는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/smelter.png" alt="제련로" loading="lazy"><img class="old" src="img/smelter.png" alt="v1 제련로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>제련로</h3>
+        <p class="recipe">광석 → 주괴. 석탄이나 숯 같은 연료를 함께 넣어야 함</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.9칸(5.8스터드) · 출입구 없음 · 삼각형 1,396</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/crusher.png" alt="분쇄기" loading="lazy"><img class="old" src="img/crusher.png" alt="v1 분쇄기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>분쇄기</h3>
+        <p class="recipe">광석 → 분쇄 광석(수량 2배), 돌 → 모래</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.7스터드) · 출입구 없음 · 삼각형 2,352</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sawmill.png" alt="제재기" loading="lazy"><img class="old" src="img/sawmill.png" alt="v1 제재기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>제재기</h3>
+        <p class="recipe">통나무 → 판자</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.3칸(4.0스터드) · 출입구 없음 · 삼각형 1,500</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/washer.png" alt="세척기" loading="lazy"><img class="old" src="img/washer.png" alt="v1 세척기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>세척기</h3>
+        <p class="recipe">분쇄 광석 → 정제 광석 (제련 수율이 오름)</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.8스터드) · 출입구 없음 · 삼각형 1,316</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/kiln.png" alt="가마" loading="lazy"><img class="old" src="img/kiln.png" alt="v1 가마" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>가마</h3>
+        <p class="recipe">모래 → 유리, 통나무 → 숯</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.5스터드) · 출입구 없음 · 삼각형 1,236</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/stonecutter.png" alt="석재 절단기" loading="lazy"><img class="old" src="img/stonecutter.png" alt="v1 석재 절단기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>석재 절단기</h3>
+        <p class="recipe">돌 → 석재 블록</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.7칸(5.0스터드) · 출입구 없음 · 삼각형 1,100</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/press.png" alt="압연 프레스" loading="lazy"><img class="old" src="img/press.png" alt="v1 압연 프레스" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>압연 프레스</h3>
+        <p class="recipe">주괴 → 판재</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 2.2칸(6.5스터드) · 출입구 없음 · 삼각형 1,352</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wiredraw.png" alt="신선기" loading="lazy"><img class="old" src="img/wiredraw.png" alt="v1 신선기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>신선기</h3>
+        <p class="recipe">구리 주괴 → 구리선 묶음</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.8스터드) · 출입구 없음 · 삼각형 1,184</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/mill.png" alt="제분기" loading="lazy"><img class="old" src="img/mill.png" alt="v1 제분기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>제분기</h3>
+        <p class="recipe">밀 → 밀가루</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.8스터드) · 출입구 없음 · 삼각형 1,128</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/briquetter.png" alt="압축기" loading="lazy"><img class="old" src="img/briquetter.png" alt="v1 압축기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>압축기</h3>
+        <p class="recipe">톱밥 → 연료 덩이. 버려지던 부산물이 연료가 됨</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.3칸(4.0스터드) · 출입구 없음 · 삼각형 1,180</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/oilpress.png" alt="착유기" loading="lazy"><img class="old" src="img/oilpress.png" alt="v1 착유기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>착유기</h3>
+        <p class="recipe">기름 작물 → 식물 기름. 석탄도 석유도 없을 때의 연료</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.3스터드) · 출입구 없음 · 삼각형 1,344</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/lathe.png" alt="선반" loading="lazy"><img class="old" src="img/lathe.png" alt="v1 선반" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>선반</h3>
+        <p class="recipe">철 막대 → 볼트, 철판 → 기어. 깎아서 모양을 냄</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.3칸(3.9스터드) · 출입구 없음 · 삼각형 1,192</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/caster.png" alt="주조기" loading="lazy"><img class="old" src="img/caster.png" alt="v1 주조기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>주조기</h3>
+        <p class="recipe">철 주괴 → 기계 틀. 조립보다 재료가 더 들지만 한 줄로 끝남</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.9스터드) · 출입구 없음 · 삼각형 1,144</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/loom.png" alt="직조기" loading="lazy"><img class="old" src="img/loom.png" alt="v1 직조기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>직조기</h3>
+        <p class="recipe">목화 → 천</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.7스터드) · 출입구 없음 · 삼각형 1,204</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/gemcutter.png" alt="보석 절삭기" loading="lazy"><img class="old" src="img/gemcutter.png" alt="v1 보석 절삭기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>보석 절삭기</h3>
+        <p class="recipe">다이아 → 절삭 날. 고급 도구와 기계 강화 부품의 재료</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.5칸(4.6스터드) · 출입구 없음 · 삼각형 1,200</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/painter.png" alt="도색기" loading="lazy"><img class="old" src="img/painter.png" alt="v1 도색기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>도색기</h3>
+        <p class="recipe">블록 + 염료 → 색을 입힌 블록</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.4스터드) · 출입구 없음 · 삼각형 1,380</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/refinery.png" alt="정유탑" loading="lazy"><img class="old" src="img/refinery.png" alt="v1 정유탑" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>정유탑</h3>
+        <p class="recipe">원유 → 연료통 + 플라스틱 (출구 둘)</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 3.0칸(9.0스터드) · 입구 1 · 출구 2 · 삼각형 1,932</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/recycler.png" alt="분해기" loading="lazy"><img class="old" src="img/recycler.png" alt="v1 분해기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>분해기</h3>
+        <p class="recipe">기계나 부품을 넣으면 들어간 재료의 일부를 되돌려 받음</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 1.7칸(5.1스터드) · 입구 1 · 출구 2 · 삼각형 2,304</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sieve.png" alt="체질기" loading="lazy"><img class="old" src="img/sieve.png" alt="v1 체질기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>체질기</h3>
+        <p class="recipe">자갈이나 모래를 걸러 아주 적은 양의 광물을 얻음. 광맥 핵이 없어도 됨</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 1.7칸(5.1스터드) · 입구 1 · 출구 2 · 삼각형 1,760</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="조합">
+    <h2>조합 <span class="count">7</span></h2>
+    <p class="lede">재료 둘 이상을 받아 하나로 만드는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/blast.png" alt="고로" loading="lazy"><img class="old" src="img/blast.png" alt="v1 고로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>고로</h3>
+        <p class="recipe">철 주괴 + 석탄 → 강철 주괴</p>
+        <p class="meta">3×3칸 <span class="was">v1 2×2칸</span> · 높이 2.8칸(8.4스터드) · 입구 2 · 출구 1 · 삼각형 2,268</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/assembler.png" alt="조립기" loading="lazy"><img class="old" src="img/assembler.png" alt="v1 조립기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>조립기</h3>
+        <p class="recipe">판재 + 구리선 → 기계 부품</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 2.0칸(6.1스터드) · 입구 2 · 출구 1 · 삼각형 1,836</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/circuit.png" alt="회로 제작기" loading="lazy"><img class="old" src="img/circuit.png" alt="v1 회로 제작기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>회로 제작기</h3>
+        <p class="recipe">구리선 + 플라스틱 → 회로 기판</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.5스터드) · 입구 2 · 출구 1 · 삼각형 1,604</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/mixer.png" alt="혼합기" loading="lazy"><img class="old" src="img/mixer.png" alt="v1 혼합기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>혼합기</h3>
+        <p class="recipe">모래 + 물통 → 콘크리트</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 2.3칸(7.0스터드) · 입구 2 · 출구 1 · 삼각형 1,636</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/oven.png" alt="제빵 오븐" loading="lazy"><img class="old" src="img/oven.png" alt="v1 제빵 오븐" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>제빵 오븐</h3>
+        <p class="recipe">밀가루 + 물통 → 빵</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 2.2칸(6.6스터드) · 입구 2 · 출구 1 · 삼각형 1,648</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/alloy.png" alt="합금로" loading="lazy"><img class="old" src="img/alloy.png" alt="v1 합금로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>합금로</h3>
+        <p class="recipe">두 가지 금속을 함께 녹여 합금 주괴로 만듦</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 2.0칸(6.0스터드) · 입구 2 · 출구 1 · 삼각형 1,740</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/manufacturer.png" alt="제조 공장" loading="lazy"><img class="old" src="img/manufacturer.png" alt="v1 제조 공장" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>제조 공장</h3>
+        <p class="recipe">기계 부품 + 회로 기판 + 강철 → 모터</p>
+        <p class="meta">3×3칸 <span class="was">v1 2×2칸</span> · 높이 2.5칸(7.6스터드) · 입구 3 · 출구 1 · 삼각형 2,728</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="포장·판매">
+    <h2>포장·판매 <span class="count">2</span></h2>
+    <p class="lede">묶어서 물체 수를 줄이고, 플레이어끼리 사고파는 장치</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/packer.png" alt="포장기" loading="lazy"><img class="old" src="img/packer.png" alt="v1 포장기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>포장기</h3>
+        <p class="recipe">같은 아이템 8개 → 상자 1개 (물체 수를 줄임)</p>
+        <p class="meta">3×1칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.4스터드) · 출입구 없음 · 삼각형 1,272</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/vending.png" alt="자판기" loading="lazy"><img class="old" src="img/vending.png" alt="v1 자판기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>자판기</h3>
+        <p class="recipe">물건과 가격을 걸어 두면 다른 플레이어가 사 감. 사고 싶은 물건과 돈을 걸어 둘 수도 있음</p>
+        <p class="meta">1×1칸 · 높이 1.9칸(5.6스터드) · 출입구 없음 · 삼각형 276</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="동력">
+    <h2>동력 <span class="count">6</span></h2>
+    <p class="lede">전력을 만들고, 모으고, 나르는 기계</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/generator.png" alt="석탄 발전기" loading="lazy"><img class="old" src="img/generator.png" alt="v1 석탄 발전기" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>석탄 발전기</h3>
+        <p class="recipe">석탄이나 연료통을 태워 주변 기계에 전력을 공급</p>
+        <p class="meta">3×2칸 <span class="was">v1 1×1칸</span> · 높이 2.2칸(6.5스터드) · 입구 1 · 삼각형 1,468</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/incinerator.png" alt="소각로" loading="lazy"><img class="old" src="img/incinerator.png" alt="v1 소각로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>소각로</h3>
+        <p class="recipe">필요 없는 것을 태워 없앰. 전력이 조금 나옴</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 2.6칸(7.7스터드) · 입구 1 · 삼각형 928</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/windturbine.png" alt="풍력 터빈" loading="lazy"><img class="old" src="img/windturbine.png" alt="v1 풍력 터빈" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>풍력 터빈</h3>
+        <p class="recipe">바람으로 전력을 만듦. 연료가 필요 없지만 출력이 들쭉날쭉함</p>
+        <p class="meta">1×1칸 · 높이 4.5칸(13.5스터드) · 출입구 없음 · 삼각형 264</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/solar.png" alt="태양광 패널" loading="lazy"><img class="old" src="img/solar.png" alt="v1 태양광 패널" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>태양광 패널</h3>
+        <p class="recipe">낮 동안 전력을 만듦</p>
+        <p class="meta">2×2칸 <span class="was">v1 1×1칸</span> · 높이 1.1칸(3.4스터드) · 출입구 없음 · 삼각형 360</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/battery.png" alt="축전지" loading="lazy"><img class="old" src="img/battery.png" alt="v1 축전지" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>축전지</h3>
+        <p class="recipe">남는 전력을 모아 두었다가 모자랄 때 내보냄</p>
+        <p class="meta">1×1칸 · 높이 1.2칸(3.5스터드) · 출입구 없음 · 삼각형 292</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/pole.png" alt="전신주" loading="lazy"><img class="old" src="img/pole.png" alt="v1 전신주" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>전신주</h3>
+        <p class="recipe">전선을 이어 전기를 나름. 전신주 주변 몇 칸 안의 기계가 전기를 받음</p>
+        <p class="meta">1×1칸 · 높이 3.3칸(9.9스터드) · 출입구 없음 · 삼각형 528</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="궁극의 장치">
+    <h2>궁극의 장치 <span class="count">2</span></h2>
+    <p class="lede">자동화의 자동화. 이 게임의 가장 큰 목표물</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/coreforge.png" alt="핵 제련소" loading="lazy"><img class="old" src="img/coreforge.png" alt="v1 핵 제련소" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>핵 제련소</h3>
+        <p class="recipe">막대한 재료로 광맥 핵을 만들어 냄. 흔한 핵을 합쳐 더 좋은 핵으로, 끝내는 금과 다이아의 핵까지</p>
+        <p class="meta">5×5칸 <span class="was">v1 3×3칸</span> · 높이 4.5칸(13.6스터드) · 입구 3 · 출구 1 · 삼각형 4,084</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/reactor.png" alt="무한 동력로" loading="lazy"><img class="old" src="img/reactor.png" alt="v1 무한 동력로" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>무한 동력로</h3>
+        <p class="recipe">연료 없이 전기를 끝없이 냄. 섬의 모든 기계를 최고 효율로 돌림</p>
+        <p class="meta">5×5칸 <span class="was">v1 3×3칸</span> · 높이 4.6칸(13.9스터드) · 출입구 없음 · 삼각형 3,300</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="손 작업">
+    <h2>손 작업 <span class="count">11</span></h2>
+    <p class="lede">공장이 없을 때 손으로 만드는 자리. 공장은 이 일을 대신해 줌</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/campfire.png" alt="모닥불" loading="lazy"><img class="old" src="img/campfire.png" alt="v1 모닥불" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>모닥불</h3>
+        <p class="recipe">가장 처음 쓰는 불. 재료와 땔감을 직접 넣고 기다림</p>
+        <p class="meta">1×1칸 · 높이 0.6칸(1.9스터드) · 출입구 없음 · 삼각형 408</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/hand_furnace.png" alt="손 화덕" loading="lazy"><img class="old" src="img/hand_furnace.png" alt="v1 손 화덕" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>손 화덕</h3>
+        <p class="recipe">돌로 쌓은 화덕. 광석과 땔감을 손으로 넣어 주괴를 만듦</p>
+        <p class="meta">1×1칸 · 높이 1.2칸(3.7스터드) · 출입구 없음 · 삼각형 364</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/chest.png" alt="상자" loading="lazy"><img class="old" src="img/chest.png" alt="v1 상자" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>상자</h3>
+        <p class="recipe">물건을 넣어 두는 보관함</p>
+        <p class="meta">1×1칸 · 높이 0.8칸(2.5스터드) · 출입구 없음 · 삼각형 252</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_basic.png" alt="기본 작업대" loading="lazy"><img class="old" src="img/wb_basic.png" alt="v1 기본 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>기본 작업대</h3>
+        <p class="recipe">건축 블록, 일반 물건, 다른 작업대를 만듦</p>
+        <p class="meta">1×1칸 · 높이 0.9칸(2.6스터드) · 출입구 없음 · 삼각형 204</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_tool.png" alt="도구 작업대" loading="lazy"><img class="old" src="img/wb_tool.png" alt="v1 도구 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>도구 작업대</h3>
+        <p class="recipe">곡괭이, 무기, 갑옷을 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.7스터드) · 출입구 없음 · 삼각형 484</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_part.png" alt="부품 작업대" loading="lazy"><img class="old" src="img/wb_part.png" alt="v1 부품 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>부품 작업대</h3>
+        <p class="recipe">판재, 막대, 기어 같은 부품을 손으로 하나씩 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.9스터드) · 출입구 없음 · 삼각형 1,060</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_machine.png" alt="기계 작업대" loading="lazy"><img class="old" src="img/wb_machine.png" alt="v1 기계 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>기계 작업대</h3>
+        <p class="recipe">벨트, 기계, 추출기를 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.8칸(5.3스터드) · 출입구 없음 · 삼각형 588</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_cook.png" alt="조리대" loading="lazy"><img class="old" src="img/wb_cook.png" alt="v1 조리대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>조리대</h3>
+        <p class="recipe">음식을 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.1칸(3.2스터드) · 출입구 없음 · 삼각형 720</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_elec.png" alt="전기 작업대" loading="lazy"><img class="old" src="img/wb_elec.png" alt="v1 전기 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>전기 작업대</h3>
+        <p class="recipe">감지기, 스위치, 논리 회로 같은 전기 부품을 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.9스터드) · 출입구 없음 · 삼각형 592</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_furn.png" alt="가구 작업대" loading="lazy"><img class="old" src="img/wb_furn.png" alt="v1 가구 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>가구 작업대</h3>
+        <p class="recipe">가구와 꾸미기 물건을 만듦</p>
+        <p class="meta">2×1칸 <span class="was">v1 1×1칸</span> · 높이 1.6칸(4.8스터드) · 출입구 없음 · 삼각형 516</p>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <div class="shot"><img src="img/v2/wb_all.png" alt="통합 작업대" loading="lazy"><img class="old" src="img/wb_all.png" alt="v1 통합 작업대" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>통합 작업대</h3>
+        <p class="recipe">모든 분류의 물건을 한곳에서 만듦. 아주 비싼 후반 설비</p>
+        <p class="meta">3×1칸 <span class="was">v1 2×1칸</span> · 높이 1.9칸(5.6스터드) · 출입구 없음 · 삼각형 1,276</p>
+      </figcaption>
+    </figure></div>
+  </section>
+  <section id="표시">
+    <h2>표시 <span class="count">1</span></h2>
+    <p class="lede">글자를 적어 세워 두는 것</p>
+    <div class="grid">
+    <figure class="card">
+      <div class="shot"><img src="img/v2/sign.png" alt="표지판" loading="lazy"><img class="old" src="img/sign.png" alt="v1 표지판" title="v1 모델" loading="lazy"></div>
+      <figcaption>
+        <h3>표지판</h3>
+        <p class="recipe">글자를 적어 세워 둠. 앞면과 뒷면에 보임</p>
+        <p class="meta">1×1칸 · 높이 1.3칸(4.0스터드) · 출입구 없음 · 삼각형 144</p>
+      </figcaption>
+    </figure></div>
+  </section>
+</main>
+</body>
+</html>
