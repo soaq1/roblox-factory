@@ -27,11 +27,17 @@ V1 = {s["key"]: s for s in fk.SPECS}
 W_IN, E_OUT = ("W", "in", 0), ("E", "out", 0)
 
 
-def machine2(key, size=(3, 1), ports=(), ins=None, outs=None, ko=None, fam=None, recipe=None, items=True):
+def machine2(key, size=(3, 1), ports=None, ins=None, outs=None, ko=None, fam=None, recipe=None, items=True):
     """Register a v2 model. Name, family and description come from the v1 entry with the same key."""
+    if ports is None:                 # a 3x1 machine takes in at the west end and gives out at the east
+        ports = (W_IN, E_OUT) if (tuple(size) == (3, 1) and items) else ()
+
     def deco(fn):
         v1 = V1.get(key, {})
-        SPECS2.append(dict(
+        old = next((i for i, s in enumerate(SPECS2) if s["key"] == key), None)
+        if old is not None:           # a later module may remake a model; it keeps its place in the list
+            SPECS2.pop(old)
+        SPECS2.insert(len(SPECS2) if old is None else old, dict(
             key=key, ko=ko or v1.get("ko", key), fam=fam or v1.get("fam", ""),
             recipe=v1.get("recipe", "") if recipe is None else recipe, size=size, ports=ports,
             ins=v1.get("ins", ()) if ins is None else ins, outs=v1.get("outs", ()) if outs is None else outs,
