@@ -107,6 +107,20 @@ def louvre(m, d, yp, x, z, w=0.16, h=0.15):
         m.box((w, 0.02, 0.022), (x, yp + d * 0.012, z + (i - 1) * 0.048), G)
 
 
+def handwheel(m, d, yp, x, z, r=0.12):
+    """A spoked wheel on a side wall, for setting something by hand."""
+    y0, y1 = sorted((yp + d * 0.004, yp + d * 0.028))
+    ro, ri = r, r * 0.76
+    for j in range(12):
+        a0, a1 = math.pi * j / 6, math.pi * (j + 1) / 6
+        m.prism([(x + ro * math.cos(a0), z + ro * math.sin(a0)), (x + ro * math.cos(a1), z + ro * math.sin(a1)),
+                 (x + ri * math.cos(a1), z + ri * math.sin(a1)), (x + ri * math.cos(a0), z + ri * math.sin(a0))],
+                y0, y1, "Y", T)
+    m.box((2 * ri + 0.01, 0.016, 0.032), (x, yp + d * 0.014, z), T)
+    m.box((0.032, 0.016, 2 * ri + 0.01), (x, yp + d * 0.014, z), T)
+    m.cyl(0.036, 0.036, (x, yp + d * 0.018, z), "h_lite", seg=8, axis="Y")
+
+
 def pedestals(m, hw=0.44, top=0.62):
     """The two blocks an open-frame machine stands on, one astride each rail of the belt."""
     for d in SIDES:
@@ -157,9 +171,14 @@ def mixer_body(m, Z):
     """Mixer: a wide pan with stirring arms turning in the mix, driven from a gearbox on a bridge that
     spans the pan."""
     for d in SIDES:
-        yp = side_panel(m, d, w=0.62, h=0.28, z=Z - 0.24)
-        for sx in SIDES:
-            louvre(m, d, yp, sx * 0.17, Z - 0.24)
+        zc = Z - 0.25
+        yp = side_panel(m, d, w=0.46, h=0.34, z=zc)
+        for sx in SIDES:                                      # discharge gate: guides, and the gate half raised
+            m.box((0.04, 0.03, 0.30), (sx * 0.155, yp + d * 0.013, zc), G)
+        m.box((0.27, 0.008, 0.28), (0, yp + d * 0.002, zc), SLIT)
+        m.box((0.27, 0.008, 0.11), (0, yp + d * 0.005, zc - 0.085), "h_mix")
+        m.box((0.27, 0.02, 0.15), (0, yp + d * 0.011, zc + 0.065), T)
+        m.box((0.19, 0.03, 0.032), (0, yp + d * 0.016, zc + 0.02), D)
     bx(m, (-0.43, 0.43), (-0.37, 0.37), (Z - 0.02, Z + 0.07), G, bevel=0.03)
     oct_ring(m, 0.44, 0.06, Z + 0.05, Z + 0.30, G)
     octa(m, 0.40, 0.40, Z + 0.05, Z + 0.10, D)
@@ -246,9 +265,8 @@ def saw(m):
     Z = _base.foundation(m, foot=_base.foot_bin)
     zc = Z + 0.10
     for d in SIDES:
-        yp = side_panel(m, d, w=0.62, h=0.26, z=Z - 0.32)
-        for sx in SIDES:
-            louvre(m, d, yp, sx * 0.17, Z - 0.32, h=0.13)
+        yp = side_panel(m, d, w=0.40, h=0.32, z=Z - 0.30)
+        handwheel(m, d, yp, 0, Z - 0.30, r=0.125)
         bx(m, (-0.16, 0.16), tuple(sorted((d * 0.13, d * 0.40))), (Z - 0.02, Z + 0.26), G, bevel=0.035)
         m.cyl(0.19, 0.05, (0, d * 0.452, zc), D, seg=12, axis="Y")
         m.cyl(0.07, 0.07, (0, d * 0.455, zc), "h_lite", seg=8, axis="Y")
@@ -282,9 +300,14 @@ def roller(m):
     backing roll, tied by a cap that carries the screws."""
     Z = _base.foundation(m, foot=_base.foot_anchor)
     for d in SIDES:
-        yp = side_panel(m, d, w=0.62, h=0.28, z=Z - 0.26)
+        zc = Z - 0.26
+        yp = side_panel(m, d, w=0.62, h=0.30, z=zc)
+        y0, y1 = sorted((yp, yp + d * 0.022))                 # pinion cover: one long lozenge, a boss on each shaft
+        m.prism([(-0.26, zc - 0.05), (-0.20, zc - 0.11), (0.20, zc - 0.11), (0.26, zc - 0.05), (0.26, zc + 0.05),
+                 (0.20, zc + 0.11), (-0.20, zc + 0.11), (-0.26, zc + 0.05)], y0, y1, "Y", T)
         for sx in SIDES:
-            louvre(m, d, yp, sx * 0.17, Z - 0.26)
+            m.cyl(0.072, 0.03, (sx * 0.135, yp + d * 0.017, zc), D, seg=12, axis="Y")
+            m.cyl(0.04, 0.034, (sx * 0.135, yp + d * 0.019, zc), "h_lite", seg=8, axis="Y")
         bx(m, (-0.21, 0.21), tuple(sorted((d * 0.25, d * 0.42))), (Z - 0.02, Z + 0.60), G, bevel=0.035)
         m.cyl(0.085, 0.07, (0, d * 0.30, Z + 0.755), D, seg=6)
         m.cyl(0.045, 0.14, (0, d * 0.30, Z + 0.82), "h_lite", seg=6)
@@ -379,9 +402,12 @@ def assembler(m):
     """Assembler, through form: two arms on the roof work on a part held on a turntable between them."""
     Z = _base.foundation(m, foot=_base.foot_beams)
     for d in SIDES:
-        yp = side_panel(m, d, w=0.62, h=0.28, z=Z - 0.26)
-        for sx in SIDES:
-            louvre(m, d, yp, sx * 0.17, Z - 0.26)
+        zc = Z - 0.25
+        yp = side_panel(m, d, w=0.58, h=0.30, z=zc)
+        sunk_frame(m, d, yp, 0, zc, 0.40, 0.17, mk=T)         # display: a dark screen with three lines on it
+        m.box((0.40, 0.008, 0.17), (0, yp + d * 0.002, zc), SLIT)
+        for i, w in enumerate((0.30, 0.18, 0.24)):
+            m.box((w, 0.006, 0.02), (0, yp + d * 0.008, zc + (1 - i) * 0.045), "h_line")
     bx(m, (-0.45, 0.45), (-0.40, 0.40), (Z - 0.02, Z + 0.07), G, bevel=0.03)
     octa(m, 0.19, 0.19, Z + 0.05, Z + 0.13, D)
     m.box((0.20, 0.18, 0.10), (0, 0, Z + 0.18), "h_steel", bevel=0.02)
