@@ -380,3 +380,21 @@ DARKS["d"] = DARKS["a"]
 def foundation(m, top=0.82):
     """Build whichever foundation set_style() chose. Returns the height of the body block's top."""
     return FOUNDATIONS[STYLE](m, top)
+
+
+# ============================ COLOUR SCHEMES ============================
+# The default greys and the warm dark accent were sampled from Islands' renders, which is a large part of
+# why the machines still read as Islands. These schemes are trials of a colour identity of our own.
+TINTS = {
+    "sage": {"h_grey": "#9fb3a3", "h_dark": "#869a8b", "h_lite": "#b5c6b7", "h_taupe": "#4a5257",
+             "h_taupe_d": "#3a4145", "h_white": "#dedfd6", "h_steel": "#8b9294"},
+    "sand": {"h_grey": "#d2c6ae", "h_dark": "#b8ac94", "h_lite": "#e0d6c1", "h_taupe": "#3f586c",
+             "h_taupe_d": "#314552", "h_white": "#efeae0", "h_steel": "#8f8a80"},
+    "iron": {"h_grey": "#6d757c", "h_dark": "#596168", "h_lite": "#828a91", "h_taupe": "#d68a2c",
+             "h_taupe_d": "#ad6d1e", "h_white": "#c8cccf", "h_steel": "#a3aaaf", "h_line": "#c9a24a"},
+}
+
+
+def set_tint(name):
+    """Recolour everything with one of TINTS. Call after set_style() and before anything is built."""
+    fk.PAL.update(TINTS[name])
