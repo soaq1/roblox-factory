@@ -143,7 +143,7 @@ def press(m):
     bx(m, (-0.28, 0.28), (-0.24, 0.24), (N - 0.01, N + 0.09), D, bevel=0.022)
     bx(m, (-0.20, 0.20), (-0.16, 0.16), (N + 0.09, N + 0.115), "h_steel", bevel=0.0)
     # platen, with a die on its underside and a guide bush on each column
-    bx(m, (-0.45, 0.45), (-0.38, 0.38), (N + 0.24, N + 0.44), T, bevel=0.04)
+    bx(m, (-0.47, 0.47), (-0.41, 0.41), (N + 0.24, N + 0.44), T, bevel=0.022)
     bx(m, (-0.26, 0.26), (-0.22, 0.22), (N + 0.17, N + 0.25), D, bevel=0.02)
     # crown
     bx(m, (-0.47, 0.47), (-0.40, 0.40), (C0, C1), G, bevel=0.05)
@@ -152,7 +152,7 @@ def press(m):
             x, y = sx * 0.355, sy * 0.29
             m.cyl(0.09, 0.06, (x, y, N + 0.03), D, seg=8)
             m.cyl(0.058, C0 - N, (x, y, (N + C0) / 2), "h_lite", seg=8)
-            m.cyl(0.085, 0.26, (x, y, N + 0.34), G, seg=8)
+            m.cyl(0.08, 0.27, (x, y, N + 0.34), G, seg=8)            # guide bush, wholly inside the platen
             m.cyl(0.085, 0.06, (x, y, C1 + 0.03), D, seg=6)
             m.cyl(0.04, 0.05, (x, y, C1 + 0.085), "h_lite", seg=6)
     # ram and cylinder
