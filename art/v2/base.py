@@ -201,6 +201,10 @@ def show(build, name, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     views = (("", iso, up * 0.474, 2.871), ("_side", Vector((0, -1, 0.0001)), Vector((0, 0, 0.6)), 3.2),
              ("_top", Vector((0, -0.0001, 1)), Vector((0, 0, 0.6)), 3.2), ("_end", Vector((-1, 0.0001, 0.0001)), Vector((0, 0, 0.6)), 1.6))
+    big = getattr(build, "frame", None)       # a building larger than 3 x 1 gives its own (scale, centre height)
+    if big:
+        views = tuple((sfx, v, Vector((0, 0, big[key][1])), big[key][0])
+                      for (sfx, v, _, _), key in zip(views, ("iso", "side", "top", "end")))
     for suffix, v, c, scale in views:
         fk.cd.ortho_scale = scale
         fk.aim(fk.cam, c + v.normalized() * 30, c)
@@ -327,6 +331,11 @@ def foundation_c(m, top=0.82):
     return top
 
 
+# Foundation D's rail, from the belt's edge outward and down to the ground.
+RAIL_D = [(BH, 0.352), (0.372, 0.352), (0.402, 0.326), (0.402, 0.292), (0.386, 0.276), (0.474, 0.055),
+          (0.50, 0.055), (0.50, 0.0)]
+
+
 def chevrons2(m, x0, x1, step=0.375):
     """Pairs of hairline chevrons down the belt, pointing the way it runs."""
     n = max(1, round((x1 - x0) / step))
@@ -345,9 +354,7 @@ def foundation_d(m, top=0.82):
     body stands on two cross beams whose I-section ends show at each side, and has a chamfered base
     course of its own."""
     bed_top = BZ - 0.03
-    right = [(BH, 0.352), (0.372, 0.352), (0.402, 0.326), (0.402, 0.292), (0.386, 0.276), (0.474, 0.055),
-             (0.50, 0.055), (0.50, 0.0)]
-    section = [(-y, z) for y, z in reversed(right)] + [(-BH, bed_top), (BH, bed_top)] + list(right)
+    section = [(-y, z) for y, z in reversed(RAIL_D)] + [(-BH, bed_top), (BH, bed_top)] + list(RAIL_D)
     m.prism(section, -1.5, 1.5, "X", R)
     m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
     chevrons2(m, -1.5, 1.5)
