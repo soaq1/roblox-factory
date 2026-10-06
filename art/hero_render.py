@@ -10,7 +10,7 @@ import factorykit as fk
 from v2 import base, hero, works, pairs
 
 out = next((a.split("=", 1)[1] for a in args if a.startswith("out=")), os.path.join(HERE, "catalog", "img", "hero"))
-style = next((a.split("=", 1)[1] for a in args if a.startswith("base=")), "a")
+style = next((a.split("=", 1)[1] for a in args if a.startswith("base=")), "d")
 base.set_style(style)             # one foundation per run: a (measured from Islands), b, c or d (our own)
 tint = next((a.split("=", 1)[1] for a in args if a.startswith("tint=")), "")
 if tint:
