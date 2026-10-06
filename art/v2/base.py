@@ -26,22 +26,25 @@ RAIL = [(BH, 0.0), (0.50, 0.0), (0.50, 0.10), (0.385, 0.215), (0.385, 0.305), (0
 
 
 def chassis(m, x0=-1.5, x1=1.5, gap=None):
-    """The conveyor: bed, belt with thin arrow lines, rails with hex bolts. Both ends are cut square at
-    the cell boundary so it butts against the next belt or machine. `gap` leaves the rails out under a
-    body, where the plinth takes their place."""
+    """The conveyor: bed, belt with thin arrow lines, rails with hex bolts. Rails and bed are one piece,
+    so the cut end is a single clean face with no seams, and both ends are cut square at the cell
+    boundary so it butts against the next belt or machine. `gap` leaves the rails out under a body,
+    where the plinth takes their place."""
     L, cx = x1 - x0, (x0 + x1) / 2
-    m.box((L, BH * 2 - 0.004, 0.275), (cx, 0, 0.1375), G)
-    m.box((L, BH * 2 - 0.004, 0.03), (cx, 0, BZ - 0.015), "h_belt")
+    bed_top = BZ - 0.03
+    section = [(-y, z) for y, z in RAIL[1:]] + [(-BH, bed_top), (BH, bed_top)] + list(reversed(RAIL[1:]))
     spans = [(x0, x1)] if gap is None else [(x0, gap[0]), (gap[1], x1)]
     for a, b in spans:
-        m.prism(RAIL, a, b, "X", G)
-        m.prism([(-y, z) for y, z in RAIL], a, b, "X", G)
+        m.prism(section, a, b, "X", G)
         n = max(1, round((b - a) * 4))
         for i in range(n):
             bxp = a + (i + 0.5) * (b - a) / n
             if gap is None or abs(bxp) > max(abs(gap[0]), abs(gap[1])) + 0.2:
                 for s in SIDES:
                     m.cyl(0.027, 0.03, (bxp, s * 0.391, 0.262), G, seg=6, axis="Y")
+    if gap is not None:
+        m.box((gap[1] - gap[0], BH * 2, bed_top), ((gap[0] + gap[1]) / 2, 0, bed_top / 2), G)
+    m.box((L, BH * 2, 0.03), (cx, 0, BZ - 0.015), "h_belt")
     x = x0 + 0.115
     while x < x1 - 0.05:
         for s in SIDES:
