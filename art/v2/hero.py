@@ -65,7 +65,7 @@ def crusher(m):
 
 
 @hero
-def smelter(m):
+def smelter(m, flues=True):
     """A firebox block carrying an eight-sided shaft as wide as the block itself: banded, narrowing
     upward, open at the top with the melt glowing inside its thick rim. An uptake flue runs up each end
     of the shaft, strapped to it, and stands clear above the rim. Each side wall carries a panel with the
@@ -107,7 +107,7 @@ def smelter(m):
         octa(m, a, a - 0.005, z, z + 0.04, D)
     oct_ring(m, 0.335, 0.075, N + 0.60, N + 0.72, G)
     octa(m, 0.262, 0.262, N + 0.62, N + 0.655, "h_glow")
-    for sx in SIDES:
+    for sx in (SIDES if flues else ()):                       # the tower form is charged from above: no flues
         x = sx * 0.415
         m.cyl(0.075, 0.05, (x, 0.0, N + 0.025), D, seg=8)
         m.cyl(0.055, 0.86, (x, 0.0, N + 0.43), G, seg=8)

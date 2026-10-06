@@ -164,6 +164,9 @@ def symmetry_report(mesh):
     return across, along, len(pts)
 
 
+QUICK = False        # True: render only the catalog angle and save no .blend (for sheets of many machines)
+
+
 def show(build, name, out_dir):
     """Build one model and render it from the catalog angle and straight on from the side, top and end."""
     m = fk.Model(name)
@@ -205,6 +208,8 @@ def show(build, name, out_dir):
     if big:
         views = tuple((sfx, v, Vector((0, 0, big[key][1])), big[key][0])
                       for (sfx, v, _, _), key in zip(views, ("iso", "side", "top", "end")))
+    if QUICK:
+        views = views[:1]
     for suffix, v, c, scale in views:
         fk.cd.ortho_scale = scale
         fk.aim(fk.cam, c + v.normalized() * 30, c)
@@ -212,7 +217,8 @@ def show(build, name, out_dir):
         bpy.ops.render.render(write_still=True)
     across, along, total = symmetry_report(mesh)
     print(f"HERO {name}: tris={m.tris} unmirrored across-belt={across} end-to-end={along} of {total}")
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_dir, name + ".blend"))
+    if not QUICK:
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_dir, name + ".blend"))
     ob.hide_render = True
     ob.hide_viewport = True
 
