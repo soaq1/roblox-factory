@@ -11,7 +11,7 @@ from mathutils import Vector
 PAL.update({
     # machine greys, light to dark; g4 is the warm skirt colour
     "g1": "#cfd2d3", "g2": "#b3b6b7", "g3": "#969a9b", "g4": "#756f6d", "g5": "#4b4e50",
-    "tread": "#2b2f2e", "treadline": "#7d8280",
+    "tread": "#2b2f2e", "treadline": "#c3c7c5",
     "frame": "#8fb3d1", "stripe": "#22262a",      # painted steel frame and its dark edge line
     "badge": "#e0564a", "tankc": "#e6e1d3", "tank_dark": "#cbc5b6",
     "glassb": "#8fd3e6", "lampg": "#58d07a", "lampr": "#ff4b3e", "rock": "#7c7a7d", "rock_dark": "#636165",
@@ -40,8 +40,12 @@ def machine2(key, size=(3, 1), ports=(), ins=None, outs=None, ko=None, fam=None,
     return deco
 
 
-def bx(m, xs, ys, zs, mk, bevel=0.0, taper=1.0):
-    """A box given by its extents on each axis."""
+def bx(m, xs, ys, zs, mk, bevel=None, taper=1.0):
+    """A box given by its extents on each axis. Anything a tenth of a cell thick or more gets its
+    edges chamfered, which is what keeps the big shapes from looking like plain crates."""
+    thin = min(xs[1] - xs[0], ys[1] - ys[0], zs[1] - zs[0])
+    if bevel is None:
+        bevel = min(0.05, 0.13 * thin) if thin >= 0.10 else 0.0
     m.box((xs[1] - xs[0], ys[1] - ys[0], zs[1] - zs[0]),
           ((xs[0] + xs[1]) / 2, (ys[0] + ys[1]) / 2, (zs[0] + zs[1]) / 2), mk, bevel=bevel, taper=taper)
 
@@ -55,43 +59,45 @@ def on(m, side, x, y, z=0.0):
 
 
 # ============================ CONVEYOR ============================
-RAILP = [(0.33, 0.0), (HALF, 0.0), (HALF, 0.24), (0.42, 0.24), (0.42, 0.39), (0.33, 0.39)]
+# Rail cross-section: a flange at the foot, a sloped shoulder, an upright wall, a chamfered top.
+RAILP = [(0.33, 0.0), (0.495, 0.0), (0.495, 0.06), (HALF, 0.14), (HALF, 0.34), (0.435, 0.38), (0.33, 0.38)]
 
 
 def chevron(m, x, flow=1, z=BELT_Z + 0.003):
-    """A shallow V across the belt, pointing the way items travel."""
+    """An arrowhead on the belt. This is the only thing that says which way a line runs."""
     for s in (-1, 1):
-        m.box((0.018, 0.33, 0.006), (x, s * 0.16, z), "treadline", rot=s * flow * 0.21)
+        m.box((0.034, 0.30, 0.006), (x, s * 0.125, z), "treadline", rot=s * flow * 0.52)
 
 
 def trough(m, x0, x1, feet=(True, True), flow=1, lines=True, bolts=True):
-    """Conveyor bed along X from x0 to x1: bed, belt, stepped rails, hex bolts, flared feet at the ends."""
+    """Conveyor bed along X from x0 to x1: bed, belt, flanged rails, hex bolts, feet at the ends."""
     L, cx = x1 - x0, (x0 + x1) / 2
-    m.box((L, 0.70, 0.24), (cx, 0, 0.12), "g3")
-    m.box((L, 0.66, 0.06), (cx, 0, BELT_Z - 0.03), "tread")
+    m.box((L, 0.655, 0.24), (cx, 0, 0.12), "g3")
+    m.box((L, 0.655, 0.06), (cx, 0, BELT_Z - 0.03), "tread")
     m.prism(RAILP, x0, x1, "X", "g1")
     m.prism([(-y, z) for y, z in RAILP], x0, x1, "X", "g1")
     if lines:
-        n = max(1, round(L * 3))
+        n = max(1, round(L * 2.4))
         for i in range(n):
             chevron(m, x0 + (i + 0.5) * L / n, flow)
     if bolts:
         n = max(1, round(L * 2))
         for i in range(n):
             for s in (-1, 1):
-                m.cyl(0.028, 0.03, (x0 + (i + 0.5) * L / n, s * (HALF + 0.004), 0.145), "g3", seg=6, axis="Y")
+                m.cyl(0.028, 0.03, (x0 + (i + 0.5) * L / n, s * (HALF + 0.004), 0.25), "g3", seg=6, axis="Y")
     for present, x, d in ((feet[0], x0, 1), (feet[1], x1, -1)):
         if present:
-            m.box((0.10, 1.0, 0.16), (x + d * 0.054, 0, 0.08), "g2")
+            m.box((0.11, 0.998, 0.17), (x + d * 0.06, 0, 0.085), "g2", bevel=0.035)
 
 
-def arch_pts(w, top, hole_top=0.80, hw=0.33):
-    """Outline of a plate that straddles the belt, with the tunnel cut out of it."""
-    return [(-w / 2, 0.0), (-w / 2, top), (w / 2, top), (w / 2, 0.0),
-            (hw, 0.0), (hw, hole_top), (-hw, hole_top), (-hw, 0.0)]
+def arch_pts(w, top, hole_top=0.62, hw=0.33, c=0.07, ci=0.045):
+    """Outline of a plate that straddles the belt: tunnel cut out, outer and inner corners chamfered."""
+    a = w / 2
+    return [(-a, 0.0), (-a, top - c), (-a + c, top), (a - c, top), (a, top - c), (a, 0.0),
+            (hw, 0.0), (hw, hole_top - ci), (hw - ci, hole_top), (-hw + ci, hole_top), (-hw, hole_top - ci), (-hw, 0.0)]
 
 
-def collar(m, x, d, n=3, t=0.065, w=0.98, top=0.98, shrink=0.045, mks=("g2", "g3")):
+def collar(m, x, d, n=4, t=0.055, w=0.95, top=0.74, shrink=0.05, mks=("g2", "g3")):
     """Ribbed plates around a tunnel mouth, n plates from x in direction d. Returns where they end."""
     for i in range(n):
         a, b = x + d * i * t, x + d * (i + 1) * t
@@ -100,26 +106,14 @@ def collar(m, x, d, n=3, t=0.065, w=0.98, top=0.98, shrink=0.045, mks=("g2", "g3
     return x + d * n * t
 
 
-def port_arch(m, x, d, kind, w=1.0, top=1.03, double=True):
-    """The coloured arch that marks a port: yellow is an input, teal is an output."""
-    mk = "accent" if kind == "in" else "out"
-    plates = ((0.0, 0.04, mk, 0.0), (0.04, 0.014, "stripe", 0.03), (0.054, 0.04, mk, 0.0))
-    if not double:
-        plates = ((0.0, 0.014, "stripe", 0.03), (0.014, 0.05, mk, 0.0))
-    for a, t, k, s in plates:
-        lo, hi = sorted((x + d * a, x + d * (a + t)))
-        m.prism(arch_pts(w - s, top - s / 2), lo, hi, "X", k)
-    return x + d * (plates[-1][0] + plates[-1][1])
-
-
-def stub(m, xf, d, L, kind, n=3, top=0.98, w=0.98):
-    """Conveyor leaving a body face at x=xf in direction d (+1 or -1): trough, collar, port arch."""
+def stub(m, xf, d, L, kind, n=4, top=0.74, w=0.95):
+    """Conveyor leaving a body face at x=xf in direction d (+1 or -1): trough and a ribbed collar.
+    Nothing is colour-coded: the arrows on the belt point in for an input and out for an output."""
     xo = xf + d * L
     flow = d if kind == "out" else -d
     trough(m, min(xf, xo), max(xf, xo), feet=(d < 0, d > 0), flow=flow)
-    m.box((0.02, 0.66, 0.50), (xf + d * 0.011, 0, BELT_Z + 0.25), "hole")
-    xe = collar(m, xf, d, n=n, top=top, w=w)
-    return port_arch(m, xe, d, kind, w=min(1.0, w + 0.02), top=top + 0.04)
+    m.box((0.02, 0.655, 0.32), (xf + d * 0.011, 0, BELT_Z + 0.16), "hole")
+    return collar(m, xf, d, n=n, top=top, w=w)
 
 
 def port(m, side, x, y, kind, L=1.0, **kw):
@@ -196,7 +190,7 @@ def lamp(m, mk="lampg", r=0.035):
 # ============================ STRUCTURE ============================
 def band(m, xs, ys, z, t=0.08, mk="g4", out=0.04):
     """A trim slab that overhangs the block below it."""
-    bx(m, (xs[0] - out, xs[1] + out), (ys[0] - out, ys[1] + out), (z, z + t), mk)
+    bx(m, (xs[0] - out, xs[1] + out), (ys[0] - out, ys[1] + out), (z, z + t), mk, bevel=min(0.025, t * 0.3))
 
 
 def chimney(m, x, y, z0, h, r=0.10, seg=6, mks=("g2", "g3"), glow=False):
@@ -288,4 +282,4 @@ def tee(m, s_kind="in", **kw):
 
 
 def tee_body(m, top=1.30, mk="g2", band_mk="g4", t=0.08):
-    return body(m, top, mk, band_mk, t, xs=(-0.5, 0.5), ys=(0.04, 0.96))
+    return body(m, top, mk, band_mk, t, xs=(-0.5, 0.5), ys=(0.0, 0.96))

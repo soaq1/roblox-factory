@@ -76,6 +76,16 @@ def wb_basic(m):
         m.box((0.12, 0.11, 0.03), (0.23, 0, 0.015), "gold")
 
 
+def mini_machine(m, x, y, z):
+    """A small v2 machine on its bit of belt, for the benches where machines are built."""
+    with m.at((x, y, z)):
+        m.box((0.46, 0.15, 0.06), (0, 0, 0.03), "g1")
+        m.box((0.44, 0.10, 0.012), (0, 0, 0.064), "tread")
+        m.box((0.18, 0.21, 0.20), (0, 0, 0.10), "g2", bevel=0.02)
+        m.box((0.20, 0.23, 0.03), (0, 0, 0.215), "g4")
+        m.cyl(0.03, 0.10, (0.03, 0.04, 0.28), "g3", seg=6)
+
+
 def bench2(m, top="wood", frame="wood_dark", back="wood", w=0.94, h=0.72, shelf=True):
     """A two-cell bench: legs, stretcher, top, and a back board with a shelf."""
     for x in (-w + 0.10, w - 0.10):
@@ -148,7 +158,7 @@ def wb_machine(m):
         m.box((0.02, 0.02, 0.10), (x, 0.086, T + 0.74), "g5")
     m.box((0.46, 0.34, 0.012), (-0.10, -0.06, T + 0.006), "paper", rot=rad(8))
     m.cyl(0.03, 0.40, (0.14, -0.04, T + 0.03), "paper", seg=6, axis="Y", rot=rad(8))
-    fk.p_mini_machine(m, 0.56, -0.02, T)
+    mini_machine(m, 0.56, -0.02, T)
     m.box((0.24, 0.15, 0.13), (-0.62, 0.02, T + 0.065), "toolred")
     m.box((0.10, 0.04, 0.035), (-0.62, 0.02, T + 0.15), "g5")
     fk.p_hammer(m, -0.14, -0.30, T, rad(-20))
@@ -247,7 +257,7 @@ def wb_all(m):
         m.box((0.02, 0.02, 0.10), (x - 0.04, 0.066, T + 0.78), "g5")
     fk.p_anvil(m, -1.10, -0.06, T)
     fk.p_vise(m, -0.56, -0.18, T)
-    fk.p_mini_machine(m, 0.02, -0.02, T)
+    mini_machine(m, 0.02, -0.02, T)
     fk.p_pcb(m, 0.56, -0.14, T)
     fk.p_pot(m, 1.10, -0.02, T)
     m.box((0.40, 0.28, 0.012), (-0.50, 0.12, T + 0.006), "paper", rot=rad(-6))

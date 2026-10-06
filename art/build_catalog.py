@@ -328,8 +328,7 @@ if v2:
   <nav>{v2_nav}</nav>
   <div class="hero"><img src="img/v2/_line.png" alt="v2 기계를 벨트로 연결한 공장 예시"></div>
   <ul class="legend">
-    <li><i style="background:var(--in)"></i>노란 아치는 입구</li>
-    <li><i style="background:var(--out)"></i>청록 아치는 출구</li>
+    <li><i style="background:#c3c7c5"></i>벨트 위의 화살표가 진행 방향 (입구와 출구를 색으로 구분하지 않음)</li>
     <li><i style="background:#ff5a1f"></i>주황 발광은 열</li>
     <li><i style="background:#4aa8d8"></i>파랑은 물</li>
     <li><i style="background:#d9483b"></i>빨강은 움직이는 부품</li>
@@ -337,6 +336,8 @@ if v2:
   </ul>
   <ul class="notes">
     <li>기계 안으로 컨베이어가 지나갑니다. 가공 기계는 대부분 3×1칸(들어오는 벨트, 몸통, 나가는 벨트)입니다.</li>
+    <li>어느 쪽이 입구인지는 기계에 붙은 벨트의 화살표로 압니다. 화살표가 몸통을 향하면 입구, 바깥을 향하면 출구입니다.</li>
+    <li>큰 덩어리의 모서리는 비스듬히 깎았습니다. 난간, 터널 입구의 주름판, 몸통이 모두 그렇습니다.</li>
     <li>재료를 둘 받거나 출구가 둘인 기계는 옆으로 벨트가 하나 더 나오는 3×2칸입니다.</li>
     <li>고로와 제조 공장은 철골 안에 든 3×3칸, 핵 제련소와 무한 동력로는 5×5칸입니다.</li>
     <li>장면 속 사람 모형은 로블록스 캐릭터 크기(5스터드)입니다. 한 칸은 3스터드입니다.</li>

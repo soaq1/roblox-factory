@@ -62,7 +62,7 @@ def crusher(m):
 @machine2("sawmill")
 def sawmill(m):
     """A low bed with the blade standing through it inside a guard frame."""
-    inline(m, top=0.92)
+    inline(m)
     bx(m, (-0.5, 0.5), (-0.44, 0.44), (0.05, 0.70), "g2")
     band(m, (-0.5, 0.5), (-0.44, 0.44), 0.70, t=0.07, mk="g1", out=0.02)
     bx(m, (-0.34, 0.34), (-0.03, 0.03), (0.76, 0.79), "hole")
@@ -126,7 +126,7 @@ def kiln(m):
 @machine2("stonecutter")
 def stonecutter(m):
     """A gang saw: three blades hang from a head on two posts over the block being cut."""
-    inline(m, top=0.92)
+    inline(m)
     T = body(m, 0.66, t=0.07)
     bx(m, (-0.26, 0.26), (-0.22, 0.22), (T, T + 0.27), "stone")
     bx(m, (-0.26, 0.26), (-0.22, 0.22), (T + 0.27, T + 0.29), "stone_dark")
@@ -254,7 +254,7 @@ def oilpress(m):
 @machine2("lathe")
 def lathe(m):
     """Headstock and chuck at one end, tailstock at the other, the cutting tool between."""
-    inline(m, top=0.92)
+    inline(m)
     T = body(m, 0.72, band_mk="g3", t=0.07, out=0.02)
     bx(m, (-0.46, -0.16), (-0.24, 0.24), (T, T + 0.44), "g2")
     bx(m, (-0.48, -0.14), (-0.26, 0.26), (T + 0.44, T + 0.50), "g4")
@@ -302,7 +302,7 @@ def caster(m):
 @machine2("loom")
 def loom(m):
     """A timber frame strung with warp threads, with the woven cloth rolling off the front."""
-    inline(m, top=0.92)
+    inline(m)
     T = body(m, 0.60, band_mk="wood_dark", t=0.07, out=0.02)
     for x in (-0.42, 0.42):
         for y in (-0.36, 0.36):
