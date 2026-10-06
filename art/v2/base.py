@@ -19,6 +19,10 @@ fk.PAL.update({
 })
 fk.EMIT.update({"h_glow": 1.6})
 G, T, TD, W, D, SLIT = "h_grey", "h_taupe", "h_taupe_d", "h_white", "h_dark", "h_slit"
+# The conveyor and tunnel covers of foundation D have colours of their own, so a scheme can paint the
+# machine body differently from the conveyor it stands on. By default they match the body.
+fk.PAL.update({"h_rail": fk.PAL["h_grey"], "h_rail_d": fk.PAL["h_dark"]})
+R, RD = "h_rail", "h_rail_d"
 SIDES = (-1, 1)                       # used both for the two sides of the belt and for the two ends
 BH, BZ = 0.305, 0.305                 # belt half width and belt surface height
 BX, BY = 0.47, 0.43                   # half length and half width of the body block
@@ -344,13 +348,13 @@ def foundation_d(m, top=0.82):
     right = [(BH, 0.352), (0.372, 0.352), (0.402, 0.326), (0.402, 0.292), (0.386, 0.276), (0.474, 0.055),
              (0.50, 0.055), (0.50, 0.0)]
     section = [(-y, z) for y, z in reversed(right)] + [(-BH, bed_top), (BH, bed_top)] + list(right)
-    m.prism(section, -1.5, 1.5, "X", G)
+    m.prism(section, -1.5, 1.5, "X", R)
     m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
     chevrons2(m, -1.5, 1.5)
     for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # buttresses along both rails, three to a cell
         for s in SIDES:
             pts = [(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)]
-            m.prism(pts, x - 0.022, x + 0.022, "X", D)
+            m.prism(pts, x - 0.022, x + 0.022, "X", RD)
     # two cross beams under the body; their I-section ends show at each side
     beam = [(-0.125, 0.0), (0.125, 0.0), (0.125, 0.065), (0.05, 0.10), (0.05, 0.175), (0.125, 0.21),
             (0.125, 0.27), (-0.125, 0.27), (-0.125, 0.21), (-0.05, 0.175), (-0.05, 0.10), (-0.125, 0.065)]
@@ -362,10 +366,10 @@ def foundation_d(m, top=0.82):
         x0 = d * BX
         for s in SIDES:                                       # the sill stands on the rails, clear of the belt
             ys = tuple(sorted((s * 0.34, s * 0.458)))
-            bx(m, tuple(sorted((x0, x0 + d * 0.345))), ys, (0.0, 0.31), G, bevel=0.03)
+            bx(m, tuple(sorted((x0, x0 + d * 0.345))), ys, (0.0, 0.31), R, bevel=0.03)
         px = x0
-        folds = [(0.042, 0.84, 0.77, 0.315, G), (0.026, 0.77, 0.735, 0.335, D)] * 4
-        for th, w, tp, hw, mk in folds + [(0.066, 0.88, 0.79, 0.315, G)]:
+        folds = [(0.042, 0.84, 0.77, 0.315, R), (0.026, 0.77, 0.735, 0.335, RD)] * 4
+        for th, w, tp, hw, mk in folds + [(0.066, 0.88, 0.79, 0.315, R)]:
             a, b = sorted((px, px + d * th))
             m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
             px += d * th
@@ -392,9 +396,16 @@ TINTS = {
              "h_taupe_d": "#314552", "h_white": "#efeae0", "h_steel": "#8f8a80"},
     "iron": {"h_grey": "#6d757c", "h_dark": "#596168", "h_lite": "#828a91", "h_taupe": "#d68a2c",
              "h_taupe_d": "#ad6d1e", "h_white": "#c8cccf", "h_steel": "#a3aaaf", "h_line": "#c9a24a"},
+    # painted orange panels on a bare steel conveyor, after Satisfactory's colour language
+    "ficsit": {"h_grey": "#e2893a", "h_dark": "#c2722e", "h_lite": "#eea258", "h_taupe": "#474d5a",
+               "h_taupe_d": "#383d48", "h_white": "#dcddde", "h_steel": "#9aa0a6", "h_line": "#d9c56c",
+               "h_rail": "#8c9298", "h_rail_d": "#747a80"},
 }
 
 
 def set_tint(name):
     """Recolour everything with one of TINTS. Call after set_style() and before anything is built."""
-    fk.PAL.update(TINTS[name])
+    c = TINTS[name]
+    fk.PAL.update(c)
+    fk.PAL["h_rail"] = c.get("h_rail", c["h_grey"])
+    fk.PAL["h_rail_d"] = c.get("h_rail_d", c["h_dark"])
