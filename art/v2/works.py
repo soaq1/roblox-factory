@@ -147,3 +147,94 @@ def blast(m):
 
 
 blast.frame = {"iso": (4.1, 0.80), "side": (4.3, 1.15), "top": (3.7, 1.0), "end": (4.3, 1.15)}
+
+
+# ============================ MACHINES WITHOUT TUNNELS ============================
+# A belt running into a tunnel and out again is the look of Islands' machines. These two trials drop the
+# tunnel. In the first the item really falls into an open hopper and the product leaves by a slot at the
+# foot. In the second the machine is an open frame over a plain belt and the work is done in plain sight.
+from . import base as _base
+from . import hero as _hero
+
+
+def belt(m, x0, x1):
+    """A plain run of foundation D's conveyor."""
+    bed_top = BZ - 0.03
+    section = [(-y, z) for y, z in reversed(RAIL_D)] + [(-BH, bed_top), (BH, bed_top)] + list(RAIL_D)
+    m.prism(section, x0, x1, "X", R)
+    m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
+    _base.chevrons2(m, x0, x1)
+
+
+def foundation_t(m, top=0.82):
+    """A machine that stands on the ground as a tower, with no conveyor through it."""
+    bx(m, (-0.50, 0.50), (-0.47, 0.47), (0.0, 0.11), T, bevel=0.035)
+    bx(m, (-BX_, BX_), (-BY_, BY_), (0.07, top), G, bevel=0.028)
+    return top
+
+
+BX_, BY_ = _base.BX, _base.BY
+_base.FOUNDATIONS["t"] = foundation_t
+_base.DARKS["t"] = _base.DARKS["a"]
+
+
+@hero
+def drop(m):
+    """Trial: the crusher fed from above. A raised belt tips ore into the hopper; crushed ore leaves by a
+    slot at the foot onto a belt on the ground."""
+    old, _base.STYLE = _base.STYLE, "t"
+    _hero.crusher(m)
+    _base.STYLE = old
+    m.prism(arch_pts(0.62, 0.64, hole_top=0.54, hw=0.23, c=0.06, ci=0.03), 0.47, 0.50, "X", D)
+    m.box((0.02, 0.46, 0.30), (0.478, 0, 0.40), SLIT)
+    belt(m, 0.5, 1.5)
+    with m.at((0, 0, 1.0)):
+        belt(m, -1.5, -0.5)
+    for x in (-1.34, -0.66):
+        for s in SIDES:
+            ys = tuple(sorted((s * 0.34, s * 0.46)))
+            bx(m, (x - 0.06, x + 0.06), ys, (0.0, 1.02), D, bevel=0.02)
+            bx(m, (x - 0.10, x + 0.10), tuple(sorted((s * 0.30, s * 0.50))), (0.0, 0.09), T, bevel=0.025)
+        m.box((0.07, 0.70, 0.07), (x, 0, 0.62), D)
+    for x, y, z, r in ((-1.22, 0.05, 1.39, 0.3), (-0.82, -0.06, 1.39, 1.1), (-0.36, 0.03, 1.22, 0.7)):
+        m.box((0.17, 0.15, 0.13), (x, y, z), T, bevel=0.035, rot=r)
+    for x, y, r in ((0.72, 0.07, 0.4), (0.80, -0.08, 1.0), (1.02, 0.02, 0.2), (1.12, 0.10, 0.9), (1.20, -0.07, 1.3)):
+        m.box((0.08, 0.075, 0.065), (x, y, 0.34), T, bevel=0.018, rot=r)
+
+
+drop.frame = {"iso": (3.5, 0.50), "side": (3.4, 0.80), "top": (3.2, 0.6), "end": (2.4, 0.80)}
+
+
+@hero
+def openpress(m):
+    """Trial: the press as an open frame over a plain belt. The ingot rides in, is flattened in plain
+    sight under the platen, and rides out as a plate."""
+    belt(m, -1.5, 1.5)
+    k = 1.0 / math.cos(math.pi / 8)
+    for d in SIDES:
+        bx(m, (-0.47, 0.47), tuple(sorted((d * 0.36, d * 0.50))), (0.0, 0.15), T, bevel=0.035)
+        bx(m, (-0.44, 0.44), tuple(sorted((d * 0.33, d * 0.485))), (0.10, 0.66), G, bevel=0.04)
+        m.box((0.52, 0.02, 0.24), (0, d * 0.488, 0.40), D, bevel=0.008)
+        m.cyl(0.075, 0.03, (0, d * 0.50, 0.40), T, seg=10, axis="Y")
+        m.cyl(0.055, 0.012, (0, d * 0.512, 0.40), "h_lite", seg=10, axis="Y")
+        for sx in SIDES:
+            x, y = sx * 0.31, d * 0.41
+            m.cyl(0.088, 0.07, (x, y, 0.695), D, seg=6)
+            m.cyl(0.055, 0.86, (x, y, 1.09), "h_lite", seg=8)
+            m.cyl(0.08, 0.27, (x, y, 1.12), G, seg=8)
+            m.cyl(0.082, 0.06, (x, y, 1.73), D, seg=6)
+            m.cyl(0.045, 0.05, (x, y, 1.785), "h_lite", seg=6)
+    bx(m, (-0.43, 0.43), (-0.485, 0.485), (1.02, 1.22), T, bevel=0.022)
+    bx(m, (-0.24, 0.24), (-0.22, 0.22), (0.95, 1.03), D, bevel=0.02)
+    m.cyl(0.11, 0.26, (0, 0, 1.34), "h_steel", seg=12)
+    bx(m, (-0.45, 0.45), (-0.50, 0.50), (1.46, 1.70), G, bevel=0.05)
+    m.cyl(0.215 * k, 0.05, (0, 0, 1.72), D, seg=8, rot=rad(22.5))
+    m.cyl(0.19 * k, 0.30, (0, 0, 1.86), G, seg=8, rot=rad(22.5))
+    m.cyl(0.215 * k, 0.05, (0, 0, 2.00), D, seg=8, rot=rad(22.5))
+    m.cyl(0.07, 0.05, (0, 0, 2.05), "h_lite", seg=6)
+    m.box((0.24, 0.13, 0.09), (-1.0, 0, 0.352), "h_steel", bevel=0.02)       # an ingot going in
+    m.box((0.30, 0.26, 0.035), (0.0, 0, 0.325), "h_lite")                     # being flattened
+    m.box((0.30, 0.26, 0.035), (1.0, 0, 0.325), "h_lite")                     # a plate coming out
+
+
+openpress.frame = {"iso": (3.3, 0.72), "side": (3.4, 0.95), "top": (3.2, 0.6), "end": (2.6, 1.0)}
