@@ -336,9 +336,10 @@ def chevrons2(m, x0, x1, step=0.375):
 def foundation_d(m, top=0.82):
     """Foundation D, our own, with the richness of A kept and its shapes changed.
     The rail leans in all the way up to a stout eight-sided cap, and is braced by a row of triangular
-    buttresses instead of bolts. Each tunnel mouth is a sleeve with heavily chamfered shoulders ending in
-    a thick bolted flange, like a pipe joint. The body stands on two cross beams whose I-section ends
-    show at each side, and has a chamfered base course of its own."""
+    buttresses instead of bolts. Each tunnel mouth is a folding cover of our own proportions: four
+    broad-shouldered ridges with darker, smaller webs between them, closed by a heavier end frame. The
+    body stands on two cross beams whose I-section ends show at each side, and has a chamfered base
+    course of its own."""
     bed_top = BZ - 0.03
     right = [(BH, 0.352), (0.372, 0.352), (0.402, 0.326), (0.402, 0.292), (0.386, 0.276), (0.474, 0.055),
              (0.50, 0.055), (0.50, 0.0)]
@@ -346,33 +347,28 @@ def foundation_d(m, top=0.82):
     m.prism(section, -1.5, 1.5, "X", G)
     m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
     chevrons2(m, -1.5, 1.5)
-    for i in range(12):                                       # buttresses along both rails
-        x = -1.375 + i * 0.25
-        if abs(x) > 0.62:
-            for s in SIDES:
-                pts = [(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)]
-                m.prism(pts, x - 0.016, x + 0.016, "X", D)
-    # two cross beams under the body; their I-section ends show at each side
-    beam = [(-0.085, 0.0), (0.085, 0.0), (0.085, 0.048), (0.026, 0.078), (0.026, 0.192), (0.085, 0.222),
-            (0.085, 0.27), (-0.085, 0.27), (-0.085, 0.222), (-0.026, 0.192), (-0.026, 0.078), (-0.085, 0.048)]
-    for sx in SIDES:
-        m.prism([(sx * 0.30 + px, pz) for px, pz in beam], -0.499, 0.499, "Y", T)
+    for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # buttresses along both rails, three to a cell
         for s in SIDES:
-            m.cyl(0.02, 0.012, (sx * 0.30, s * 0.502, 0.135), G, seg=6, axis="Y")
+            pts = [(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)]
+            m.prism(pts, x - 0.022, x + 0.022, "X", D)
+    # two cross beams under the body; their I-section ends show at each side
+    beam = [(-0.125, 0.0), (0.125, 0.0), (0.125, 0.065), (0.05, 0.10), (0.05, 0.175), (0.125, 0.21),
+            (0.125, 0.27), (-0.125, 0.27), (-0.125, 0.21), (-0.05, 0.175), (-0.05, 0.10), (-0.125, 0.065)]
+    for sx in SIDES:
+        m.prism([(sx * 0.27 + px, pz) for px, pz in beam], -0.499, 0.499, "Y", T)
     bx(m, (-BX - 0.02, BX + 0.02), (-BY - 0.02, BY + 0.02), (0.262, 0.345), G, bevel=0.03)      # base course
     bx(m, (-BX, BX), (-BY, BY), (0.30, top), G, bevel=0.028)
-    for d in SIDES:                                           # a sleeve and a bolted flange at each end
+    for d in SIDES:                                           # a folding cover on a sill at each end
         x0 = d * BX
-        a, b = sorted((x0, x0 + d * 0.19))
-        m.prism(arch_pts(0.80, 0.76, hole_top=0.60, hw=0.315, c=0.11, ci=0.05), a, b, "X", G)
-        a, b = sorted((x0 + d * 0.19, x0 + d * 0.205))
-        m.prism(arch_pts(0.86, 0.79, hole_top=0.60, hw=0.315, c=0.12, ci=0.05), a, b, "X", TD)
-        a, b = sorted((x0 + d * 0.205, x0 + d * 0.265))
-        m.prism(arch_pts(0.94, 0.83, hole_top=0.60, hw=0.315, c=0.13, ci=0.05), a, b, "X", G)
-        xf = x0 + d * 0.27
-        for by, bz in ((-0.20, 0.775), (0.0, 0.775), (0.20, 0.775), (-0.385, 0.70), (0.385, 0.70),
-                       (-0.42, 0.52), (0.42, 0.52), (-0.42, 0.40), (0.42, 0.40)):
-            m.cyl(0.026, 0.02, (xf, by, bz), D, seg=6, axis="X")
+        for s in SIDES:                                       # the sill stands on the rails, clear of the belt
+            ys = tuple(sorted((s * 0.34, s * 0.458)))
+            bx(m, tuple(sorted((x0, x0 + d * 0.345))), ys, (0.0, 0.31), G, bevel=0.03)
+        px = x0
+        folds = [(0.042, 0.84, 0.77, 0.315, G), (0.026, 0.77, 0.735, 0.335, D)] * 4
+        for th, w, tp, hw, mk in folds + [(0.066, 0.88, 0.79, 0.315, G)]:
+            a, b = sorted((px, px + d * th))
+            m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
+            px += d * th
         m.box((0.02, 0.62, 0.40), (d * (BX + 0.012), 0, 0.50), SLIT)
     return top
 
