@@ -827,7 +827,7 @@ def smelter8(m):
     Ours keeps its own body (chassis, piered firebox with its fire mouth, sloped hood) and puts on the
     crown a wide hearth box that spreads toward its rim: a flared foot, light walls leaning out, a dark
     rim round a real hollow where the fire lies under a row of bars, and a glowing tap port in its far
-    end. At the far end's front corner stands the blower, a square fan casing with a rimmed intake.
+    end. At the far end's front corner stands the blower, a square fan casing whose open top is its intake.
     One air pipe runs from it the length of the hearth, sends two branches square into its wall, then
     turns out over the eave and drops into a boot on the near pier; a second crosses the far end, turns
     over the back eave and drops into a boot on the far pier, so neither side is bare. (A tap spout and mould box stood at the far end; the developer asked what they
@@ -848,11 +848,15 @@ def smelter8(m):
     case = (0.08, 0.10, 0.025)
     with m.at((xw, yw, 0)):
         tower(m, [(0.085, 0.11, 0.03, P), (case[0], case[1], case[2], P + 0.04)], T)
-        slab(m, case[0], case[1], P + 0.04, P + 0.25, case[2], ST, bevel=0.012)
-        slab(m, 0.085, 0.112, P + 0.25, P + 0.29, cut_to(0.085, 0.112, case, 0.008), TD, bevel=0.008)
-    with on_side(m, -1, yw - case[1], zw, xc=xw):
-        oct_ring(m, rw, 0.026, -0.004, 0.012, T)
-        octa(m, 0.046, 0.046, -0.03, -0.008, SLIT)
+        slab(m, case[0], case[1], P + 0.04, P + 0.25, case[2], ST, bevel=0.01)
+        # the intake is the casing's open top: a rim round a real hollow, dark inside, two bars across it.
+        # (It was an eight-sided ring on the front wall with its dark middle buried in the wall, so it read as a doughnut stuck on.)
+        cc = cut_to(0.088, 0.108, case, 0.008)
+        shell(m, [(0.088, 0.108, cc, P + 0.24), (0.088, 0.108, cc, P + 0.275), (0.078, 0.098, cc, P + 0.29),
+                  (0.06, 0.08, 0.016, P + 0.29), (0.054, 0.074, 0.014, P + 0.24)], TD)
+        tower(m, [(0.058, 0.078, 0.015, P + 0.235), (0.058, 0.078, 0.015, P + 0.258)], SLIT)
+        for y in (-0.028, 0.028):
+            m.prism([(y - 0.012, P + 0.255), (y + 0.012, P + 0.255), (y + 0.007, P + 0.278), (y - 0.007, P + 0.278)], -0.064, 0.064, "X", ST)
     # Air pipes. Each leaves the casing square through a flange, turns only in open air, and ends by running
     # straight down through a flange into a boot on a pier: no bend lies inside a flange, and no pipe meets a wall at a slant.
     zp, ra, rf, yo, zt = P + 0.10, 0.03, 0.038, 0.447, 0.58   # run height, pipe and flange radius, where the wall run stands, a boot's top
