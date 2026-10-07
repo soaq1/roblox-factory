@@ -715,6 +715,66 @@ def smelter5c(m):
     pour(m, (xq + 0.19, P + 0.415), xb, P)
 
 
+@contextmanager
+def on_end(m, sx, x, y, z):
+    """Build on a face that looks along the belt: local z runs out of it (toward sx), local y is up."""
+    from mathutils import Matrix
+    m.stack.append(m.stack[-1] @ Matrix(((0, 0, sx, x), (sx, 0, 0, y), (0, 1, 0, z), (0, 0, 0, 1))))
+    yield
+    m.stack.pop()
+
+
+def smelter6(m):
+    """Smelter, 3x1, grade 2 (hitbox 3x1x2). The developer dropped the pot and asked for something with
+    more presence: it may be lopsided, and it should have pipes.
+    Concept as before: ore goes into the fire, melts, and sets into an ingot on its way out. On the
+    hood's crown stand, not in a row but as a group: a square steel melting chamber on a flared foot
+    under a dark cap, a glowing eight-sided sight port in its front; a tall square stack at the back
+    corner, fed from the chamber's cap by a duct that rises, turns and runs into it; a blower at the
+    front corner, a drum with a rimmed intake at one end and its motor at the other, whose air pipe
+    runs out over the eave, down the wall and into the firebox's pier; and at the far end the tap
+    spout running down from the chamber into the mould box. Every pipe carries something and is joined
+    at both ends through a flange."""
+    P = _smelt_lower(m)
+    xh, yh = 0.045, 0.08                                      # melting chamber: upright below, its shoulders drawing in to the cap
+    head, neck = (0.20, 0.19, 0.04), (0.15, 0.14, 0.035)
+    with m.at((xh, yh, 0)):
+        tower(m, [(0.225, 0.215, 0.05, P), (head[0], head[1], head[2], P + 0.06)], T)
+        tower(m, [(head[0], head[1], head[2], P + 0.06), (head[0], head[1], head[2], P + 0.34), (neck[0], neck[1], neck[2], P + 0.46)], ST)
+        slab(m, 0.17, 0.16, P + 0.46, P + 0.53, cut_to(0.17, 0.16, neck, 0.02), TD, bevel=0.014)
+    with on_side(m, -1, yh - head[1], P + 0.20, xc=xh):       # sight port in the front
+        octa(m, 0.09, 0.09, -0.002, 0.008, "h_glow")
+        oct_ring(m, 0.125, 0.04, -0.004, 0.03, T)
+    # stack at the back corner, and the duct that feeds it from the chamber's cap
+    xs, ys, top = -0.345, 0.185, 1.92
+    with m.at((0, ys, 0)):
+        sq_stack(m, xs, P, top)
+    xd, zd, rd = -0.02, P + 0.68, 0.05                        # where the duct leaves the cap, the height it runs at, its radius
+    with m.at((0, 0, 0), rz=rad(90)):                         # in here local x is across the belt and the duct runs along local +y
+        side_pipe(m, ys, [(-xd, P + 0.50), (-xd, zd - 0.045), (-xd + 0.045, zd), (-xs - 0.03, zd)], rd, ST)
+    m.cyl(rd * 1.36, 0.03, (xd, ys, P + 0.545), T, seg=8)                                     # flange on the cap
+    m.cyl(rd * 1.36, 0.03, (xs + 0.085, ys, zd), T, seg=8, axis="X")                         # flange on the stack
+    # blower at the front corner: drum, rimmed intake, motor, and the air pipe into the firebox's pier
+    xw, yw, zw, rw = -0.325, -0.185, P + 0.13, 0.108
+    with m.at((xw, yw, 0)):
+        tower(m, [(0.085, 0.09, 0.025, P), (0.065, 0.07, 0.02, P + 0.06)], T)
+    m.cyl(rw * K, 0.19, (xw, yw, zw), ST, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with on_end(m, -1, xw - 0.095, yw, zw):                   # intake: a rim round a real hollow
+        oct_ring(m, rw, 0.036, 0.0, 0.03, T)
+        octa(m, 0.075, 0.075, -0.02, 0.004, SLIT)
+    with on_end(m, 1, xw + 0.095, yw, zw):                    # the fan's hub, on the end away from the intake
+        octa(m, 0.05, 0.04, 0.0, 0.022, LT)
+    xa, ya, ra, za = -0.36, -0.455, 0.035, 0.555              # the air pipe: its plane, the wall run, its radius, where it enters the pier
+    side_pipe(m, xa, [(yw - 0.03, zw), (ya + 0.045, zw), (ya, zw - 0.045), (ya, za + 0.045), (ya + 0.045, za), (-0.385, za)], ra, ST)
+    m.cyl(ra * 1.4, 0.028, (xa, yw - rw - 0.012, zw), T, seg=8, axis="Y")                   # flange on the drum
+    m.cyl(ra * 1.4, 0.028, (xa, -0.412, za), T, seg=8, axis="Y")                             # flange on the pier
+    # tap: the spout from the chamber's far end down into the mould box
+    pour(m, (xh + head[0] - 0.02, P + 0.36), 0.385, P)
+
+
+smelter6.frame, smelter6.shadow = F31, True
+_hero.HEROES["smelter6"] = smelter6
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
