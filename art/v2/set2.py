@@ -537,6 +537,67 @@ _hero.HEROES["crusher3"] = crusher3
 smelter3.frame, smelter3.shadow = F31, True
 _hero.HEROES["smelter3"] = smelter3
 
+
+def smelter4(m):
+    """Smelter, 3x1, grade 2 (hitbox 3x1x2). Concept: ore goes into the fire, melts, and sets into an
+    ingot on its way out; the machine is a fire with a pot of melting metal on it, and the melt can be
+    followed from the pot to the mould.
+    One dark chassis grips both rails. The firebox on it has a pier at each end and a wall set back
+    between them, where the fire mouth sits behind its bars in a one-piece frame. The firebox rises
+    into a hood. On the hood's crown, from the end the ore comes in to the end the ingot leaves: the
+    stack, on its flared foot; the pot, its belly swelling and drawing in to a rim round the glowing
+    melt; a spout running down from the pot's neck; and the mould box the spout pours into, a real
+    hollow with the melt lying in it. The two sides of the belt are the same."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis
+    hy, hc, xp = 0.40, 0.355, 0.30                            # pier face, the wall set back between the piers, where a pier begins
+    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, 0.70, "Z", G, bevel=0.012)    # fire wall
+    for sx in SIDES:                                          # a pier at each end, beside the mouth's folds
+        with m.at((sx * (xp + BX) / 2, 0, 0)):
+            slab(m, (BX - xp) / 2, hy, 0.37, 0.70, 0.02, G, bevel=0.018)
+    # the hood: the firebox's own top, sloping in from both side walls to a flat crown
+    bprism(m, [(-hy, 0.70), (-hy, 0.74), (-0.30, 0.90), (0.30, 0.90), (hy, 0.74), (hy, 0.70)], -BX, BX, "X", TD, bevel=0.016)
+    for d in SIDES:                                           # fire mouth, set in between the piers
+        with on_side(m, d, d * hc, 0.535):
+            m.box((0.27, 0.15, 0.008), (0, 0, 0.002), "h_glow")
+            for k in range(4):                                # bars of a tapered section, their ends set into the frame
+                x = -0.09 + k * 0.06
+                m.prism([(x - 0.016, 0.004), (x + 0.016, 0.004), (x + 0.008, 0.019), (x - 0.008, 0.019)], -0.10, 0.10, "Y", TD)
+            ring(m, 0.185, 0.125, [(0.0, -0.004), (0.012, 0.03), (0.036, 0.03), (0.05, -0.004)], T, c=0.04)
+    P = 0.90                                                  # the crown
+    xs, xq, xb = -0.36, -0.02, 0.385                          # stack, pot, mould box
+    with m.at((xs, 0, 0)):                                    # the stack, at the end the ore comes in
+        octa(m, 0.105, 0.085, P, P + 0.08, T)
+        octa(m, 0.085, 0.068, P + 0.08, P + 0.78, ST)
+        octa(m, 0.068, 0.105, P + 0.78, P + 0.86, TD)         # the cap flares, then a rim stands on it round a real hollow
+        oct_ring(m, 0.105, 0.03, P + 0.86, P + 0.90, TD)
+        octa(m, 0.078, 0.078, P + 0.83, P + 0.865, SLIT)
+    with m.at((xq, 0, 0)):                                    # the pot
+        octa(m, 0.21, 0.17, P, P + 0.08, T)
+        octa(m, 0.17, 0.215, P + 0.08, P + 0.24, ST)
+        octa(m, 0.215, 0.23, P + 0.24, P + 0.29, LT)
+        octa(m, 0.23, 0.215, P + 0.29, P + 0.34, LT)
+        octa(m, 0.215, 0.175, P + 0.34, P + 0.50, ST)
+        octa(m, 0.175, 0.21, P + 0.50, P + 0.56, TD)
+        oct_ring(m, 0.21, 0.055, P + 0.56, P + 0.62, TD)
+        octa(m, 0.152, 0.152, P + 0.555, P + 0.59, "h_glow")
+    # the spout: a channel from the pot's neck down to over the mould box, the melt running in it
+    with m.at((0, 0, 0), rz=rad(90)):                         # in here the channel runs along local -y, and local x is across the belt
+        lo, hi = (-xb, P + 0.27), (-(xq + 0.185), P + 0.545)   # from over the middle of the mould box up to the pot's neck
+        sweep(m, 0, [lo, hi], [(-0.05, 0.0), (-0.035, 0.0), (-0.035, 0.03), (0.035, 0.03), (0.035, 0.0), (0.05, 0.0),
+                               (0.05, 0.03), (0.035, 0.045), (-0.035, 0.045), (-0.05, 0.03)], TD)
+        sweep(m, 0, [(lo[0] + 0.006, lo[1] + 0.008), hi], [(-0.037, 0.016), (0.037, 0.016), (0.037, 0.036), (-0.037, 0.036)], "h_glow")
+    with m.at((xb, 0, 0)):                                    # the mould box: the melt lies in it and sets
+        shell(m, [(0.066, 0.14, 0.02, P), (0.078, 0.152, 0.022, P + 0.20), (0.066, 0.14, 0.02, P + 0.225),
+                  (0.05, 0.124, 0.015, P + 0.225), (0.04, 0.115, 0.012, P + 0.15), (0.04, 0.115, 0.012, P + 0.02)], T)
+        slab(m, 0.045, 0.12, P + 0.02, P + 0.17, 0.012, "h_glow", bevel=0.003)
+
+
+smelter4.frame, smelter4.shadow = F31, True
+_hero.HEROES["smelter4"] = smelter4
+
 assembler4.frame, assembler4.shadow = F33, True
 _hero.HEROES["assembler4"] = assembler4
 
