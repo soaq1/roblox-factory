@@ -149,6 +149,18 @@ def corrugated(m, x0, x1, y0, y1, z0, z1, faces, mk, pitch=0.15, depth=0.045):
     m.prism(pts, z0, z1, "Z", mk)
 
 
+def cut_to(hx, hy, ref, off):
+    """The corner cut for a block of half-sizes hx, hy stacked on (or under) the block ref = (hx, hy, cut),
+    so that its cut corners stand `off` outside ref's cut corners (inside, when negative). Two stacked
+    blocks whose corners are cut by unrelated amounts overhang evenly along the sides but not at the
+    corners, where the lower one pokes out from under the upper."""
+    return (hx + hy) - (ref[0] + ref[1]) + ref[2] - math.sqrt(2) * off
+
+
+HALL = (0.50, 1.49, 0.035)                                   # the assembler's hall: half-sizes and corner cut
+DECK_C = cut_to(0.53, 1.50, HALL, 0.02)                      # its deck's corners stand as far outside the hall's as its sides do
+
+
 def _asm_lower(m):
     """Assembler, 3x3: two inputs side by side, one output. The hall, the mouths, a control cabin
     between the inputs and a power cabinet with folded walls at each back corner. Nothing small sticks
@@ -160,9 +172,9 @@ def _asm_lower(m):
             cover(m, -0.5, -1)
     run(m, 0.5, 1.5, braces=(1.0, 4 / 3))
     cover(m, 0.5, 1)
-    slab(m, 0.485, 1.475, 0.0, 0.18, 0.03, T, bevel=0.012)   # a dark kick strip, set back under the wall
-    slab(m, 0.50, 1.49, 0.14, 0.86, 0.035, G, bevel=0.02)
-    slab(m, 0.53, 1.50, 0.82, 0.96, 0.09, TD, bevel=0.025)
+    slab(m, 0.485, 1.475, 0.0, 0.18, cut_to(0.485, 1.475, HALL, -0.015), T, bevel=0.012)   # a dark kick strip, set back under the wall
+    slab(m, 0.50, 1.49, 0.14, 0.86, HALL[2], G, bevel=0.02)
+    slab(m, 0.53, 1.50, 0.82, 0.96, DECK_C, TD, bevel=0.025)
     for sy in SIDES:
         with frame(m, (0, sy * 1.5), (0, -sy)):               # x runs in from the cell's edge; the wall is at 0.01
             m.box((0.03, 0.50, 0.40), (0.02, 0, 0.42), G, bevel=0.012)                  # door, standing a little proud
@@ -176,9 +188,10 @@ def _asm_lower(m):
     # control cabin between the inputs, with a bezelled screen
     x0 = -1.15
     with m.at((-0.815, 0, 0)):
-        slab(m, 0.345, 0.385, 0.0, 0.16, 0.03, T, bevel=0.012)
-        slab(m, 0.335, 0.37, 0.12, 0.90, 0.04, G, bevel=0.02)
-        slab(m, 0.355, 0.39, 0.86, 0.97, 0.07, TD, bevel=0.022)
+        cab = (0.335, 0.37, 0.04)
+        slab(m, 0.345, 0.385, 0.0, 0.16, cut_to(0.345, 0.385, cab, 0.0125), T, bevel=0.012)
+        slab(m, *cab[:2], 0.12, 0.90, cab[2], G, bevel=0.02)
+        slab(m, 0.36, 0.395, 0.86, 0.97, cut_to(0.36, 0.395, cab, 0.025), TD, bevel=0.012)   # the chamfer is smaller than the overhang, so a flat soffit shows
     m.box((0.012, 0.50, 0.26), (x0 - 0.002, 0, 0.56), SLIT)
     m.stack.append(m.stack[-1] @ Matrix(((0, 0, -1, x0), (-1, 0, 0, 0), (0, 1, 0, 0.56), (0, 0, 0, 1))))
     ring(m, 0.315, 0.195, [(0.0, -0.002), (0.012, 0.034), (0.051, 0.034), (0.065, -0.002)], T)
@@ -388,7 +401,7 @@ def assembler4(m):
     _asm_lower(m)
     Z = 0.96
     # deck: a kerb with a sloped inner face, running round the edge in one mitred piece; seams across the floor
-    ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=0.09)
+    ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=DECK_C)
     for y in (-0.5, 0.5):                                     # the outer pair ran under the bins and showed at both sides of them
         m.box((0.82, 0.014, 0.006), (0, y, Z + 0.003), ST)
     # portals, tied by struts; a hoist rail with a work lamp hangs under their crowns
