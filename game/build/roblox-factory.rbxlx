@@ -31528,25 +31528,32 @@ return Grid
 -- Definitions and the bag rules are passed in, so this runs outside Roblox.
 local HandLogic = {}
 
--- The loose item that Q lets go of for a hotbar entry, or nil if the entry has no loose form.
+-- The bag key that Q lets go of for a hotbar entry, or nil if the entry has no loose form.
 -- An "item:<id>" entry is that item. A block that is also an item (log, stone, ore), or that is
--- laid from one (dirt from a clod), is let go as that item; so is a plant, as its seed. In
--- survival the bag must hold it; `free` is creative mode.
+-- laid from one (dirt from a clod), is let go as that item; a block that is only a block (grass,
+-- planks) is let go as the block itself; a plant goes as its seed. A machine has no loose form.
+-- In survival the bag must hold it; `free` is creative mode, where the item form is preferred.
 function HandLogic.looseForm(Defs, Stock, entry: string, bag: { [string]: number }, free: boolean): string?
 	local item = Defs.itemOf(entry)
 	if item then
 		return item
 	end
-	local first: string? = nil
+	local firstItem: string? = nil
+	local firstBlock: string? = nil
 	for _, key in Stock.placeCost(entry) do
-		if Defs.Items[key] then
+		local isItem = Defs.Items[key] ~= nil
+		if isItem or Stock.blockOf(key) then
 			if (bag[key] or 0) >= 1 then
 				return key
 			end
-			first = first or key
+			if isItem then
+				firstItem = firstItem or key
+			else
+				firstBlock = firstBlock or key
+			end
 		end
 	end
-	return if free then first else nil
+	return if free then firstItem or firstBlock else nil
 end
 
 -- Can the bag pay for placing this entry? Everything is to hand in creative mode.
@@ -39326,6 +39333,23 @@ return function(Defs)
 		return Defs.name(key)
 	end
 
+	local LOOSE_BLOCK = { 1.5, 1.5, 1.5 } -- studs: a block lying loose is half a cell across
+
+	-- What a bag key looks like lying loose in the world: its size, colour and whether it is round.
+	-- An item is as its definition says. A block that is only a block is a small box in its top
+	-- colour. A machine cannot lie loose, and nor can anything that is not a bag key.
+	function Stock.loose(key): { size: { number }, color: { number }, ball: boolean }?
+		local item = Defs.Items[key]
+		if item then
+			return { size = item.size, color = item.color, ball = item.ball }
+		end
+		local block = Stock.blockOf(key)
+		if block then
+			return { size = LOOSE_BLOCK, color = Defs.Blocks[block].top, ball = false }
+		end
+		return nil
+	end
+
 	-- What goes into the bag when a block is broken. `roll` is a random number from 0 up to 1.
 	function Stock.blockDrop(id: string, roll: number): string?
 		if id == "leaves" then
@@ -41802,6 +41826,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local ModelBuilder = require(Shared.ModelBuilder)
+local Stock = require(Shared.Stock)(Defs)
 
 local ItemService = {}
 
@@ -41905,8 +41930,9 @@ local function trim()
 	end
 end
 
+-- `itemId` is a bag key: an item, or "block:<id>" for a block that is only a block.
 function ItemService.spawn(itemId: string, count: number, position: Vector3): BasePart?
-	local def = Defs.Items[itemId]
+	local def = Stock.loose(itemId)
 	if not def or count < 1 then
 		return nil
 	end
@@ -43611,7 +43637,11 @@ local function drop(player: Player, id: any, x: any, y: any, z: any)
 	local island = IslandService.get(player)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not island or not root or not root:IsA("BasePart") or not Defs.isItem(id) or not allowed(player) then
+	-- What is let go is a bag key that can lie loose: an item, or a block that is only a block.
+	if not island or not root or not root:IsA("BasePart") or type(id) ~= "string" or not allowed(player) then
+		return
+	end
+	if Stock.loose(id) == nil then
 		return
 	end
 	local at = (root.CFrame * CFrame.new(0, 0.5, -3.5)).Position
@@ -51219,88 +51249,6 @@ function HandView.init(hotbarUi)
 	build(hotbar.selected())
 	-- After the camera has moved for this frame, so the held thing does not trail behind it.
 	RunService:BindToRenderStep("HandView", Enum.RenderPriority.Camera.Value + 1, place)
-	-- TEMPORARY: say what the arm is doing, so the log can be read instead of the screen.
-	-- Every 3 seconds for two minutes, which is long enough to start a play test, pick something
-	-- up and walk around in third person. Delete once the arm works.
-	task.spawn(function()
-		for round = 1, 40 do
-			task.wait(3)
-			local camera = Workspace.CurrentCamera
-			local character = player.Character
-			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
-			local lines = { "HANDVIEW round " .. round }
-			table.insert(
-				lines,
-				"pieces="
-					.. #pieces
-					.. " selected="
-					.. tostring(hotbar.selected())
-					.. " view="
-					.. (if camera then (if isFirstPerson(camera) then "first" else "third") else "none")
-			)
-			-- Roblox's animation script lives in the character as "Animate" and is what raises the
-			-- arm. If it is missing or switched off, nothing will ever move the arm.
-			local animate = character and character:FindFirstChild("Animate")
-			table.insert(
-				lines,
-				"rig="
-					.. tostring(humanoid and humanoid.RigType)
-					.. " animate="
-					.. (if animate
-						then animate.ClassName .. "/off=" .. tostring((animate :: any).Disabled)
-						else "MISSING")
-					.. " toolnone="
-					.. tostring(animate ~= nil and animate:FindFirstChild("toolnone") ~= nil)
-			)
-			-- The empty Tool this file puts in the character, and whether Roblox accepted it: on a
-			-- real equip Roblox welds the tool's Handle to the right hand as "RightGrip".
-			local tool = character and character:FindFirstChildOfClass("Tool")
-			table.insert(
-				lines,
-				"tool="
-					.. tostring(tool and tool.Name)
-					.. " handle="
-					.. tostring(tool and tool:FindFirstChild("Handle") ~= nil)
-					.. " requiresHandle="
-					.. tostring(tool and tool.RequiresHandle)
-			)
-			local hand = character and character:FindFirstChild("RightHand")
-			table.insert(
-				lines,
-				"rightGrip="
-					.. tostring(hand and hand:FindFirstChild("RightGrip") ~= nil)
-					.. " gripMark="
-					.. tostring(hand and hand:FindFirstChild("RightGripAttachment") ~= nil)
-			)
-			if animator then
-				local names = {}
-				for _, track in animator:GetPlayingAnimationTracks() do
-					table.insert(
-						names,
-						string.format(
-							"%s(%s,w%.2f)",
-							track.Name,
-							tostring(track.Priority),
-							track.WeightCurrent
-						)
-					)
-				end
-				table.insert(lines, "tracks=" .. table.concat(names, ","))
-			end
-			local upper = character and character:FindFirstChild("RightUpperArm")
-			local lower = character and character:FindFirstChild("HumanoidRootPart")
-			if upper and lower and upper:IsA("BasePart") and lower:IsA("BasePart") then
-				local rel = lower.CFrame:ToObjectSpace(upper.CFrame)
-				local rx, ry, rz = rel:ToOrientation()
-				table.insert(
-					lines,
-					string.format("upperArm rel rot %.0f %.0f %.0f", math.deg(rx), math.deg(ry), math.deg(rz))
-				)
-			end
-			print(table.concat(lines, " | "))
-		end
-	end)
 end
 
 return HandView

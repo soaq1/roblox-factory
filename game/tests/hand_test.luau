@@ -24,18 +24,53 @@ test("a planted thing is let go as its seed", function()
 	eq(HandLogic.looseForm(Defs, Stock, "plant_sapling", { sapling = 1 }, false), "sapling")
 	eq(HandLogic.looseForm(Defs, Stock, "crop_wheat_1", { seed = 4 }, false), "seed")
 end)
-test("machines and blocks that are only blocks have no loose form", function()
+test("a held block that is only a block is let go as the block itself", function()
+	eq(HandLogic.looseForm(Defs, Stock, "planks", { ["block:planks"] = 5 }, false), "block:planks")
+	eq(HandLogic.looseForm(Defs, Stock, "grass", { ["block:grass"] = 1 }, false), "block:grass")
+	eq(HandLogic.looseForm(Defs, Stock, "grass", {}, false), nil)
+	eq(HandLogic.looseForm(Defs, Stock, "grass", {}, true), "block:grass")
+	-- a block held in both forms goes in the form the bag has; the block form first
+	eq(HandLogic.looseForm(Defs, Stock, "stone", { ["block:stone"] = 1, stone = 1 }, false), "block:stone")
+	eq(HandLogic.looseForm(Defs, Stock, "stone", {}, true), "stone")
+end)
+test("every block in the game can be let go of when the bag holds it", function()
+	for id in Defs.Blocks do
+		local held = {}
+		for _, key in Stock.placeCost(id) do
+			held[key] = 1
+		end
+		local loose = HandLogic.looseForm(Defs, Stock, id, held, false)
+		assert(loose ~= nil, id .. " cannot be let go of")
+		assert(
+			Stock.loose(loose) ~= nil,
+			id .. " is let go as " .. tostring(loose) .. ", which cannot lie loose"
+		)
+		assert(Stock.isKey(loose), tostring(loose) .. " would not go back into a bag")
+	end
+end)
+test("what lies loose has a size and a colour, and a machine cannot lie loose", function()
+	local item = Stock.loose("ingot_fe")
+	eq(item.size[1], Defs.Items.ingot_fe.size[1])
+	local block = Stock.loose("block:grass")
+	eq(block.size[1], 1.5)
+	eq(block.color[2], Defs.Blocks.grass.top[2])
+	eq(block.ball, false)
+	eq(Stock.loose("smelter"), nil)
+	eq(Stock.loose("grass"), nil) -- a block's bag key is "block:grass"
+	eq(Stock.loose("block:banana"), nil)
+	eq(Stock.loose(nil), nil)
+end)
+test("machines have no loose form", function()
 	eq(HandLogic.looseForm(Defs, Stock, "smelter", { smelter = 1 }, false), nil)
 	eq(HandLogic.looseForm(Defs, Stock, "smelter", {}, true), nil)
-	eq(HandLogic.looseForm(Defs, Stock, "planks", { ["block:planks"] = 5 }, false), nil)
 	eq(HandLogic.looseForm(Defs, Stock, "", {}, true), nil)
 end)
-test("whatever Q lets go of is a real item", function()
+test("whatever Q lets go of is something that can lie loose", function()
 	for _, group in Defs.Palette do
 		for _, entry in group.ids do
 			local loose = HandLogic.looseForm(Defs, Stock, entry, {}, true)
 			assert(
-				loose == nil or Defs.isItem(loose),
+				loose == nil or Stock.loose(loose) ~= nil,
 				entry .. " would be let go as unknown " .. tostring(loose)
 			)
 		end

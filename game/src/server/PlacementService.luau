@@ -152,7 +152,11 @@ local function drop(player: Player, id: any, x: any, y: any, z: any)
 	local island = IslandService.get(player)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not island or not root or not root:IsA("BasePart") or not Defs.isItem(id) or not allowed(player) then
+	-- What is let go is a bag key that can lie loose: an item, or a block that is only a block.
+	if not island or not root or not root:IsA("BasePart") or type(id) ~= "string" or not allowed(player) then
+		return
+	end
+	if Stock.loose(id) == nil then
 		return
 	end
 	local at = (root.CFrame * CFrame.new(0, 0.5, -3.5)).Position

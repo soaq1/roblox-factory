@@ -5,25 +5,32 @@
 -- Definitions and the bag rules are passed in, so this runs outside Roblox.
 local HandLogic = {}
 
--- The loose item that Q lets go of for a hotbar entry, or nil if the entry has no loose form.
+-- The bag key that Q lets go of for a hotbar entry, or nil if the entry has no loose form.
 -- An "item:<id>" entry is that item. A block that is also an item (log, stone, ore), or that is
--- laid from one (dirt from a clod), is let go as that item; so is a plant, as its seed. In
--- survival the bag must hold it; `free` is creative mode.
+-- laid from one (dirt from a clod), is let go as that item; a block that is only a block (grass,
+-- planks) is let go as the block itself; a plant goes as its seed. A machine has no loose form.
+-- In survival the bag must hold it; `free` is creative mode, where the item form is preferred.
 function HandLogic.looseForm(Defs, Stock, entry: string, bag: { [string]: number }, free: boolean): string?
 	local item = Defs.itemOf(entry)
 	if item then
 		return item
 	end
-	local first: string? = nil
+	local firstItem: string? = nil
+	local firstBlock: string? = nil
 	for _, key in Stock.placeCost(entry) do
-		if Defs.Items[key] then
+		local isItem = Defs.Items[key] ~= nil
+		if isItem or Stock.blockOf(key) then
 			if (bag[key] or 0) >= 1 then
 				return key
 			end
-			first = first or key
+			if isItem then
+				firstItem = firstItem or key
+			else
+				firstBlock = firstBlock or key
+			end
 		end
 	end
-	return if free then first else nil
+	return if free then firstItem or firstBlock else nil
 end
 
 -- Can the bag pay for placing this entry? Everything is to hand in creative mode.

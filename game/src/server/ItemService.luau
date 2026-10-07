@@ -6,6 +6,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local ModelBuilder = require(Shared.ModelBuilder)
+local Stock = require(Shared.Stock)(Defs)
 
 local ItemService = {}
 
@@ -109,8 +110,9 @@ local function trim()
 	end
 end
 
+-- `itemId` is a bag key: an item, or "block:<id>" for a block that is only a block.
 function ItemService.spawn(itemId: string, count: number, position: Vector3): BasePart?
-	local def = Defs.Items[itemId]
+	local def = Stock.loose(itemId)
 	if not def or count < 1 then
 		return nil
 	end

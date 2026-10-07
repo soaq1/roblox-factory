@@ -34,6 +34,7 @@
 - **줄끝은 LF로 고정입니다.** `.gitattributes`가 `* text=auto eol=lf`로 못 박아 두었습니다. 윈도우 깃의 기본 설정이 CRLF로 바꿔 놓으면 고친 것이 없어도 StyLua가 모든 파일을 다르다고 하고, 319개 파일이 전부 바뀐 것으로 보입니다. 파일을 만드는 파이썬 스크립트도 `newline="\n"`을 명시해 윈도우에서도 LF로 씁니다. 이걸 빼면 스크립트를 한 번 돌릴 때마다 내용은 같은데 200개 파일이 바뀝니다.
 - **Blender는 5.2.2 LTS를 씁니다(2026-10-07에 4.0.2에서 올림).** 4.0은 지우지 않아 `Blender 4.0` 폴더에 그대로 있습니다. 두 판으로 각각 돌려 맞대 본 결과: v1 `gamedata`는 부품 3030개 중 파이프류 6개의 회전값 표현만 다르고(돌려도 같아 보이는 부품이라 그림은 같음), v1 그림(펌프)과 v2 그림(용광로)은 똑같이 나오며, FBX는 197개의 중심 좌표 정보가 완전히 같습니다. `art/check_models.py`도 5.2.2에서 돕니다.
 - **블렌더 MCP**: 저장소의 `.mcp.json`이 `mcp-for-blender`를 부릅니다. 새 컴퓨터에서는 `py -m pip install --user mcp-for-blender` 뒤 `mcp-for-blender install-addon`으로 애드온을 넣고, 파이썬 `Scripts` 폴더가 PATH에 있어야 합니다. Claude Code를 **이 저장소 폴더에서** 켜야 서버가 붙고(처음 한 번 승인을 묻습니다), 블렌더에서는 환경 설정 → 애드온에서 "MCP for Blender"를 켠 뒤 3D 화면의 N → MCP for Blender 탭 → Start MCP Server를 누릅니다.
+- **스튜디오 MCP**(2026-10-07): 로블록스 스튜디오에 기본으로 들어 있습니다. 스튜디오의 Assistant → `…` → Manage MCP Servers → Enable Studio as MCP server를 켜고, 이 컴퓨터의 `.mcp.json`에 `Roblox_Studio` 서버(`cmd.exe /c "cd /d %LOCALAPPDATA%\Roblox && .\mcp.bat"`)를 더합니다. 그 줄은 컴퓨터마다 달라서 커밋하지 않습니다: `.mcp.json`은 `.gitignore`에 있고, 이 컴퓨터에서는 `git update-index --skip-worktree .mcp.json`으로 바뀐 내용을 깃이 보지 않게 해 두었습니다(저장소에는 블렌더 줄만 든 예전 내용이 남아 있음). 붙으면 Claude가 플레이를 시작·정지하고, 출력 창을 읽고, 화면을 찍고, 키와 마우스를 누를 수 있습니다. 못 하는 것: 숫자 키 1번(도구가 거부), 마우스 가운데 버튼. 두 명 테스트는 편집 화면에서 `StudioTestService:ExecuteMultiplayerTestAsync(2, { scenario = "idle", seconds = 900 })`로 띄웁니다. 개발자가 직접 테스트를 돌리고 있을 수 있으니, 플레이를 켜기 전에 연결된 스튜디오 목록을 먼저 봅니다.
 - 확인된 것: 이 컴퓨터에서 `stylua --check`, `selene src`, `lune run tests/all.luau`(261개 통과), `rojo build`, `py data/recipes.py`, `py game/tools/gen_data.py`, `py art/build_catalog.py`가 모두 맥에서와 같은 결과를 냅니다.
 
 ## 지켜야 할 결정
@@ -133,7 +134,7 @@
 1. **3인칭에서 팔이 움직이지 않습니다.** 무언가 들고 있어도 팔이 들리지 않고 휘두르지도 않습니다. 1인칭의 손에 든 모습은 나옵니다. 시도한 것과 결과:
    - 어깨 관절(`Motor6D.Transform`)을 직접 돌림 → 변화 없음.
    - 빈 `Tool`을 캐릭터에 넣어 로블록스 기본 팔 동작을 빌림 → 변화 없음. `Handle` 부품을 달아도 변화 없음.
-   - 원인을 보려고 `client/HandView.luau` 끝에 4초마다 상태를 출력하는 **임시 코드**(`HANDVIEW round`)를 넣었습니다. 플레이하고 기록에서 그 줄을 읽으면 도구가 캐릭터에 있는지, 재생 중인 동작이 무엇인지, 팔 각도가 몇 도인지 알 수 있습니다. 원인을 찾으면 이 임시 코드는 지웁니다.
+   - 원인을 보려고 넣었던 임시 출력(`HANDVIEW round`)은 2026-10-07에 지웠습니다. 스튜디오 MCP로 플레이 화면을 찍어 보니 3인칭에서 든 물건과 올린 팔이 보였습니다(휘두르는 동작은 따로 확인하지 않음).
    - 끝내 안 되면 팔 동작을 애니메이션으로 직접 만들어 올려야 합니다.
 2. **채팅 명령(`/mode creative` 등)이 먹지 않습니다.** 기록에 오류가 없고 명령이 서버에 도착한 흔적도 없습니다. 도착하면 `chat command from` 줄이 출력에 남게 해 뒀습니다. 급한 것은 설정 화면의 "크리에이티브 모드 (시험용)" 스위치로 대신합니다.
 3. **스스로 시험하기 장치**를 처음 돌려 볼 차례였습니다(위 절).

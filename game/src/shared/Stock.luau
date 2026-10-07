@@ -36,6 +36,23 @@ return function(Defs)
 		return Defs.name(key)
 	end
 
+	local LOOSE_BLOCK = { 1.5, 1.5, 1.5 } -- studs: a block lying loose is half a cell across
+
+	-- What a bag key looks like lying loose in the world: its size, colour and whether it is round.
+	-- An item is as its definition says. A block that is only a block is a small box in its top
+	-- colour. A machine cannot lie loose, and nor can anything that is not a bag key.
+	function Stock.loose(key): { size: { number }, color: { number }, ball: boolean }?
+		local item = Defs.Items[key]
+		if item then
+			return { size = item.size, color = item.color, ball = item.ball }
+		end
+		local block = Stock.blockOf(key)
+		if block then
+			return { size = LOOSE_BLOCK, color = Defs.Blocks[block].top, ball = false }
+		end
+		return nil
+	end
+
 	-- What goes into the bag when a block is broken. `roll` is a random number from 0 up to 1.
 	function Stock.blockDrop(id: string, roll: number): string?
 		if id == "leaves" then

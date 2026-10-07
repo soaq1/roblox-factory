@@ -3,3 +3,5 @@
 __pycache__/
 results.jsonl
 *.rbxlx.lock
+# Each computer keeps its own MCP connections (the Roblox Studio one is a path on that computer).
+.mcp.json
