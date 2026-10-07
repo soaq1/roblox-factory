@@ -265,7 +265,7 @@ def show(build, name, out_dir):
         views = tuple((sfx, v, Vector((0, 0, big[key][1])), big[key][0])
                       for (sfx, v, _, _), key in zip(views, ("iso", "side", "top", "end", "iso")))
     if QUICK:
-        views = views[:1]
+        views = (views[0], views[4])              # the catalog angle and the opposite corner
     for suffix, v, c, scale in views:
         fk.cd.ortho_scale = scale
         fk.aim(fk.cam, c + v.normalized() * 30, c)

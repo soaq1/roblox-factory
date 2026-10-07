@@ -598,6 +598,127 @@ def smelter4(m):
 smelter4.frame, smelter4.shadow = F31, True
 _hero.HEROES["smelter4"] = smelter4
 
+
+# ---- square-cut trials of the smelter's upper works (the developer found the octagonal pot weak) ----
+def tower(m, stations, mk):
+    """A solid through rectangular outlines with cut corners: `stations` lists (hx, hy, corner cut, z)
+    going up. Lofted, with a cap at each end."""
+    import bmesh
+    bm = bmesh.new()
+    rows = [[bm.verts.new((x, y, z)) for x, y in plan(hx, hy, c)] for hx, hy, c, z in stations]
+    k = len(rows[0])
+    for a, b in zip(rows, rows[1:]):
+        for j in range(k):
+            bm.faces.new((a[j], a[(j + 1) % k], b[(j + 1) % k], b[j]))
+    bm.faces.new(rows[0])
+    bm.faces.new(rows[-1])
+    m._add(bm, mk)
+
+
+def _smelt_lower(m):
+    """The smelter below the crown: chassis, firebox with end piers, fire mouths, hood. Returns the crown's height."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)
+    hy, hc, xp = 0.40, 0.355, 0.30
+    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, 0.70, "Z", G, bevel=0.012)
+    for sx in SIDES:
+        with m.at((sx * (xp + BX) / 2, 0, 0)):
+            slab(m, (BX - xp) / 2, hy, 0.37, 0.70, 0.02, G, bevel=0.018)
+    bprism(m, [(-hy, 0.70), (-hy, 0.74), (-0.30, 0.90), (0.30, 0.90), (hy, 0.74), (hy, 0.70)], -BX, BX, "X", TD, bevel=0.016)
+    for d in SIDES:
+        with on_side(m, d, d * hc, 0.535):
+            m.box((0.27, 0.15, 0.008), (0, 0, 0.002), "h_glow")
+            for k in range(4):
+                x = -0.09 + k * 0.06
+                m.prism([(x - 0.016, 0.004), (x + 0.016, 0.004), (x + 0.008, 0.019), (x - 0.008, 0.019)], -0.10, 0.10, "Y", TD)
+            ring(m, 0.185, 0.125, [(0.0, -0.004), (0.012, 0.03), (0.036, 0.03), (0.05, -0.004)], T, c=0.04)
+    return 0.90
+
+
+def sq_stack(m, x, z0, top):
+    """A square stack with cut corners on a flared foot, its cap a rim round a real hollow."""
+    with m.at((x, 0, 0)):
+        tower(m, [(0.105, 0.105, 0.03, z0), (0.085, 0.085, 0.025, z0 + 0.08)], T)
+        tower(m, [(0.085, 0.085, 0.025, z0 + 0.08), (0.066, 0.066, 0.02, top - 0.13)], ST)
+        tower(m, [(0.066, 0.066, 0.02, top - 0.13), (0.10, 0.10, 0.03, top - 0.05)], TD)
+        shell(m, [(0.10, 0.10, 0.03, top - 0.05), (0.10, 0.10, 0.03, top), (0.076, 0.076, 0.022, top), (0.07, 0.07, 0.02, top - 0.045)], TD)
+        tower(m, [(0.073, 0.073, 0.02, top - 0.07), (0.073, 0.073, 0.02, top - 0.04)], SLIT)
+
+
+def pour(m, hi, xb, P):
+    """A spout from the point hi = (x, z) down to over the middle of the mould box at xb, and the box."""
+    with m.at((0, 0, 0), rz=rad(90)):
+        lo, up = (-xb, P + 0.27), (-hi[0], hi[1])
+        sweep(m, 0, [lo, up], [(-0.05, 0.0), (-0.035, 0.0), (-0.035, 0.03), (0.035, 0.03), (0.035, 0.0), (0.05, 0.0),
+                               (0.05, 0.03), (0.035, 0.045), (-0.035, 0.045), (-0.05, 0.03)], TD)
+        sweep(m, 0, [(lo[0] + 0.006, lo[1] + 0.004), up], [(-0.037, 0.016), (0.037, 0.016), (0.037, 0.036), (-0.037, 0.036)], "h_glow")
+    with m.at((xb, 0, 0)):
+        shell(m, [(0.066, 0.14, 0.02, P), (0.078, 0.152, 0.022, P + 0.20), (0.066, 0.14, 0.02, P + 0.225),
+                  (0.05, 0.124, 0.015, P + 0.225), (0.04, 0.115, 0.012, P + 0.15), (0.04, 0.115, 0.012, P + 0.02)], T)
+        slab(m, 0.045, 0.12, P + 0.02, P + 0.17, 0.012, "h_glow", bevel=0.003)
+
+
+def smelter5a(m):
+    """Trial A: the pot made square. A flared square crucible on a foot, a dark rim round the melt."""
+    P = _smelt_lower(m)
+    xs, xq, xb = -0.36, -0.03, 0.385
+    sq_stack(m, xs, P, P + 0.90)
+    with m.at((xq, 0, 0)):
+        tower(m, [(0.20, 0.19, 0.04, P), (0.165, 0.155, 0.035, P + 0.07)], T)
+        shell(m, [(0.165, 0.155, 0.035, P + 0.07), (0.225, 0.21, 0.045, P + 0.30), (0.225, 0.21, 0.045, P + 0.40),
+                  (0.16, 0.145, 0.03, P + 0.40), (0.15, 0.135, 0.025, P + 0.12)], ST)
+        shell(m, [(0.24, 0.225, 0.05, P + 0.40), (0.24, 0.225, 0.05, P + 0.45), (0.225, 0.21, 0.045, P + 0.47),
+                  (0.185, 0.17, 0.035, P + 0.47), (0.168, 0.153, 0.03, P + 0.40)], TD)
+        tower(m, [(0.156, 0.141, 0.026, P + 0.09), (0.156, 0.141, 0.026, P + 0.425)], "h_glow")
+    pour(m, (xq + 0.215, P + 0.395), xb, P)
+
+
+def smelter5b(m):
+    """Trial B: no open vessel. A square furnace head on the hood with an eight-sided sight port glowing on
+    each side, a dark cap, the stack on the cap, and a tap spout from its end to the mould box."""
+    P = _smelt_lower(m)
+    xh, xb = -0.07, 0.385
+    head = (0.29, 0.235, 0.04)
+    with m.at((xh, 0, 0)):
+        slab(m, head[0], head[1], P, P + 0.40, head[2], G, bevel=0.02)
+        slab(m, 0.31, 0.255, P + 0.40, P + 0.47, cut_to(0.31, 0.255, head, 0.02), TD, bevel=0.014)
+    for d in SIDES:
+        with on_side(m, d, d * head[1], P + 0.20, xc=xh):
+            octa(m, 0.105, 0.105, -0.002, 0.008, "h_glow")
+            oct_ring(m, 0.14, 0.04, -0.004, 0.03, T)
+    sq_stack(m, xh, P + 0.47, P + 0.97)
+    pour(m, (xh + head[0] - 0.02, P + 0.34), xb, P)
+
+
+def smelter5c(m):
+    """Trial C: a ladle hung on trunnions. A flared square ladle between two brackets, a pin each side
+    with its cap, the melt glowing inside a dark rim; the spout runs from its lip to the mould box."""
+    P = _smelt_lower(m)
+    xs, xq, xb = -0.36, -0.03, 0.385
+    sq_stack(m, xs, P, P + 0.90)
+    zp = P + 0.31                                             # the trunnions' height
+    for d in SIDES:
+        ys = sorted((d * 0.225, d * 0.275))
+        bprism(m, [(xq - 0.11, P), (xq + 0.11, P), (xq + 0.05, P + 0.42), (xq - 0.05, P + 0.42)], ys[0], ys[1], "Y", T, bevel=0.012)
+        m.cyl(0.036 * K, 0.14, (xq, d * 0.225, zp), ST, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+        r1, r2 = (0.052 * K, 0.04 * K) if d > 0 else (0.04 * K, 0.052 * K)
+        m.cyl(r1, 0.016, (xq, d * 0.283, zp), LT, seg=8, axis="Y", r2=r2, rot=(0, rad(22.5), 0))
+    with m.at((xq, 0, 0)):
+        tower(m, [(0.105, 0.095, 0.03, P + 0.08), (0.13, 0.12, 0.03, P + 0.11)], ST)
+        shell(m, [(0.13, 0.12, 0.03, P + 0.11), (0.20, 0.17, 0.04, P + 0.34), (0.20, 0.17, 0.04, P + 0.42),
+                  (0.15, 0.12, 0.03, P + 0.42), (0.125, 0.10, 0.02, P + 0.17)], ST)
+        shell(m, [(0.215, 0.185, 0.045, P + 0.42), (0.215, 0.185, 0.045, P + 0.46), (0.20, 0.17, 0.04, P + 0.48),
+                  (0.165, 0.135, 0.03, P + 0.48), (0.155, 0.125, 0.03, P + 0.42)], TD)
+        tower(m, [(0.13, 0.105, 0.022, P + 0.14), (0.14, 0.11, 0.025, P + 0.44)], "h_glow")
+    pour(m, (xq + 0.19, P + 0.415), xb, P)
+
+
+for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
+    _f.frame, _f.shadow = F31, True
+    _hero.HEROES[_n] = _f
+
 assembler4.frame, assembler4.shadow = F33, True
 _hero.HEROES["assembler4"] = assembler4
 
