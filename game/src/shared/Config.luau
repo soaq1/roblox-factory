@@ -10,7 +10,7 @@ return {
 	EXTRACT_INTERVAL = 2.0, -- seconds between items from one extractor
 	MACHINE_BUFFER = 16, -- most of one ingredient a machine holds
 	MACHINE_OUT = 8, -- finished items a machine holds before it pauses
-	START_ITEMS = { pick_wood = 1 }, -- what a new player holds
+	START_ITEMS = { pick_wood = 1, axe_wood = 1 }, -- what a new player holds
 	START_COINS = 10000, -- what a new player begins with (a placeholder amount)
 	START_MODE = "survival", -- "creative": everything is free; "survival": only what is in the bag
 	ALLOW_MODE_SWITCH = true, -- the /mode command; a test convenience, to be removed before release

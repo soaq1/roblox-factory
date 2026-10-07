@@ -1,5 +1,6 @@
 -- Tools, mining and monsters:  lune run tests/world_test.luau
 local T = require("./harness")
+local Config = require("../src/shared/Config")
 local Defs = require("../src/shared/Defs")
 local ToolLogic = require("../src/shared/ToolLogic")
 
@@ -195,6 +196,17 @@ test("an axe is the tool for a tree, as a pickaxe is for a machine", function()
 		ToolLogic.machineHits(8, pick) < ToolLogic.machineHits(8, axe),
 		"a pickaxe should lift a machine faster"
 	)
+end)
+
+test("a new player starts with a wooden pickaxe and a wooden axe, one of each", function()
+	eq(Config.START_ITEMS.pick_wood, 1)
+	eq(Config.START_ITEMS.axe_wood, 1)
+	for id in Config.START_ITEMS do
+		assert(Defs.isItem(id), id .. " is not an item")
+	end
+	eq(ToolLogic.best(Config.START_ITEMS, "pick"), 1)
+	eq(ToolLogic.best(Config.START_ITEMS, "axe"), 1)
+	eq(ToolLogic.count(Config.START_ITEMS), 2)
 end)
 
 T.done()
