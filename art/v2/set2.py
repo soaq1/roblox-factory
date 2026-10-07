@@ -888,6 +888,76 @@ def smelter8(m):
 smelter8.frame, smelter8.shadow = F31, True
 _hero.HEROES["smelter8"] = smelter8
 
+def ring_round(m, r_out, r_in, z0, z1, mk, seg=16):
+    """A round ring about the local z axis, from z0 to z1: a wheel's rim, for instance."""
+    import bmesh
+    bm = bmesh.new()
+    loops = []
+    for r, z in ((r_out, z0), (r_out, z1), (r_in, z1), (r_in, z0)):
+        loops.append([bm.verts.new((r * math.cos(2 * math.pi * i / seg), r * math.sin(2 * math.pi * i / seg), z)) for i in range(seg)])
+    for a, b in zip(loops, loops[1:] + loops[:1]):
+        for i in range(seg):
+            bm.faces.new((a[i], a[(i + 1) % seg], b[(i + 1) % seg], b[i]))
+    m._add(bm, mk)
+
+
+def press5(m):
+    """Press, 3x1, grade 2 (hitbox 3x1x2). Concept: an ingot lies under the platen and is flattened to a
+    plate by the blow that comes down on it; the pressing is in plain sight.
+    A dark chassis grips both rails between the two mouths, and the bay between them is open: the belt
+    runs through it with the work lying on it. Four steel columns rise from the chassis on flared feet
+    and carry a dark crown. The platen, a light block whose shoulders draw in above a dark die, hangs
+    between the columns on a round ram that runs up through a gland into the crown. On the crown lies
+    the crank housing, a bearing at each end; its shaft carries a heavy flywheel on one side and a gear
+    on the other, driven by a pinion from the motor box that stands beside it. The two sides differ on
+    purpose: wheel on one, gears on the other."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis
+    m.box((0.30, 0.24, 0.03), (0, 0, BZ + 0.016), LT, bevel=0.008)                            # the work: a plate on the belt, under the platen
+    xc, yc, zc = 0.375, 0.375, 1.18                           # where a column stands, and the crown's underside
+    for sx in SIDES:
+        for sy in SIDES:
+            with m.at((sx * xc, sy * yc, 0)):
+                tower(m, [(0.092, 0.036, 0.012, 0.355), (0.078, 0.032, 0.01, 0.46)], T)
+                tower(m, [(0.078, 0.032, 0.01, 0.46), (0.064, 0.032, 0.01, zc + 0.02)], ST)   # broad, narrowing upward; runs a little way up into the crown
+    crown = (0.455, 0.42, 0.05)
+    slab(m, crown[0], crown[1], zc, zc + 0.22, crown[2], TD, bevel=0.02)
+    tower(m, [(0.12, 0.12, 0.03, zc - 0.07), (0.155, 0.155, 0.035, zc + 0.01)], T)            # the gland the ram runs through
+    # platen: a dark die under a light block whose shoulders draw in to the ram
+    tower(m, [(0.27, 0.27, 0.03, 0.63), (0.29, 0.29, 0.03, 0.70)], TD)
+    tower(m, [(0.31, 0.31, 0.04, 0.695), (0.31, 0.31, 0.04, 0.82), (0.17, 0.17, 0.03, 0.94)], G)
+    m.cyl(0.065, zc - 0.03 - 0.93, (0, 0, (zc - 0.03 + 0.93) / 2), LT, seg=12)                # the ram
+    # on the crown: crank housing with a bearing at each end, and the shaft through it
+    zs, top = zc + 0.31, zc + 0.22                            # the shaft's height, the crown's top
+    tower(m, [(0.16, 0.30, 0.04, top - 0.01), (0.16, 0.30, 0.04, top + 0.16), (0.11, 0.25, 0.035, top + 0.24)], ST)
+    for d in SIDES:
+        with on_side(m, d, d * 0.30, zs):
+            octa(m, 0.075, 0.058, -0.004, 0.032, T)
+    m.cyl(0.036 * K, 0.90, (0, 0.0, zs), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    # the flywheel, on the side the catalog looks from: a heavy rim round a set-back web, and its hub
+    with on_side(m, -1, -0.455, zs):
+        ring_round(m, 0.23, 0.185, -0.025, 0.025, TD)
+        m.cyl(0.19, 0.022, (0, 0, 0), ST, seg=16)
+        m.cyl(0.062, 0.062, (0, 0, 0), T, seg=10)
+        m.cyl(0.034, 0.012, (0, 0, 0.036), LT, seg=10)
+    # the other side: a gear on the shaft, a pinion in mesh with it, and the motor box the pinion runs from
+    gear(m, 0.16, 0.04, (0, 0.445, zs), T, teeth=12)
+    m.cyl(0.05, 0.052, (0, 0.445, zs), LT, seg=10, axis="Y")
+    xm = 0.218
+    gear(m, 0.07, 0.04, (xm, 0.445, zs), ST, teeth=6)
+    m.cyl(0.026, 0.084, (xm, 0.43, zs), LT, seg=8, axis="Y")
+    motor = (0.085, 0.10, 0.02)
+    with m.at((xm + 0.045, 0.30, 0)):
+        tower(m, [(0.095, 0.11, 0.025, top - 0.01), (motor[0], motor[1], motor[2], top + 0.03)], T)
+        slab(m, motor[0], motor[1], top + 0.03, top + 0.17, motor[2], G, bevel=0.01)
+        slab(m, 0.093, 0.108, top + 0.16, top + 0.20, cut_to(0.093, 0.108, motor, 0.008), TD, bevel=0.008)
+
+
+press5.frame, press5.shadow = {"iso": (3.3, 0.85), "side": (3.4, 0.95), "top": (3.2, 0.6), "end": (2.6, 1.0)}, True
+_hero.HEROES["press5"] = press5
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
