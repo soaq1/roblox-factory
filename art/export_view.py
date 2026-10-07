@@ -1,6 +1,6 @@
 # A few v2 machines as meshes for Studio's 3D importer, to look at inside the game before deciding
 # anything. Not the game's model pipeline: nothing here is read by the game.
-# Run:  Blender --background --python art/export_view.py -- [names]
+# Run:  Blender --background --python art/export_view.py -- [file=<name>] [names]
 # Writes art/export/view/view_models.fbx (with palette.png inside it) and view_info.json.
 #
 # Each machine is one object named v_<name>, coloured through a small palette picture as the game's
@@ -20,6 +20,7 @@ from v2 import base, hero, works, pairs, bay, set2  # noqa: F401  (set2 register
 
 base.set_style("d")
 NAMES = [a for a in args if "=" not in a] or ["smelter8", "crusher3", "former2", "assembler4"]
+FILE = next((a.split("=", 1)[1] for a in args if a.startswith("file=")), "view")          # file=<name> writes <name>_models.fbx and <name>_info.json
 GLOW = ("h_glow", "h_core")
 OUT = os.path.join(HERE, "export", "view")
 os.makedirs(OUT, exist_ok=True)
@@ -112,8 +113,8 @@ for ob in objects:
     ob.select_set(True)
 bpy.context.view_layer.objects.active = objects[0]
 bpy.ops.export_scene.fbx(
-    filepath=os.path.join(OUT, "view_models.fbx"), use_selection=True, object_types={"MESH"},
+    filepath=os.path.join(OUT, FILE + "_models.fbx"), use_selection=True, object_types={"MESH"},
     global_scale=0.01, colors_type="SRGB", mesh_smooth_type="FACE", bake_anim=False,
     add_leaf_bones=False, axis_forward="-Z", axis_up="Y", path_mode="COPY", embed_textures=True)
-json.dump(info, open(os.path.join(OUT, "view_info.json"), "w", encoding="utf-8", newline="\n"), indent=1)
+json.dump(info, open(os.path.join(OUT, FILE + "_info.json"), "w", encoding="utf-8", newline="\n"), indent=1)
 print("VIEW done", {k: (v["size"], v["tris"]) for k, v in info.items()})

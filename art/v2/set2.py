@@ -1354,8 +1354,9 @@ def fire_window(m, bars=4, hx=0.17, hy=0.10):
     """A glowing window in a furnace wall, to be built inside on_side or on_end: the glow, bars set into
     a one-piece frame, the frame's back buried in the wall (which may lean)."""
     m.box((2 * hx - 0.08, 2 * hy - 0.08, 0.02), (0, 0, -0.004), "h_glow")
+    step = (2 * hx - 0.09) / bars                             # the bars stand across the whole opening
     for k in range(bars):
-        x = -(bars - 1) * 0.025 + k * 0.05
+        x = -(bars - 1) * step / 2 + k * step
         m.prism([(x - 0.014, 0.0), (x + 0.014, 0.0), (x + 0.008, 0.022), (x - 0.008, 0.022)], -(hy - 0.03), hy - 0.03, "Y", TD)
     ring(m, hx, hy, [(0.0, -0.03), (0.012, 0.03), (0.034, 0.03), (0.045, -0.03)], T, c=0.03)
 
@@ -1683,6 +1684,83 @@ for _n, _f, _fr in (("belt_straight", _belts.straight, F11), ("belt_right", _bel
                     ("belt_ramp_mid", _belts.ramp_mid, F21R), ("belt_ramp_end", _belts.ramp_end, F21R)):
     _f.frame, _f.shadow = _fr, True
     _hero.HEROES[_n] = _f
+
+def smelter9(m):
+    """Smelter, 4x2, grade 2 (hitbox 4x2x2). The same machine as smelter8, which the developer approved,
+    at the size of the real Islands smelter: beside a character in the game smelter8 stood waist high
+    and looked like a toy, and a screenshot of the original showed it head high and half as wide again
+    as a belt. The belt stays one cell wide; it is the body that has grown, and its parts with it.
+    The belt runs along the far row. The body straddles it and fills the near row: a dark foot, a
+    light firebox with a fire mouth each side of the middle in both long walls, under a dark sloped
+    hood. On the hood's crown lie the wide hearth box, open at the top, the fire under a row of bars,
+    a glowing tap port in its end; and the blower, a square casing whose open top is its intake. From
+    each side of the blower a fat pipe runs out, turns once in the open and runs along the hearth
+    into a boot on its wall."""
+    yb, X = 0.5, 1.25
+    with m.at((0, yb, 0)):
+        m.prism(SECTION, -2.0, 2.0, "X", R)
+        m.box((4.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
+        for x in (-1.80, 1.80):                               # one whole pair of arrows on each open stretch
+            chev(m, x)
+        for x in (-1.87, 1.87):
+            buttress(m, x)
+        cover(m, X, 1, sole=False)
+        cover(m, -X, -1, sole=False)
+        collar(m, -X - 0.318, X + 0.318, mk=T)
+    y0, y1 = -0.90, 0.94
+    yc, hy = (y0 + y1) / 2, (y1 - y0) / 2
+    bprism(m, [(-X - 0.012, y0 - 0.012), (X + 0.012, y0 - 0.012), (X + 0.012, 0.02), (-X - 0.012, 0.02)], 0.0, 0.39, "Z", T, bevel=0.014)   # the foot, in the near row
+    with m.at((0, yc, 0)):
+        slab(m, X, hy, 0.37, 0.985, 0.05, G, bevel=0.022)     # firebox
+        P = 1.17
+        bprism(m, [(-hy - 0.03, 0.96), (-hy - 0.03, 1.02), (-0.62, P), (0.62, P), (hy + 0.03, 1.02), (hy + 0.03, 0.96)], -X - 0.02, X + 0.02, "X", TD, bevel=0.022)   # hood
+    for d, y in ((-1, y0), (1, y1)):                          # fire mouths in both long walls
+        for x in (-0.62, 0.62):
+            with on_side(m, d, y, 0.67, xc=x):
+                fire_window(m, bars=6, hx=0.30, hy=0.18)
+        with on_side(m, d, y, 0.67, xc=0.0):
+            bolted(m, 0.40, 0.36, LT)
+    for sx in SIDES:                                          # each end wall, beside the mouth: a tall vent
+        with on_end(m, sx, sx * X, (y0 + 0.0) / 2, 0.67):
+            vent(m, 0.30, 0.20)
+    # the hearth box
+    xt = -0.34
+    with m.at((xt, yc, 0)):
+        tower(m, [(0.60, 0.47, 0.08, P - 0.01), (0.555, 0.425, 0.07, P + 0.09)], T)
+        tower(m, [(0.555, 0.425, 0.07, P + 0.08), (0.62, 0.49, 0.08, P + 0.64), (0.62, 0.49, 0.08, P + 0.66)], G)
+        shell(m, [(0.648, 0.518, 0.09, P + 0.64), (0.648, 0.518, 0.09, P + 0.715), (0.62, 0.49, 0.08, P + 0.742),
+                  (0.545, 0.415, 0.055, P + 0.742), (0.53, 0.40, 0.05, P + 0.64)], TD)
+        tower(m, [(0.54, 0.41, 0.052, P + 0.63), (0.54, 0.41, 0.052, P + 0.668)], "h_glow")
+        for k in range(8):                                    # bars across the hearth, their ends set into the rim
+            x = -0.42 + k * 0.12
+            m.prism([(x - 0.032, P + 0.662), (x + 0.032, P + 0.662), (x + 0.018, P + 0.71), (x - 0.018, P + 0.71)], -0.43, 0.43, "Y", TD)
+    with on_end(m, -1, xt - 0.575, yc, P + 0.36):             # tap port in the hearth's end; the wall leans, so it stands as a boss
+        octa(m, 0.095, 0.095, -0.008, 0.01, "h_glow")
+        oct_ring(m, 0.145, 0.055, -0.04, 0.035, T)
+    # the blower
+    xw = 0.86
+    case = (0.24, 0.25, 0.045)
+    with m.at((xw, yc, 0)):
+        tower(m, [(0.265, 0.275, 0.05, P - 0.01), (case[0], case[1], case[2], P + 0.06)], T)
+        slab(m, case[0], case[1], P + 0.05, P + 0.38, case[2], ST, bevel=0.016)
+        cc = cut_to(0.255, 0.265, case, 0.012)
+        shell(m, [(0.255, 0.265, cc, P + 0.365), (0.255, 0.265, cc, P + 0.42), (0.238, 0.248, cc, P + 0.442),
+                  (0.185, 0.195, 0.03, P + 0.442), (0.172, 0.182, 0.026, P + 0.365)], TD)
+        tower(m, [(0.18, 0.19, 0.028, P + 0.355), (0.18, 0.19, 0.028, P + 0.39)], SLIT)
+        for y in (-0.085, 0.085):
+            m.prism([(y - 0.022, P + 0.385), (y + 0.022, P + 0.385), (y + 0.012, P + 0.425), (y - 0.012, P + 0.425)], -0.20, 0.20, "X", ST)
+    # air pipes: out of each side of the casing through a flange, one turn in the open, along the hearth, into a boot on its wall
+    zp, ra, rf, yo, xe = P + 0.24, 0.075, 0.098, 0.685, xt + 0.24
+    for d in SIDES:
+        m.pipe([(xw, yc + d * (case[1] - 0.03), zp), (xw, yc + d * (yo - 0.09), zp), (xw - 0.09, yc + d * yo, zp), (xe - 0.02, yc + d * yo, zp)], ra, ST, seg=10)
+        m.cyl(rf, 0.03, (xw, yc + d * (case[1] + 0.015), zp), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+        with m.at((xe - 0.12, yc + d * 0.63, 0)):             # the boot: a shouldered block on the hearth's wall, the pipe into its end
+            tower(m, [(0.12, 0.185, 0.035, zp - 0.135), (0.12, 0.185, 0.035, zp + 0.075), (0.085, 0.15, 0.03, zp + 0.135)], T)
+        m.cyl(rf, 0.03, (xe + 0.015, yc + d * yo, zp), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+
+
+smelter9.frame, smelter9.shadow = {"iso": (4.6, 0.9), "side": (4.6, 1.1), "top": (4.2, 0.6), "end": (3.2, 1.1)}, True
+_hero.HEROES["smelter9"] = smelter9
 
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
