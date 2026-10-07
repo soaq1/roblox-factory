@@ -180,12 +180,10 @@ def _asm_lower(m):
     bx(m, (x0, -0.48), (-0.37, 0.37), (0.12, 0.90), G, bevel=0.04)
     bx(m, (-1.17, -0.48), (-0.39, 0.39), (0.86, 0.97), TD, bevel=0.03)
     m.box((0.012, 0.50, 0.26), (x0 - 0.002, 0, 0.56), SLIT)
-    for sz in SIDES:
-        zi, zo = 0.56 + sz * 0.13, 0.56 + sz * 0.195
-        m.prism([(x0, zi), (x0 - 0.034, zi + sz * 0.014), (x0 - 0.034, zo - sz * 0.012), (x0, zo)], -0.315, 0.315, "Y", T)
-    for s in SIDES:
-        yi, yo = s * 0.25, s * 0.315
-        m.prism([(x0, yi), (x0 - 0.034, yi + s * 0.014), (x0 - 0.034, yo - s * 0.012), (x0, yo)], 0.416, 0.704, "Z", T)
+    from mathutils import Matrix                              # the bezel: one mitred rim, laid on the cabin's west face
+    m.stack.append(m.stack[-1] @ Matrix(((0, 0, -1, x0), (-1, 0, 0, 0), (0, 1, 0, 0.56), (0, 0, 0, 1))))
+    ring(m, 0.315, 0.195, [(0.0, -0.002), (0.012, 0.034), (0.051, 0.034), (0.065, -0.002)], T)
+    m.stack.pop()
     for i, w in enumerate((0.38, 0.24, 0.30)):
         m.box((0.008, w, 0.03), (x0 - 0.01, 0, 0.56 + (1 - i) * 0.07), "h_core")
     # a power cabinet at each back corner: its outer walls are folded into ribs
@@ -241,6 +239,92 @@ def h_portal(m, x, w, top, leg, depth=0.20, web=0.07, c=0.34):
     for s in SIDES:
         yc = s * (w / 2 - leg / 2)
         m.box((depth + 0.12, leg + 0.12, 0.09), (x, yc, 0.035), T, bevel=0.012, taper=0.80)
+
+
+def bprism(m, pts, lo, hi, axis, mk, bevel=0.015):
+    """Like Model.prism, with every edge chamfered, so an extruded outline has no square edge left."""
+    import bmesh
+    bm = bmesh.new()
+    if axis == "X":
+        verts, vec = [bm.verts.new((lo, a, b)) for a, b in pts], (hi - lo, 0, 0)
+    elif axis == "Y":
+        verts, vec = [bm.verts.new((a, lo, b)) for a, b in pts], (0, hi - lo, 0)
+    else:
+        verts, vec = [bm.verts.new((a, b, lo)) for a, b in pts], (0, 0, hi - lo)
+    face = bm.faces.new(verts)
+    ext = bmesh.ops.extrude_face_region(bm, geom=[face])
+    bmesh.ops.translate(bm, verts=[e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)], vec=vec)
+    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
+    m._add(bm, mk)
+
+
+def offset_line(pts, f):
+    """The polyline moved f to the right of its direction of travel, corners mitred."""
+    out = []
+    for i, (y, z) in enumerate(pts):
+        ns = []
+        for a, b in ((i - 1, i), (i, i + 1)):
+            if 0 <= a and b < len(pts):
+                dy, dz = pts[b][0] - pts[a][0], pts[b][1] - pts[a][1]
+                L = math.hypot(dy, dz)
+                ns.append((dz / L, -dy / L))
+        ny, nz = sum(n[0] for n in ns) / len(ns), sum(n[1] for n in ns) / len(ns)
+        L = math.hypot(ny, nz)
+        k = f / (L * L) if len(ns) == 2 else f                # mitre: longer at a sharp corner
+        out.append((y + ny * k, z + nz * k))
+    return out
+
+
+def sweep(m, x, line, section, mk):
+    """Carry a cross-section along a polyline lying in the plane at x, mitring every corner. `section`
+    lists (dx, t): dx along the belt, t the distance to the right of the line's direction of travel.
+    Being lofted from quads, it has no joint lines and no stuck-together pieces."""
+    import bmesh
+    bm = bmesh.new()
+    lines = {tt: offset_line(line, tt) for tt in {s[1] for s in section}}
+    rows = [[bm.verts.new((x + dx, lines[tt][i][0], lines[tt][i][1])) for dx, tt in section] for i in range(len(line))]
+    k = len(section)
+    for a, b in zip(rows, rows[1:]):
+        for j in range(k):
+            bm.faces.new((a[j], a[(j + 1) % k], b[(j + 1) % k], b[j]))
+    bm.faces.new(rows[0])
+    bm.faces.new(rows[-1])
+    m._add(bm, mk)
+
+
+def ring(m, hx, hy, profile, mk):
+    """A rim running round a rectangle (half-sizes hx, hy) with mitred corners, so that it turns each
+    corner in one piece. `profile` lists (u, z): u is the distance in from the rectangle's edge."""
+    import bmesh
+    bm = bmesh.new()
+    rows = [[bm.verts.new((sx * (hx - u), sy * (hy - u), z)) for u, z in profile] for sx, sy in ((1, 1), (-1, 1), (-1, -1), (1, -1))]
+    k = len(profile)
+    for c in range(4):
+        a, b = rows[c], rows[(c + 1) % 4]
+        for j in range(k):
+            bm.faces.new((a[j], a[(j + 1) % k], b[(j + 1) % k], b[j]))
+    m._add(bm, mk)
+
+
+def portal2(m, x, depth=0.22):
+    """A portal frame standing on z = 0, shaped rather than extruded square: its legs splay toward the
+    foot, its knees turn in two cuts, its beam deepens toward the knees and rises to a crown. The
+    section is an H (a dark web between two flanges) and every edge of the flanges is chamfered. Each
+    leg stands on a tapered base, and a splice plate sits on the crown."""
+    r_out = [(0.0, 1.36), (0.55, 1.34), (1.06, 1.26), (1.26, 1.10), (1.36, 0.86), (1.44, 0.10), (1.44, 0.0)]
+    r_in = [(1.14, 0.0), (1.10, 0.84), (0.92, 1.02), (0.60, 1.12), (0.0, 1.16)]
+    P = [(-y, z) for y, z in reversed(r_out[1:])] + r_out     # left foot, over the crown, right foot
+    Q = r_in + [(-y, z) for y, z in reversed(r_in[:-1])]      # right foot, under the beam, left foot
+    f = 0.055
+    m.prism(P + Q, x - 0.035, x + 0.035, "X", TD)                                         # web
+    h, c = depth / 2, 0.022                                   # flange section: its two outer edges chamfered
+    flange = [(-h, c), (-h + c, 0.0), (h - c, 0.0), (h, c), (h, f), (-h, f)]
+    sweep(m, x, P, flange, ST)
+    sweep(m, x, Q, flange, ST)
+    for s in SIDES:
+        m.box((depth + 0.14, 0.44, 0.10), (x, s * 1.29, 0.04), T, bevel=0.014, taper=0.78)
+        bprism(m, [(s * 0.96, 1.035), (s * 1.085, 0.90), (s * 1.115, 0.93), (s * 0.99, 1.065)], x - 0.075, x + 0.075, "X", ST, bevel=0.01)
+    m.box((depth + 0.06, 0.30, 0.05), (x, 0, 1.375), T, bevel=0.014, taper=0.8)
 
 
 def taper_link(m, d, p, q, h0, h1, xh, mk):
@@ -307,28 +391,24 @@ def assembler4(m):
     to a rimmed turntable, each fed from a flared bin."""
     _asm_lower(m)
     Z = 0.96
-    # deck: a kerb with a sloped inner face round the edge, and seams across the floor
-    for s in SIDES:
-        m.prism([(s * 1.50, Z - 0.02), (s * 1.50, Z + 0.035), (s * 1.475, Z + 0.06), (s * 1.445, Z + 0.06), (s * 1.40, Z - 0.02)],
-                -0.53, 0.53, "X", ST)
-        m.prism([(s * 0.53, Z - 0.02), (s * 0.53, Z + 0.035), (s * 0.505, Z + 0.06), (s * 0.475, Z + 0.06), (s * 0.43, Z - 0.02)],
-                -1.42, 1.42, "Y", ST)
+    # deck: a kerb with a sloped inner face, running round the edge in one mitred piece; seams across the floor
+    ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST)
     for y in (-1.0, -0.5, 0.5, 1.0):
         m.box((0.84, 0.014, 0.006), (0, y, Z + 0.003), ST)
     # portals, tied by struts and carrying the hoist girder
     with m.at((0, 0, Z)):
         for x in (-0.33, 0.33):
-            h_portal(m, x, 2.80, 1.30, 0.24)
+            portal2(m, x)
     for s in SIDES:
-        strut(m, -0.33, 0.33, s * 1.28, Z + 0.66)
-        strut(m, -0.33, 0.33, s * 1.02, Z + 1.21)
-    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.29, Z + 1.45), TD, bevel=0.045)
+        strut(m, -0.33, 0.33, s * 1.27, Z + 0.62)
+        strut(m, -0.33, 0.33, s * 0.80, Z + 1.20)
+    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.38, Z + 1.54), TD, bevel=0.045)
     for sx in SIDES:
-        m.cyl(0.165 * K, 0.08, (sx * 0.50, 0, Z + 1.37), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
-    m.prism([(-0.045, Z + 1.30), (0.045, Z + 1.30), (0.07, Z + 1.215), (-0.07, Z + 1.215)], -0.44, 0.44, "X", ST)
-    bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 1.09, Z + 1.22), G, bevel=0.035)
-    m.cyl(0.075, 0.30, (0, 0, Z + 1.10), T, seg=8, axis="Y")
-    m.cyl(0.085, 0.03, (0, 0, Z + 1.02), "h_core", seg=10)
+        m.cyl(0.165 * K, 0.08, (sx * 0.50, 0, Z + 1.46), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.prism([(-0.045, Z + 1.16), (0.045, Z + 1.16), (0.07, Z + 1.09), (-0.07, Z + 1.09)], -0.44, 0.44, "X", ST)
+    bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 0.97, Z + 1.10), G, bevel=0.035)
+    m.cyl(0.075, 0.30, (0, 0, Z + 0.98), T, seg=8, axis="Y")
+    m.cyl(0.085, 0.03, (0, 0, Z + 0.90), "h_core", seg=10)
     # turntable with the frame clamped to it
     octa(m, 0.40, 0.40, Z - 0.01, Z + 0.07, T)
     octa(m, 0.34, 0.31, Z + 0.07, Z + 0.14, ST)
