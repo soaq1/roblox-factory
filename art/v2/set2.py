@@ -775,6 +775,48 @@ def smelter6(m):
 smelter6.frame, smelter6.shadow = F31, True
 _hero.HEROES["smelter6"] = smelter6
 
+def smelter7(m):
+    """Smelter, 3x1, grade 2 (hitbox 3x1x2). The developer found the upright chamber of smelter6 the
+    weak part and asked for something lying wide instead.
+    On the hood's crown lies a long, low melting chamber: a flared foot, a short upright wall with two
+    glowing eight-sided sight ports, shoulders drawing in to a long dark cap. The stack rises from the
+    cap at the end the ore comes in. In front of the chamber lies the blower, a drum with a rimmed
+    intake, whose air pipe runs out over the eave, down the wall and into the firebox's pier. At the
+    far end the tap spout runs from under the cap into the mould box."""
+    P = _smelt_lower(m)
+    xh, yh = -0.06, 0.10
+    wall, neck = (0.31, 0.17, 0.04), (0.26, 0.115, 0.035)
+    with m.at((xh, yh, 0)):
+        tower(m, [(0.335, 0.195, 0.05, P), (wall[0], wall[1], wall[2], P + 0.05)], T)
+        tower(m, [(wall[0], wall[1], wall[2], P + 0.05), (wall[0], wall[1], wall[2], P + 0.24), (neck[0], neck[1], neck[2], P + 0.33)], ST)
+        slab(m, 0.275, 0.13, P + 0.33, P + 0.385, cut_to(0.275, 0.13, neck, 0.015), TD, bevel=0.012)
+    for x in (-0.03, 0.125):                                  # sight ports in the front, clear of the blower
+        with on_side(m, -1, yh - wall[1], P + 0.145, xc=x):
+            octa(m, 0.042, 0.042, -0.002, 0.008, "h_glow")
+            oct_ring(m, 0.068, 0.03, -0.004, 0.026, T)
+    with m.at((0, yh, 0)):                                    # the stack, standing on the cap at the end the ore comes in
+        sq_stack(m, -0.21, P + 0.385, 1.92)
+    # blower in front of the chamber: drum, rimmed intake, hub, and the air pipe into the firebox's pier
+    xw, yw, zw, rw = -0.28, -0.20, P + 0.115, 0.09
+    with m.at((xw, yw, 0)):
+        tower(m, [(0.085, 0.08, 0.025, P), (0.065, 0.06, 0.02, P + 0.055)], T)
+    m.cyl(rw * K, 0.20, (xw, yw, zw), ST, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with on_end(m, -1, xw - 0.10, yw, zw):
+        oct_ring(m, rw, 0.032, 0.0, 0.03, T)
+        octa(m, 0.062, 0.062, -0.02, 0.004, SLIT)
+    with on_end(m, 1, xw + 0.10, yw, zw):
+        octa(m, 0.045, 0.036, 0.0, 0.022, LT)
+    xa, ya, ra, za = -0.34, -0.455, 0.035, 0.555
+    side_pipe(m, xa, [(yw - 0.03, zw), (ya + 0.045, zw), (ya, zw - 0.045), (ya, za + 0.045), (ya + 0.045, za), (-0.385, za)], ra, ST)
+    m.cyl(ra * 1.4, 0.028, (xa, yw - rw - 0.012, zw), T, seg=8, axis="Y")
+    m.cyl(ra * 1.4, 0.028, (xa, -0.412, za), T, seg=8, axis="Y")
+    with m.at((0, 0.06, 0)):                                  # tap spout and mould box at the far end
+        pour(m, (xh + neck[0], P + 0.35), 0.39, P)
+
+
+smelter7.frame, smelter7.shadow = F31, True
+_hero.HEROES["smelter7"] = smelter7
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
