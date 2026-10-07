@@ -9,6 +9,7 @@ from .base import foot_hearth, foot_drain
 from .supply import crystal
 from .d import *          # noqa: F401,F403
 from .d import run, cover, block, frame, stub_form, strip, frustum, K
+from .d import SECTION, chev, buttress
 
 ST, LT = "h_steel", "h_lite"
 F31 = {"iso": (3.3, 0.72), "side": (3.4, 0.95), "top": (3.2, 0.6), "end": (2.6, 1.0)}
@@ -1215,7 +1216,12 @@ def former2(m):
     The belt runs along the far row (y = +0.5); the platform is the near strip."""
     yb = 0.5
     with m.at((0, yb, 0)):
-        run(m, -1.5, 1.5, braces=(-4 / 3, 4 / 3))
+        m.prism(SECTION, -1.5, 1.5, "X", R)                   # the conveyor, as d.run lays it, but with its arrows placed by hand:
+        m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
+        for x in (-1.28, 1.28):                               # one whole pair on each open stretch; none under the mouth's frame, where the
+            chev(m, x)                                        # jamb and the dark of the tunnel would cut it off
+        for x in (-4 / 3, 4 / 3):
+            buttress(m, x)
         collar(m, -1.0, 1.0, mk=T)                            # the chassis under the body, gripping both rails
     X, y0, y1, zt = 0.86, -0.44, 0.94, 1.0                    # the body: half length, near and far walls, top
     yc, hy = (y0 + y1) / 2, (y1 - y0) / 2
