@@ -9,6 +9,7 @@
 3. `docs/recipes.md`: 레시피 초안. `data/recipes.py`에서 자동으로 만들어지므로, 고칠 때는 그 파일을 고치고 `python3 data/recipes.py`를 실행합니다.
 4. `game/README.md`: 코드를 만들고 시험하는 명령과 조작법.
 5. `docs/recipes-v2.md`와 `docs/chain-map.html`: 기계 14종과 깊은 사슬로 다시 짠 레시피 초안과 사슬 지도(제안, 2026-10-07). `data/recipes_v2.py`와 `data/chain_map.py`가 만듭니다. 게임은 아직 3번의 v1을 씁니다. 배경은 설계 문서 8.19~8.21절.
+6. `docs/machine-sheet.html`: 기계 설계표(제안). 기계마다 급, 크기, 높이, 벨트가 붙는 꼴, 주인공과 조연, 실루엣. **모델을 만들기 전에 이 표에서 그 기계의 칸을 봅니다.** `data/machine_sheet.py`가 만듭니다.
 
 ## 개발자
 
