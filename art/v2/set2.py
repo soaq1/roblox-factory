@@ -624,7 +624,7 @@ def _smelt_lower(m):
     cover(m, BX, 1, sole=False)
     cover(m, -BX, -1, sole=False)
     collar(m, -BX - 0.318, BX + 0.318, mk=T)
-    hy, hc, xp, he, top = 0.40, 0.355, 0.30, 0.415, 0.712
+    hy, hc, xp, he, top = 0.40, 0.355, 0.30, 0.408, 0.712
     bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, top, "Z", G, bevel=0.012)
     for sx in SIDES:
         x0, x1 = sorted((sx * xp, sx * BX))
@@ -826,10 +826,11 @@ def smelter8(m):
     wide box open at the top, the fire seen through a grate, with pipes and small works set about it.
     Ours keeps its own body (chassis, piered firebox with its fire mouth, sloped hood) and puts on the
     crown a wide hearth box that spreads toward its rim: a flared foot, light walls leaning out, a dark
-    rim round a real hollow where the fire lies under a row of bars. At the far end's front corner
-    stands the blower, a square fan casing with a rimmed intake, and its air pipe runs the length of
-    the hearth, sends two branches into its wall, then turns out over the eave and down into the
-    firebox's pier. (A tap spout and mould box stood at the far end; the developer asked what they
+    rim round a real hollow where the fire lies under a row of bars, and a glowing tap port in its far
+    end. At the far end's front corner stands the blower, a square fan casing with a rimmed intake.
+    One air pipe runs from it the length of the hearth, sends two branches square into its wall, then
+    turns out over the eave and drops into a boot on the near pier; a second crosses the far end, turns
+    over the back eave and drops into a boot on the far pier, so neither side is bare. (A tap spout and mould box stood at the far end; the developer asked what they
     were, and they are gone. The ingot leaves by the belt like everything else.)"""
     P = _smelt_lower(m)
     xt, yt = -0.07, 0.03                                      # the hearth box
@@ -852,14 +853,32 @@ def smelter8(m):
     with on_side(m, -1, yw - case[1], zw, xc=xw):
         oct_ring(m, rw, 0.026, -0.004, 0.012, T)
         octa(m, 0.046, 0.046, -0.03, -0.008, SLIT)
-    # the air pipe: along the front of the hearth, two branches into its wall, then out over the eave and down into the pier
-    ya, xa, za, ra, zp, yo = -0.25, -0.34, 0.555, 0.032, P + 0.10, -0.462
-    m.pipe([(xw - 0.05, ya, zp), (xa + 0.045, ya, zp), (xa, ya - 0.045, zp), (xa, yo + 0.045, zp), (xa, yo, zp - 0.045),
-            (xa, yo, za + 0.045), (xa, yo + 0.045, za), (xa, -0.385, za)], ra, ST)
-    m.cyl(ra * 1.4, 0.028, (xw - case[0] - 0.012, ya, zp), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
-    m.cyl(ra * 1.4, 0.028, (xa, -0.412, za), T, seg=8, axis="Y")
-    for x in (-0.20, 0.02):
-        m.pipe([(x, ya, zp), (x, ya + 0.03, zp + 0.03), (x, ya + 0.09, zp + 0.09)], 0.024, ST)
+    # Air pipes. Each leaves the casing square through a flange, turns only in open air, and ends by running
+    # straight down through a flange into a boot on a pier: no bend lies inside a flange, and no pipe meets a wall at a slant.
+    zp, ra, rf, yo, zt = P + 0.10, 0.03, 0.038, 0.447, 0.58   # run height, pipe and flange radius, where the wall run stands, a boot's top
+
+    def boot(x, d):
+        """A boot on the pier wall at side d: the pipe drops into its top, and the turn into the wall is inside it."""
+        bprism(m, [(d * 0.39, zt - 0.15), (d * 0.39, zt), (d * 0.492, zt), (d * 0.492, zt - 0.06), (d * 0.44, zt - 0.15)],
+               x - 0.042, x + 0.042, "X", T, bevel=0.008)
+        m.cyl(rf, 0.022, (x, d * yo, zt + 0.011), TD, seg=8)
+
+    ya, xa = -0.25, -0.345                                    # the long run along the front of the hearth, and the pier it ends at
+    m.pipe([(xw - 0.05, ya, zp), (xa + 0.045, ya, zp), (xa, ya - 0.045, zp), (xa, -yo + 0.045, zp), (xa, -yo, zp - 0.045),
+            (xa, -yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw - case[0] - 0.012, ya, zp), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    boot(xa, -1)
+    for x in (-0.20, 0.02):                                   # two branches, square into the hearth's wall, each through a collar
+        m.pipe([(x, ya, zp), (x, yt - 0.17, zp)], 0.022, ST)
+        m.cyl(0.031, 0.018, (x, yt - 0.213, zp), TD, seg=8, axis="Y")
+    # the second pipe: from the casing's back, across the far end, over the back eave and down into the far pier
+    m.pipe([(xw, yw + case[1] - 0.03, zp), (xw, yo - 0.045, zp), (xw, yo, zp - 0.045), (xw, yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw, yw + case[1] + 0.012, zp), TD, seg=8, axis="Y")
+    boot(xw, 1)
+    # tap port in the hearth's far end, above the pipe
+    with on_end(m, 1, xt + 0.332, yt, P + 0.25):              # the wall leans, so the port stands on it as a boss, its back buried
+        octa(m, 0.05, 0.05, -0.006, 0.006, "h_glow")
+        oct_ring(m, 0.078, 0.03, -0.022, 0.022, T)
 
 
 smelter8.frame, smelter8.shadow = F31, True
