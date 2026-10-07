@@ -75,6 +75,8 @@
 
 ## 모델 (`art/`)
 
+- **모델 작업을 하기 전에 `docs/modeling-principles.md` 를 읽습니다.** 개발자가 정한 모델링 원칙 전부와 기준 모델(조립기, 용광로)의 그림(`docs/img/models/`)이 거기 있습니다. 그림 네 장을 한 장으로 묶는 스크립트는 `art/tools/four.sh` 입니다(macOS/zsh, ffmpeg 필요).
+
 - 모델은 손으로 만들지 않고 `art/factorykit.py`(기계, 장치, 아이템)와 `art/blocks.py`(블록)가 만듭니다. 모양을 바꾸려면 스크립트를 고칩니다.
 - Blender를 창 없이 실행합니다. macOS 기준 `/Applications/Blender.app/Contents/MacOS/Blender --background --python art/factorykit.py -- thumbs line items`.
 - 하나만 다시 그리려면 `-- thumbs only=<이름>`.
