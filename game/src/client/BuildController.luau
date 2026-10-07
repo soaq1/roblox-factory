@@ -644,23 +644,10 @@ local function pickLooked()
 		local turned = found.model:GetAttribute("Dir")
 		facing = if Grid.isDir(turned) then turned :: number else nil
 	else
-		local function rgb(color: Color3): { number }
-			return {
-				math.floor(color.R * 255 + 0.5),
-				math.floor(color.G * 255 + 0.5),
-				math.floor(color.B * 255 + 0.5),
-			}
-		end
-		local cap = found.part:FindFirstChild("Cap")
-		-- The server names each block; the look is only a fallback.
+		-- The server writes on each block what it is. Its look says nothing: textured blocks are
+		-- all white underneath.
 		local named = found.part:GetAttribute("Block")
-		entry = if type(named) == "string"
-			then named
-			else HandLogic.blockByLook(
-				Defs,
-				rgb(found.part.Color),
-				if cap and cap:IsA("BasePart") then rgb(cap.Color) else nil
-			)
+		entry = if type(named) == "string" then named else nil
 	end
 	if not entry or not Defs.isPlaceable(entry) then
 		return

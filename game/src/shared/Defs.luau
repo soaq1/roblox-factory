@@ -10,6 +10,10 @@ Defs.Blocks = {
 		color = { 144, 112, 69 },
 		top = { 109, 189, 88 },
 		transparency = 0,
+		tex = {
+			side = "rbxassetid://99224680247095",
+			top = "rbxassetid://80436823360457",
+		},
 	},
 	dirt = {
 		name = "흙",
@@ -17,6 +21,9 @@ Defs.Blocks = {
 		color = { 152, 105, 68 },
 		top = { 154, 106, 69 },
 		transparency = 0,
+		tex = {
+			side = "rbxassetid://119786062110381",
+		},
 	},
 	farmland = {
 		name = "경작지",
@@ -31,6 +38,9 @@ Defs.Blocks = {
 		color = { 159, 165, 172 },
 		top = { 159, 165, 172 },
 		transparency = 0,
+		tex = {
+			side = "rbxassetid://105867114395503",
+		},
 	},
 	sand = {
 		name = "모래",

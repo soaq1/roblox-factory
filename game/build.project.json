@@ -9,6 +9,10 @@
     "ServerScriptService": {
       "Server": { "$path": "src/server" }
     },
+    "MaterialService": {
+      "$className": "MaterialService",
+      "$path": "src/materials"
+    },
     "StarterPlayer": {
       "$properties": { "EnableMouseLockOption": false },
       "StarterPlayerScripts": {

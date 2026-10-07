@@ -72,20 +72,6 @@ test("a dragged belt faces the way the drag moves", function()
 	eq(HandLogic.dragDir(1, 1, 0), nil)
 end)
 
-test("every block can be told from every other by how it looks", function()
-	for id, def in Defs.Blocks do
-		local c, t = def.color, def.top
-		local capped = math.abs(t[1] - c[1]) + math.abs(t[2] - c[2]) + math.abs(t[3] - c[3]) > 60
-		eq(HandLogic.blockByLook(Defs, c, if capped then t else nil), id)
-	end
-	eq(HandLogic.blockByLook(Defs, { 1, 2, 3 }, nil), nil)
-end)
-test("dirt and farmland share a side colour and are told apart by the cap", function()
-	local dirt, farm = Defs.Blocks.dirt, Defs.Blocks.farmland
-	eq(HandLogic.blockByLook(Defs, dirt.color, nil), "dirt")
-	eq(HandLogic.blockByLook(Defs, farm.color, farm.top), "farmland")
-end)
-
 test("a machine's covered cells are its footprint on every layer it keeps", function()
 	local keys = HandLogic.covered(Grid, { sx = 2, sz = 2, sy = 2 }, 0, 1, 0, 0)
 	eq(#keys, 8)

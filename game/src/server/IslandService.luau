@@ -1,8 +1,10 @@
 -- One island per player: where it sits in the world and what is in each cell.
+local MaterialService = game:GetService("MaterialService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local BlockLook = require(Shared.BlockLook)
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
@@ -36,6 +38,17 @@ local createdHooks: { (Island) -> () } = {}
 
 local CELL = Config.CELL
 local BLOCK_SIZE = Vector3.new(CELL, CELL, CELL)
+
+-- The custom materials textured blocks wear come with the place file (game/src/materials, written by
+-- gen_data.py): a script may not make one while the game runs. A block whose material is missing is
+-- drawn plain, and said so once, rather than left blank.
+local hasMaterial: { [string]: boolean } = {}
+for _, variant in BlockLook.variants(Defs.Blocks) do
+	hasMaterial[variant.name] = MaterialService:FindFirstChild(variant.name) ~= nil
+	if not hasMaterial[variant.name] then
+		warn("block material " .. variant.name .. " is not in MaterialService; that block is drawn plain")
+	end
+end
 
 function IslandService.create(player: Player): Island
 	local slot = 1
@@ -166,18 +179,32 @@ function IslandService.setBlock(island: Island, x: number, y: number, z: number,
 	part.Anchored = true
 	part.Size = BLOCK_SIZE
 	part.Material = Enum.Material.SmoothPlastic
-	part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
 	part.Transparency = def.transparency
 	part.Position = IslandService.cellCenter(island, x, y, z)
-	part:SetAttribute("Block", id) -- so the client can tell what a placed block is
-	-- Blocks whose top differs from their sides (grass, logs, farmland) get a thin cap.
-	local top = def.top
-	if
-		math.abs(top[1] - def.color[1])
-			+ math.abs(top[2] - def.color[2])
-			+ math.abs(top[3] - def.color[3])
-		> 60
-	then
+	part:SetAttribute("Block", id) -- what the block is; the client reads this, never its look
+	local look = BlockLook.of(id, def)
+	if look.variant and not hasMaterial[look.variant] then
+		look = BlockLook.of(id, { color = def.color, top = def.top })
+	end
+	if look.variant then
+		-- White, so the picture's own colours show.
+		part.Color = Color3.new(1, 1, 1)
+		part.MaterialVariant = look.variant
+		if look.top then
+			local face = Instance.new("Texture")
+			face.Name = "Top"
+			face.Face = Enum.NormalId.Top
+			face.Texture = look.top
+			face.StudsPerTileU = CELL
+			face.StudsPerTileV = CELL
+			face.Parent = part
+		end
+	else
+		part.Color = Color3.fromRGB(def.color[1], def.color[2], def.color[3])
+	end
+	-- Plain blocks whose top differs from their sides (logs, farmland) get a thin cap.
+	local top = look.cap
+	if top then
 		local cap = Instance.new("Part")
 		cap.Name = "Cap"
 		cap.Anchored = true

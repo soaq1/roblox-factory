@@ -1,0 +1,13 @@
+{
+  "_": "Pictures uploaded to Roblox for blocks, by block id. 'side' covers every face; 'top', if given, replaces it on the top face. A block not listed here is drawn in its plain colours. Read by gen_data.py.",
+  "grass": {
+    "side": "rbxassetid://99224680247095",
+    "top": "rbxassetid://80436823360457"
+  },
+  "dirt": {
+    "side": "rbxassetid://119786062110381"
+  },
+  "stone": {
+    "side": "rbxassetid://105867114395503"
+  }
+}
