@@ -222,6 +222,10 @@ def show(build, name, out_dir):
         bpy.ops.object.shade_smooth_by_angle(angle=rad(34))
     except Exception:
         pass
+    # big faces stay flat and only the chamfers between them shade softly; without this the softness
+    # of a chamfer spreads over the faces beside it and they look swollen
+    wn = ob.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
+    wn.keep_sharp, wn.weight, wn.mode = True, 100, "FACE_AREA"
     scene = fk.scene
     fk.sun.hide_render = True
     fk.bg.inputs[0].default_value = (1, 1, 1, 1)

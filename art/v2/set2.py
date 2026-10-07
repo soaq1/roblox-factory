@@ -372,9 +372,11 @@ def arm4(m, d, yb, zb, elbow, wrist):
 
 
 def bin4(m, x, y, z, w=0.34, l=0.25, h=0.15):
-    """An open parts bin: a tray that flares toward its rim, dark inside."""
-    m.box((w, l, h), (x, y, z + h / 2 - 0.005), ST, bevel=0.018, taper=1.20)
-    m.box((w * 1.20 - 0.09, l * 1.20 - 0.09, 0.012), (x, y, z + h - 0.002), SLIT)
+    """An open parts bin: a wall that flares toward its rim, in one mitred piece, round a real hollow
+    with a dark floor."""
+    with m.at((x, y, 0)):
+        ring(m, w * 0.6, l * 0.6, [(0.028, z - 0.005), (0.0, z + h - 0.005), (0.03, z + h - 0.005), (0.045, z + 0.045)], ST, c=0.02)
+        m.box((w * 1.2 - 0.08, l * 1.2 - 0.08, 0.05), (0, 0, z + 0.02), SLIT)
 
 
 def assembler4(m):
@@ -387,7 +389,7 @@ def assembler4(m):
     Z = 0.96
     # deck: a kerb with a sloped inner face, running round the edge in one mitred piece; seams across the floor
     ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=0.09)
-    for y in (-1.0, -0.5, 0.5, 1.0):
+    for y in (-0.5, 0.5):                                     # the outer pair ran under the bins and showed at both sides of them
         m.box((0.82, 0.014, 0.006), (0, y, Z + 0.003), ST)
     # portals, tied by struts and carrying the hoist girder
     with m.at((0, 0, Z)):
@@ -413,7 +415,7 @@ def assembler4(m):
     for d in SIDES:
         arm4(m, d, 0.70, Z, (0.56, Z + 1.04), (0.20, Z + 0.72))
         bin4(m, 0.0, d * 0.99, Z, w=0.25, l=0.22)
-        m.box((0.10, 0.09, 0.08), (0.0, d * 0.99, Z + 0.10), "h_copper", bevel=0.018)
+        m.box((0.10, 0.09, 0.08), (0.0, d * 0.99, Z + 0.08), "h_copper", bevel=0.018)      # a part lying on the bin's floor
 
 
 from contextlib import contextmanager
@@ -449,8 +451,9 @@ def smelter3(m):
     for d in SIDES:                                           # fire mouth: glow at the back, bars on it, the frame round them
         with on_side(m, d, d * hy, 0.543):
             m.box((0.27, 0.15, 0.008), (0, 0, 0.002), "h_glow")
-            for k in range(4):
-                m.box((0.026, 0.15, 0.014), (-0.09 + k * 0.06, 0, 0.012), TD, bevel=0.005)
+            for k in range(4):                                # bars of a tapered section, their ends set into the frame
+                x = -0.09 + k * 0.06
+                m.prism([(x - 0.016, 0.004), (x + 0.016, 0.004), (x + 0.008, 0.021), (x - 0.008, 0.021)], -0.10, 0.10, "Y", TD)
             ring(m, 0.185, 0.125, [(0.0, -0.004), (0.012, 0.034), (0.036, 0.034), (0.05, -0.004)], T, c=0.04)
     P = 0.90                                                  # the crown
     octa(m, 0.24, 0.19, P, P + 0.08, T)                       # the pot's flared foot, seated on the crown
@@ -465,8 +468,9 @@ def smelter3(m):
         with m.at((sx * 0.37, 0, 0)):
             octa(m, 0.095, 0.072, P, P + 0.08, T)
             octa(m, 0.072, 0.058, P + 0.08, P + 0.72, ST)
-            octa(m, 0.058, 0.10, P + 0.72, P + 0.81, TD)
-            octa(m, 0.078, 0.078, P + 0.81, P + 0.816, SLIT)
+            octa(m, 0.058, 0.10, P + 0.72, P + 0.78, TD)       # the cap flares, then a rim stands on it round a real hollow
+            oct_ring(m, 0.10, 0.028, P + 0.78, P + 0.82, TD)
+            octa(m, 0.076, 0.076, P + 0.75, P + 0.785, SLIT)   # the dark of the flue, down inside the rim
 
 
 smelter3.frame, smelter3.shadow = F31, True
