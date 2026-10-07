@@ -126,4 +126,26 @@ test("plants come up in one go, belts faster than big machines", function()
 	end
 end)
 
+test("a block is not placed where a character stands, but is beside, under and over them", function()
+	-- A character standing on the block at cell (0, 0, 0): cells are 3 studs, the block's top is at
+	-- 1.5, and the middle of the body is about 3 studs above the feet.
+	local rx, ry, rz = 0, 4.54, 0
+	local function at(x: number, y: number, z: number): boolean
+		return HandLogic.bodyInCell(x * 3, y * 3, z * 3, 3, rx, ry, rz)
+	end
+	eq(at(0, 1, 0), true) -- the legs
+	eq(at(0, 2, 0), true) -- the head
+	eq(at(0, 0, 0), false) -- the block stood on
+	eq(at(0, 3, 0), false) -- above the head
+	eq(at(1, 1, 0), false)
+	eq(at(-1, 1, 0), false)
+	eq(at(0, 1, 1), false)
+	eq(at(0, 2, -1), false)
+	-- standing on the line between two cells, the body is in both
+	eq(HandLogic.bodyInCell(0, 3, 0, 3, 1.5, 4.54, 0), true)
+	eq(HandLogic.bodyInCell(3, 3, 0, 3, 1.5, 4.54, 0), true)
+	-- at the top of a jump the cell under the feet is free again
+	eq(HandLogic.bodyInCell(0, 3, 0, 3, 0, 4.54 + 3, 0), false)
+end)
+
 T.done()

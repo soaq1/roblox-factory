@@ -31523,6 +31523,31 @@ function HandLogic.blockByLook(Defs, side: { number }, cap: { number }?): string
 	return nil
 end
 
+-- A standing character, as a box round the middle of its body (studs): half its width, how far it
+-- reaches below and above that middle, and how much of the box's edge is let off, so that the cell
+-- a player stands on, or one they only brush against, does not count.
+local BODY_HALF, BODY_DOWN, BODY_UP, BODY_SLACK = 1.0, 3.0, 2.2, 0.25
+
+-- Would a block in the cell centred at (cx, cy, cz) be inside a character whose body is centred at
+-- (rx, ry, rz)? Nothing is placed where someone stands: it would shut them in or throw them aside.
+function HandLogic.bodyInCell(
+	cx: number,
+	cy: number,
+	cz: number,
+	cell: number,
+	rx: number,
+	ry: number,
+	rz: number
+): boolean
+	local half = cell / 2
+	local side = BODY_HALF - BODY_SLACK
+	if math.abs(rx - cx) >= half + side or math.abs(rz - cz) >= half + side then
+		return false
+	end
+	local low, high = ry - BODY_DOWN + BODY_SLACK, ry + BODY_UP - BODY_SLACK
+	return low < cy + half and high > cy - half
+end
+
 -- The cells a machine placed at (x, y, z) covers, as "x,y,z" keys given by `keyOf`.
 function HandLogic.covered(Grid, def, x: number, y: number, z: number, dir: number): { string }
 	local keys = {}
@@ -43340,6 +43365,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
+local HandLogic = require(Shared.HandLogic)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
 local ToolLogic = require(Shared.ToolLogic)
@@ -43423,6 +43449,18 @@ local function groundAllows(island: IslandService.Island, def, x: number, y: num
 	return below ~= nil and below.kind == "block" and table.find(def.needsBelow, below.id) ~= nil
 end
 
+-- Is anyone standing in this cell of the island? (Visitors count as much as the owner.)
+local function someoneIn(island: IslandService.Island, x: number, y: number, z: number): boolean
+	local center = IslandService.cellCenter(island, x, y, z)
+	for _, other in Players:GetPlayers() do
+		local at = rootPosition(other)
+		if at and HandLogic.bodyInCell(center.X, center.Y, center.Z, Config.CELL, at.X, at.Y, at.Z) then
+			return true
+		end
+	end
+	return false
+end
+
 local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	local island = editable(player, x, y, z)
 	if not island or not Defs.isPlaceable(id) then
@@ -43435,6 +43473,10 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 		return
 	end
 	if Defs.isBlock(id) then
+		if someoneIn(island, x, y, z) then
+			Profile.hint(player, "서 있는 자리에는 놓을 수 없습니다")
+			return
+		end
 		if not island.cells[Grid.key(x, y, z)] and IslandService.setBlock(island, x, y, z, id) then
 			settle(island, cost)
 		end
@@ -49200,7 +49242,20 @@ local function drawGhost()
 		local size = Vector3.new(CELL, CELL, CELL)
 		ghost.Size = size * 0.98
 		ghost.CFrame = box
-		ghost.Color = if isOccupied(box, size) then BLOCKED else FREE
+		-- The player's own body is left out of isOccupied, so it is asked about here: the server
+		-- places nothing in a cell someone stands in.
+		local _, root = character()
+		local inBody = root ~= nil
+			and HandLogic.bodyInCell(
+				center.X,
+				center.Y,
+				center.Z,
+				CELL,
+				root.Position.X,
+				root.Position.Y,
+				root.Position.Z
+			)
+		ghost.Color = if inBody or isOccupied(box, size) then BLOCKED else FREE
 		ghost.Transparency = 0.6
 		return
 	end

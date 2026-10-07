@@ -108,6 +108,31 @@ function HandLogic.blockByLook(Defs, side: { number }, cap: { number }?): string
 	return nil
 end
 
+-- A standing character, as a box round the middle of its body (studs): half its width, how far it
+-- reaches below and above that middle, and how much of the box's edge is let off, so that the cell
+-- a player stands on, or one they only brush against, does not count.
+local BODY_HALF, BODY_DOWN, BODY_UP, BODY_SLACK = 1.0, 3.0, 2.2, 0.25
+
+-- Would a block in the cell centred at (cx, cy, cz) be inside a character whose body is centred at
+-- (rx, ry, rz)? Nothing is placed where someone stands: it would shut them in or throw them aside.
+function HandLogic.bodyInCell(
+	cx: number,
+	cy: number,
+	cz: number,
+	cell: number,
+	rx: number,
+	ry: number,
+	rz: number
+): boolean
+	local half = cell / 2
+	local side = BODY_HALF - BODY_SLACK
+	if math.abs(rx - cx) >= half + side or math.abs(rz - cz) >= half + side then
+		return false
+	end
+	local low, high = ry - BODY_DOWN + BODY_SLACK, ry + BODY_UP - BODY_SLACK
+	return low < cy + half and high > cy - half
+end
+
 -- The cells a machine placed at (x, y, z) covers, as "x,y,z" keys given by `keyOf`.
 function HandLogic.covered(Grid, def, x: number, y: number, z: number, dir: number): { string }
 	local keys = {}

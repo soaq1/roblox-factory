@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Defs = require(Shared.Defs)
 local Grid = require(Shared.Grid)
+local HandLogic = require(Shared.HandLogic)
 local Inventory = require(Shared.Inventory)
 local Net = require(Shared.Net)
 local ToolLogic = require(Shared.ToolLogic)
@@ -90,6 +91,18 @@ local function groundAllows(island: IslandService.Island, def, x: number, y: num
 	return below ~= nil and below.kind == "block" and table.find(def.needsBelow, below.id) ~= nil
 end
 
+-- Is anyone standing in this cell of the island? (Visitors count as much as the owner.)
+local function someoneIn(island: IslandService.Island, x: number, y: number, z: number): boolean
+	local center = IslandService.cellCenter(island, x, y, z)
+	for _, other in Players:GetPlayers() do
+		local at = rootPosition(other)
+		if at and HandLogic.bodyInCell(center.X, center.Y, center.Z, Config.CELL, at.X, at.Y, at.Z) then
+			return true
+		end
+	end
+	return false
+end
+
 local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 	local island = editable(player, x, y, z)
 	if not island or not Defs.isPlaceable(id) then
@@ -102,6 +115,10 @@ local function place(player: Player, id: any, x: any, y: any, z: any, dir: any)
 		return
 	end
 	if Defs.isBlock(id) then
+		if someoneIn(island, x, y, z) then
+			Profile.hint(player, "서 있는 자리에는 놓을 수 없습니다")
+			return
+		end
 		if not island.cells[Grid.key(x, y, z)] and IslandService.setBlock(island, x, y, z, id) then
 			settle(island, cost)
 		end

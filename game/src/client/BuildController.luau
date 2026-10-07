@@ -434,7 +434,20 @@ local function drawGhost()
 		local size = Vector3.new(CELL, CELL, CELL)
 		ghost.Size = size * 0.98
 		ghost.CFrame = box
-		ghost.Color = if isOccupied(box, size) then BLOCKED else FREE
+		-- The player's own body is left out of isOccupied, so it is asked about here: the server
+		-- places nothing in a cell someone stands in.
+		local _, root = character()
+		local inBody = root ~= nil
+			and HandLogic.bodyInCell(
+				center.X,
+				center.Y,
+				center.Z,
+				CELL,
+				root.Position.X,
+				root.Position.Y,
+				root.Position.Z
+			)
+		ghost.Color = if inBody or isOccupied(box, size) then BLOCKED else FREE
 		ghost.Transparency = 0.6
 		return
 	end
