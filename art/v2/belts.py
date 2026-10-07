@@ -79,6 +79,7 @@ def corner_left(m):
 
 
 RISE, EASE = 1.0, 0.30
+PITCH = 3                 # pairs of arrows to a cell, as on the flat belt
 
 
 def ramp_profile(low, high):
@@ -122,12 +123,20 @@ def ramp(m, low=True, high=True, flow=1):
     def on_slope(x):                                          # a frame lying on the ramp at x
         return m.stack[-1] @ Matrix.Translation((x, 0, lift_at(x))) @ Matrix.Rotation(-pitch_at(x), 4, "Y")
 
-    for x in (-0.82, -0.41, 0.0, 0.41, 0.82):
+    # Arrows and bolts at the flat belt's own pitch (three to a cell), measured along the belt's
+    # surface, with half a pitch left at each end: across a joint with a flat belt, or with another
+    # ramp, the spacing stays the same, so the row of arrows does not break there.
+    fine = [-1.0 + 2.0 * i / 400 for i in range(401)]
+    run_ = [0.0]
+    for a_, b_ in zip(fine, fine[1:]):
+        run_.append(run_[-1] + math.hypot(b_ - a_, lift_at(b_) - lift_at(a_)))
+    count = max(1, round(run_[-1] * PITCH))
+    for k in range(count):
+        want = (k + 0.5) * run_[-1] / count
+        i = next(j for j in range(len(run_)) if run_[j] >= want)
+        x = fine[i]
         m.stack.append(on_slope(x))
         chev(m, 0.0, flow)
-        m.stack.pop()
-    for x in (-0.62, -0.22, 0.42):
-        m.stack.append(on_slope(x))
         bolt(m)
         m.stack.append(m.stack[-1] @ Matrix.Rotation(math.pi, 4, "Z"))
         bolt(m)
