@@ -1204,15 +1204,15 @@ former1.frame, former1.shadow = {"iso": (4.5, 0.85), "side": (4.4, 1.0), "top": 
 _hero.HEROES["former1"] = former1
 
 def former2(m):
-    """Former, 3x2 (hitbox 3x2x2), second attempt. The developer found the first a rehash of the press and
-    the smelter and asked for it simply to be modelled like Satisfactory's Constructor. So this follows
-    that machine's build, mass for mass: one tall closed body; a thick framed mouth with a sloped hood
-    at one side of each end face and a tall vent beside it; four fat steel columns out of the body's
-    top; a big light head on them whose plan swells round each column, a dark band round its top edge
-    and bolts in its flanks; an open frame over the head; a ringed exhaust stack up through the head's
-    waist; a low dark platform with bent outrigger legs; and on the platform beside the body an arm.
-    Ours keeps its own conveyor and greys, and the arm has our job: it changes the mould. A rack of
-    moulds stands on the platform, and the arm lowers one into a receiver on the body's wall.
+    """Former, 3x2 (hitbox 3x2x2). The developer asked for it to be modelled like Satisfactory's
+    Constructor, so its masses follow that machine: one tall closed body; a thick framed mouth with a
+    sloped hood at one side of each end face and a tall vent beside it; four fat steel columns out of
+    the body's top; a big light head on them whose plan swells round each column, a dark band round
+    its top edge and bolts in its flanks; an open frame over the head; a ringed exhaust stack up
+    through the head's waist; a low dark platform with bent outrigger legs.
+    It is a grade 2 machine, and grade 2 is a chimney-and-pipe factory: no screen and no robot arm
+    (those begin at grade 3). On the platform stand what a person would work: the rack of moulds, the
+    receiver on the body's wall with the mould in use standing in it, and the drive, a heavy flywheel.
     The belt runs along the far row (y = +0.5); the platform is the near strip."""
     yb = 0.5
     with m.at((0, yb, 0)):
@@ -1261,14 +1261,12 @@ def former2(m):
     for x in (-0.55, 0.55):
         with on_side(m, 1, y1, 0.69, xc=x):
             vent(m, 0.20, 0.17)
-    # the near wall, behind the platform: a screen over the rack, a vent behind the arm
-    with on_side(m, -1, y0, 0.74, xc=-0.58):
-        m.box((0.34, 0.20, 0.008), (0, 0, 0.002), SLIT)
-        for i, w in enumerate((0.26, 0.16, 0.22)):
-            m.box((w, 0.026, 0.006), (0, (1 - i) * 0.055, 0.008), "h_core")
-        ring(m, 0.21, 0.14, [(0.0, -0.004), (0.012, 0.03), (0.038, 0.03), (0.05, -0.004)], T, c=0.035)
-    with on_side(m, -1, y0, 0.72, xc=0.57):
-        vent(m, 0.20, 0.15)
+    # the near wall, behind the platform: a bolted panel over the rack
+    with on_side(m, -1, y0, 0.72, xc=-0.60):
+        m.box((0.46, 0.30, 0.03), (0, 0, 0.01), LT, bevel=0.012)
+        for sx in SIDES:
+            for sz in SIDES:
+                m.cyl(0.02, 0.012, (sx * 0.185, sz * 0.105, 0.03), TD, seg=6)
     # out of the body's top: four fat columns and the ram between them
     cx, cy, rc = 0.50, 0.42, 0.10
     z0, z1 = 1.22, 1.50                                       # the head, at the top of its stroke
@@ -1304,17 +1302,22 @@ def former2(m):
                 octa(m, 0.068, 0.068, 1.68 + k * 0.068, 1.715 + k * 0.068, TD)
             oct_ring(m, 0.068, 0.022, 1.90, 1.94, TD)
             octa(m, 0.047, 0.047, 1.89, 1.925, SLIT)
-    # on the platform: the mould receiver on the body's wall, the arm over it, and the rack
+    # on the platform: the mould receiver on the body's wall, the drive, and the rack
     with m.at((0.0, y0 - 0.085, 0), rad(90)):                 # the receiver: an open-topped box against the wall
         shell(m, [(0.085, 0.20, 0.02, 0.11), (0.09, 0.205, 0.022, 0.30), (0.078, 0.193, 0.018, 0.315),
                   (0.05, 0.168, 0.012, 0.315), (0.046, 0.164, 0.01, 0.20)], T)
         tower(m, [(0.049, 0.167, 0.011, 0.115), (0.049, 0.167, 0.011, 0.205)], SLIT)
         mould(m, 0.19)
-    ax, ay = 0.52, -0.71
-    ux, uy = 0.0 - ax, (y0 - 0.085) - ay
-    reach = math.hypot(ux, uy)
-    with m.at((ax, ay, 0), math.atan2(-ux, uy)):
-        arm4(m, 1, 0.0, 0.12, (-0.14, 0.12 + 0.78), (reach, 0.12 + 0.67))
+    # the drive: a heavy flywheel on a shaft out of the wall, its outer end in a bearing on a pedestal
+    with on_side(m, -1, y0, 0.60, xc=0.52):
+        m.cyl(0.115, 0.04, (0, 0, 0.012), T, seg=8)
+        m.cyl(0.05, 0.31, (0, 0, 0.145), ST, seg=10)
+        ring_round(m, 0.30, 0.235, 0.08, 0.17, TD, seg=20)
+        for k in range(3):
+            m.box((0.50, 0.06, 0.035), (0, 0, 0.125), LT, rot=k * math.pi / 3)
+        m.cyl(0.09, 0.11, (0, 0, 0.125), T, seg=8)
+        m.prism([(-0.17, -0.49), (0.17, -0.49), (0.07, 0.08), (-0.07, 0.08)], 0.215, 0.285, "Z", T)
+        m.cyl(0.085, 0.09, (0, 0, 0.25), TD, seg=8)
     with m.at((-0.60, -0.70, 0)):                             # the rack: a trough with the other moulds standing in it
         shell(m, [(0.33, 0.20, 0.03, 0.11), (0.34, 0.21, 0.035, 0.21), (0.325, 0.195, 0.03, 0.225),
                   (0.30, 0.17, 0.02, 0.225), (0.29, 0.16, 0.018, 0.15)], ST)
@@ -1337,6 +1340,165 @@ def lineup1(m):
 
 lineup1.frame, lineup1.shadow = {"iso": (9.6, 1.0), "side": (4.6, 1.3), "top": (9.0, 1.0), "end": (9.0, 1.3)}, True
 _hero.HEROES["lineup1"] = lineup1
+
+def belt_stub(m, x0, x1, arrow, bolt):
+    """A stub of conveyor from x0 to x1, as d.run lays it, but with one whole pair of arrows at `arrow`
+    (so none is cut off under a mouth's cover) and a bolt at `bolt`."""
+    m.prism(SECTION, x0, x1, "X", R)
+    m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
+    chev(m, arrow)
+    buttress(m, bolt)
+
+
+def fire_window(m, bars=4, hx=0.17, hy=0.10):
+    """A glowing window in a furnace wall, to be built inside on_side or on_end: the glow, bars set into
+    a one-piece frame, the frame's back buried in the wall (which may lean)."""
+    m.box((2 * hx - 0.08, 2 * hy - 0.08, 0.02), (0, 0, -0.004), "h_glow")
+    for k in range(bars):
+        x = -(bars - 1) * 0.025 + k * 0.05
+        m.prism([(x - 0.014, 0.0), (x + 0.014, 0.0), (x + 0.008, 0.022), (x - 0.008, 0.022)], -(hy - 0.03), hy - 0.03, "Y", TD)
+    ring(m, hx, hy, [(0.0, -0.03), (0.012, 0.03), (0.034, 0.03), (0.045, -0.03)], T, c=0.03)
+
+
+def blast4(m):
+    """Steel mill, 3x3, grade 3 (hitbox 3x3x4). Iron and coal are carried up to the top of a tall
+    furnace, melt together in a blast of hot air, and run out as steel.
+    Grade 3, but a furnace: a chimney-and-pipe machine with one screen, not a laboratory.
+    A wide low hall carries everything: two inputs side by side at one end, the output at the other,
+    buttresses and vents along its sides. On its deck stands the furnace, a square shaft that narrows
+    as it rises, hooped in steel, on a dark hearth with a glowing window in three faces (the one over
+    the output is the tap), under a dark cap with an open charging hopper. Round the shaft runs the
+    blast main, a ring of pipe with two short branches into each face. Between the two inputs stands
+    the hoist house, and from its roof an inclined hoist climbs to the hopper, a loaded skip on its
+    rails. At one back corner stands a tall square stack, at the other the blower house with the
+    machine's one screen; each feeds the ring through a short straight pipe."""
+    X, Y, Z = 0.85, 1.46, 1.0
+    for sy in SIDES:
+        with m.at((0, sy * 1.0, 0)):
+            belt_stub(m, -1.5, -X, -1.345, -1.43)
+            cover(m, -X, -1)
+    belt_stub(m, X, 1.5, 1.345, 1.43)
+    cover(m, X, 1)
+    wall = (X, Y, 0.03)
+    slab(m, X - 0.012, Y - 0.012, 0.0, 0.18, 0.03, T, bevel=0.012)
+    slab(m, X, Y, 0.14, Z - 0.07, wall[2], G, bevel=0.02)
+    slab(m, X + 0.03, Y + 0.03, Z - 0.10, Z, cut_to(X + 0.03, Y + 0.03, wall, 0.03), TD, bevel=0.025)
+    for d in SIDES:                                           # each long wall: three steel buttresses, a vent between each pair
+        for x in (-0.60, 0.0, 0.60):
+            with on_side(m, d, d * Y, 0.52, xc=x):
+                m.box((0.13, 0.78, 0.032), (0, 0, 0.01), ST, bevel=0.012)
+        for x in (-0.30, 0.30):
+            with on_side(m, d, d * Y, 0.54, xc=x):
+                vent(m, 0.19, 0.17)
+    for sy in SIDES:                                          # the outlet end: a bolted panel each side of the mouth
+        with on_end(m, 1, X, sy * 0.96, 0.52):
+            m.box((0.46, 0.42, 0.03), (0, 0, 0.01), LT, bevel=0.012)
+            for a in SIDES:
+                for b in SIDES:
+                    m.cyl(0.022, 0.012, (a * 0.185, b * 0.165, 0.03), TD, seg=6)
+    # the hoist house between the two inputs, and the inclined hoist from its roof to the hopper
+    pit = (0.30, 0.40, 0.05)
+    with m.at((-1.14, 0, 0)):
+        slab(m, pit[0], pit[1], 0.0, 0.60, pit[2], G, bevel=0.02)
+        slab(m, 0.32, 0.42, 0.57, 0.66, cut_to(0.32, 0.42, pit, 0.02), TD, bevel=0.02)
+    with on_end(m, -1, -1.44, 0, 0.32):
+        vent(m, 0.24, 0.16)
+    p0, p1 = (-1.30, 0.64), (-0.38, 3.02)
+    L = math.hypot(p1[0] - p0[0], p1[1] - p0[1])
+    ux, uz = (p1[0] - p0[0]) / L, (p1[1] - p0[1]) / L
+
+    def along(s, off):                                        # a point s up the incline and `off` above the rails' underside
+        return (p0[0] + ux * s - uz * off, p0[1] + uz * s + ux * off)
+
+    for sy in SIDES:
+        ya, yb_ = sorted((sy * 0.14, sy * 0.21))
+        m.prism([along(0, 0), along(L, 0), along(L, 0.075), along(0, 0.075)], ya, yb_, "Y", ST)                 # rails
+        xa, xb = -0.875, -0.815                               # a post from the deck's edge up into each rail
+        zr = lambda x: p0[1] + (x - p0[0]) * uz / ux
+        m.prism([(xa, Z - 0.01), (xb, Z - 0.01), (xb, zr(xb) + 0.012), (xa, zr(xa) + 0.012)], ya, yb_, "Y", ST)
+    m.box((0.05, 0.30, 0.05), (-0.845, 0, 1.38), T)
+    for k in range(6):                                        # ties, their ends let into the rails
+        s0 = 0.22 + k * 0.42
+        m.prism([along(s0, 0.014), along(s0 + 0.05, 0.014), along(s0 + 0.05, 0.052), along(s0, 0.052)], -0.15, 0.15, "Y", T)
+    s0 = 1.22                                                 # the skip, loaded, part of the way up
+    m.prism([along(s0, 0.105), along(s0 + 0.30, 0.105), along(s0 + 0.34, 0.27), along(s0 - 0.04, 0.27)], -0.125, 0.125, "Y", TD)
+    m.prism([along(s0 + 0.0, 0.262), along(s0 + 0.30, 0.262), along(s0 + 0.22, 0.31), along(s0 + 0.08, 0.31)], -0.09, 0.09, "Y", "h_copper")
+    for q in (0.06, 0.24):
+        x, z = along(s0 + q, 0.115)
+        for sy in SIDES:
+            m.cyl(0.042, 0.05, (x, sy * 0.175, z), T, seg=10, axis="Y")
+    m.prism([(-0.45, 2.95), (-0.30, 2.95), (-0.30, 3.07), (-0.45, 3.07)], -0.25, 0.25, "Y", T)                  # the tipping head, on the hopper's lip
+    # the furnace
+    tower(m, [(0.68, 0.68, 0.12, Z - 0.01), (0.62, 0.62, 0.11, Z + 0.30)], T)                                    # hearth
+    zb0, zb1 = Z + 0.29, Z + 1.62
+    half = lambda z: 0.60 - 0.17 * (z - zb0) / (zb1 - zb0)
+    cutc = lambda z: 0.11 - 0.03 * (z - zb0) / (zb1 - zb0)
+    tower(m, [(0.60, 0.60, 0.11, zb0), (0.43, 0.43, 0.08, zb1)], G)                                              # the shaft, narrowing as it rises
+    for z in (Z + 0.80, Z + 1.22):                            # steel hoops
+        tower(m, [(half(z) + 0.016, half(z) + 0.016, cutc(z) + 0.004, z), (half(z + 0.07) + 0.016, half(z + 0.07) + 0.016, cutc(z + 0.07) + 0.004, z + 0.07)], ST)
+    tower(m, [(0.47, 0.47, 0.09, Z + 1.60), (0.47, 0.47, 0.09, Z + 1.70), (0.36, 0.36, 0.07, Z + 1.82)], TD)     # cap
+    shell(m, [(0.26, 0.26, 0.05, Z + 1.80), (0.33, 0.33, 0.06, Z + 2.0), (0.31, 0.31, 0.055, Z + 2.02),
+              (0.27, 0.27, 0.05, Z + 2.02), (0.21, 0.21, 0.04, Z + 1.86)], ST)                                   # charging hopper, open
+    tower(m, [(0.215, 0.215, 0.041, Z + 1.84), (0.215, 0.215, 0.041, Z + 1.875)], SLIT)
+    for d in SIDES:                                           # a glowing window in each side face of the hearth,
+        with on_side(m, d, d * 0.655, Z + 0.15):
+            fire_window(m)
+    with on_end(m, 1, 0.655, 0, Z + 0.15):                    # and the tap over the outlet, with a lip under it
+        fire_window(m, bars=2, hx=0.20)
+        m.prism([(-0.15, -0.154), (0.15, -0.154), (0.11, -0.085), (-0.11, -0.085)], -0.02, 0.085, "Z", TD)
+    # the blast main: a ring of pipe round the shaft, two branches square into each face
+    a_, cut, zr_, rr = 0.74, 0.20, Z + 0.50, 0.05
+    loop = [(a_, 0), (a_, a_ - cut), (a_ - cut, a_), (-(a_ - cut), a_), (-a_, a_ - cut), (-a_, -(a_ - cut)), (-(a_ - cut), -a_),
+            (a_ - cut, -a_), (a_, -(a_ - cut)), (a_, 0)]
+    m.pipe([(x, y, zr_) for x, y in loop], rr, ST, seg=8)
+    hw = half(zr_)
+    for s in SIDES:
+        m.cyl(rr + 0.016, 0.05, (s * a_, 0, zr_), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))                    # a flange in the middle of each run
+        m.cyl(rr + 0.016, 0.05, (0, s * a_, zr_), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+        for u in (-0.30, 0.30):
+            m.cyl(0.03, a_ - hw + 0.02, (s * (a_ + hw - 0.02) / 2, u, zr_), ST, seg=8, axis="X")
+            m.cyl(0.046, 0.024, (s * (hw + 0.006), u, zr_), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+            m.cyl(0.03, a_ - hw + 0.02, (u, s * (a_ + hw - 0.02) / 2, zr_), ST, seg=8, axis="Y")
+            m.cyl(0.046, 0.024, (u, s * (hw + 0.006), zr_), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    # one back corner: the stack
+    xs, ys = 0.45, 1.10
+    with m.at((xs, ys, 0)):
+        tower(m, [(0.21, 0.21, 0.04, Z - 0.01), (0.17, 0.17, 0.035, Z + 0.22)], T)
+        zs0, zs1 = Z + 0.21, 3.30
+        sh = lambda z: 0.165 - 0.045 * (z - zs0) / (zs1 - zs0)
+        tower(m, [(0.165, 0.165, 0.035, zs0), (0.12, 0.12, 0.03, zs1)], G)
+        for z in (1.95, 2.65):
+            tower(m, [(sh(z) + 0.012, sh(z) + 0.012, 0.035, z), (sh(z + 0.06) + 0.012, sh(z + 0.06) + 0.012, 0.035, z + 0.06)], ST)
+        shell(m, [(0.125, 0.125, 0.03, 3.28), (0.165, 0.165, 0.035, 3.38), (0.165, 0.165, 0.035, 3.43), (0.15, 0.15, 0.03, 3.45),
+                  (0.105, 0.105, 0.022, 3.45), (0.095, 0.095, 0.02, 3.33)], TD)
+        tower(m, [(0.10, 0.10, 0.021, 3.32), (0.10, 0.10, 0.021, 3.36)], SLIT)
+    yf = ys - sh(zr_)                                         # its pipe to the ring: straight, a flange where it leaves the stack
+    m.cyl(0.042, yf - a_ + 0.02, (xs, (yf + a_) / 2, zr_), ST, seg=8, axis="Y")
+    m.cyl(0.06, 0.024, (xs, yf - 0.006, zr_), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    # the other back corner: the blower house, with the screen
+    xb_, yb2 = 0.45, -1.10
+    bl = (0.27, 0.25, 0.04)
+    with m.at((xb_, yb2, 0)):
+        slab(m, 0.28, 0.26, Z - 0.01, Z + 0.08, cut_to(0.28, 0.26, bl, 0.01), T, bevel=0.012)
+        slab(m, bl[0], bl[1], Z + 0.06, Z + 0.70, bl[2], G, bevel=0.018)
+        slab(m, 0.29, 0.27, Z + 0.67, Z + 0.76, cut_to(0.29, 0.27, bl, 0.02), TD, bevel=0.018)
+        octa(m, 0.13, 0.11, Z + 0.75, Z + 0.81, ST)
+        oct_ring(m, 0.115, 0.03, Z + 0.80, Z + 0.84, T)
+        octa(m, 0.086, 0.086, Z + 0.79, Z + 0.825, SLIT)
+    with on_side(m, -1, yb2 - bl[1], Z + 0.38, xc=xb_):
+        vent(m, 0.19, 0.16)
+    with on_end(m, 1, xb_ + bl[0], yb2, Z + 0.40):
+        m.box((0.30, 0.20, 0.008), (0, 0, 0.002), SLIT)
+        for i, w in enumerate((0.22, 0.14, 0.18)):
+            m.box((w, 0.026, 0.006), (0, (1 - i) * 0.055, 0.008), "h_core")
+        ring(m, 0.19, 0.14, [(0.0, -0.004), (0.012, 0.03), (0.038, 0.03), (0.05, -0.004)], T, c=0.035)
+    yg = yb2 + bl[1]
+    m.cyl(0.042, -a_ - yg + 0.02, (xb_, (yg - a_) / 2, zr_), ST, seg=8, axis="Y")
+    m.cyl(0.06, 0.024, (xb_, yg + 0.006, zr_), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+
+
+blast4.frame, blast4.shadow = {"iso": (6.2, 1.6), "side": (5.0, 1.9), "top": (3.9, 1.0), "end": (5.0, 1.9)}, True
+_hero.HEROES["blast4"] = blast4
 
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
