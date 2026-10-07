@@ -1202,6 +1202,125 @@ def former1(m):
 former1.frame, former1.shadow = {"iso": (4.5, 0.85), "side": (4.4, 1.0), "top": (3.9, 0.6), "end": (3.6, 1.0)}, True
 _hero.HEROES["former1"] = former1
 
+def former2(m):
+    """Former, 3x2 (hitbox 3x2x2), second attempt. The developer found the first a rehash of the press and
+    the smelter and asked for it simply to be modelled like Satisfactory's Constructor. So this follows
+    that machine's build, mass for mass: one tall closed body; a thick framed mouth with a sloped hood
+    at one side of each end face and a tall vent beside it; four fat steel columns out of the body's
+    top; a big light head on them whose plan swells round each column, a dark band round its top edge
+    and bolts in its flanks; an open frame over the head; a ringed exhaust stack up through the head's
+    waist; a low dark platform with bent outrigger legs; and on the platform beside the body an arm.
+    Ours keeps its own conveyor and greys, and the arm has our job: it changes the mould. A rack of
+    moulds stands on the platform, and the arm lowers one into a receiver on the body's wall.
+    The belt runs along the far row (y = +0.5); the platform is the near strip."""
+    yb = 0.5
+    with m.at((0, yb, 0)):
+        run(m, -1.5, 1.5, braces=(-4 / 3, 4 / 3))
+        collar(m, -1.0, 1.0, mk=T)                            # the chassis under the body, gripping both rails
+    X, y0, y1, zt = 0.86, -0.44, 0.94, 1.0                    # the body: half length, near and far walls, top
+    yc, hy = (y0 + y1) / 2, (y1 - y0) / 2
+    # platform: the near row, and out past both ends of the body
+    with m.at((0, -0.485, 0)):
+        slab(m, 1.08, 0.485, 0.0, 0.12, 0.05, TD, bevel=0.016)
+    bprism(m, [(-X - 0.012, y0 - 0.012), (X + 0.012, y0 - 0.012), (X + 0.012, 0.02), (-X - 0.012, 0.02)], 0.10, 0.385, "Z", T, bevel=0.012)   # the body's dark foot on the platform
+    with m.at((0, yc, 0)):
+        slab(m, X, hy, 0.37, zt, 0.05, G, bevel=0.028)        # the body
+    for sx in SIDES:                                          # outrigger legs: a bent strut down to a pad
+        pts = [(1.00, 0.08), (1.00, 0.30), (1.12, 0.30), (1.40, 0.09), (1.28, 0.05)]
+        m.prism([(sx * x, z) for x, z in pts], -0.80, -0.66, "Y", ST)
+        with m.at((sx * 1.36, -0.73, 0)):
+            slab(m, 0.10, 0.11, 0.0, 0.065, 0.03, T, bevel=0.012)
+    # each end face: the mouth in its thick frame under a sloped hood, and a tall vent beside it
+    for sx in SIDES:
+        a, b = sorted((sx * (X - 0.01), sx * (X + 0.15)))
+        with m.at((0, yb, 0)):
+            m.prism(arch_pts(0.90, 0.84, hole_top=0.705, hw=0.315, c=0.11, ci=0.05), a, b, "X", T)
+            a2, b2 = sorted((sx * (X + 0.15), sx * (X + 0.185)))
+            m.prism(arch_pts(0.78, 0.775, hole_top=0.705, hw=0.315, c=0.085, ci=0.05), a2, b2, "X", LT)
+            m.box((0.02, 0.62, 0.40), (sx * (X + 0.02), 0, 0.50), SLIT)
+            m.prism([(sx * x, z) for x, z in ((X - 0.03, 0.83), (X - 0.03, 0.985), (X + 0.03, 0.985), (X + 0.14, 0.87), (X + 0.14, 0.83))],
+                    -0.34, 0.34, "Y", ST)                     # the hood
+        with on_end(m, sx, sx * X, -0.20, 0.66):
+            m.box((0.24, 0.42, 0.008), (0, 0, 0.002), SLIT)
+            for k in range(4):                                # upright slats set into a one-piece frame
+                x = -0.09 + k * 0.06
+                m.prism([(x - 0.022, 0.004), (x + 0.014, 0.004), (x + 0.022, 0.026), (x + 0.006, 0.026)], -0.215, 0.215, "Y", ST)
+            ring(m, 0.16, 0.25, [(0.0, -0.004), (0.012, 0.032), (0.04, 0.032), (0.055, -0.004)], T, c=0.04)
+    # the far wall: a raised light panel bolted on between two vents
+    with on_side(m, 1, y1, 0.69, xc=0):
+        m.box((0.56, 0.40, 0.03), (0, 0, 0.01), LT, bevel=0.012)
+        for sx in SIDES:
+            for sz in SIDES:
+                m.cyl(0.022, 0.012, (sx * 0.23, sz * 0.15, 0.03), TD, seg=6)
+    for x in (-0.55, 0.55):
+        with on_side(m, 1, y1, 0.69, xc=x):
+            vent(m, 0.20, 0.17)
+    # the near wall, behind the platform: a screen over the rack, a vent behind the arm
+    with on_side(m, -1, y0, 0.74, xc=-0.58):
+        m.box((0.34, 0.20, 0.008), (0, 0, 0.002), SLIT)
+        for i, w in enumerate((0.26, 0.16, 0.22)):
+            m.box((w, 0.026, 0.006), (0, (1 - i) * 0.055, 0.008), "h_core")
+        ring(m, 0.21, 0.14, [(0.0, -0.004), (0.012, 0.03), (0.038, 0.03), (0.05, -0.004)], T, c=0.035)
+    with on_side(m, -1, y0, 0.72, xc=0.57):
+        vent(m, 0.20, 0.15)
+    # out of the body's top: four fat columns and the ram between them
+    cx, cy, rc = 0.50, 0.42, 0.10
+    z0, z1 = 1.22, 1.50                                       # the head, at the top of its stroke
+    with m.at((0, yc, 0)):
+        octa(m, 0.31, 0.27, zt - 0.01, zt + 0.045, T)
+        octa(m, 0.23, 0.23, zt + 0.03, z0 + 0.02, ST)         # the ram
+        slab(m, 0.56, 0.50, z0 + 0.015, z1 - 0.055, 0.06, LT, bevel=0.02)                                # the head
+        slab(m, 0.568, 0.508, z1 - 0.06, z1, 0.06, TD, bevel=0.014)                                      # the dark band round its top edge
+        for sx in SIDES:
+            for sy in SIDES:
+                with m.at((sx * cx, sy * cy, 0)):
+                    octa(m, 0.145, 0.125, zt - 0.01, zt + 0.05, T)                                       # collared foot
+                    m.cyl(rc, z1 + 0.10 - zt, (0, 0, (z1 + 0.10 + zt) / 2), ST, seg=16)                  # the column
+                    octa(m, 0.20, 0.20, z0, z1 - 0.075, LT)                                              # the head swelling round it
+                    octa(m, 0.208, 0.208, z1 - 0.08, z1 + 0.012, TD)
+                    m.cyl(rc + 0.02, 0.03, (0, 0, z1 + 0.075), T, seg=16)                                # the nut under the lid
+                    for u in (-0.07, 0.07):                   # two bolts in each outward flank
+                        m.cyl(0.024, 0.02, (u, sy * 0.205, z0 + 0.10), TD, seg=6, axis="Y")
+                        m.cyl(0.024, 0.02, (sx * 0.205, u, z0 + 0.10), TD, seg=6, axis="X")
+        # over the head, carried on the columns: an open frame, the head's hatch showing through it
+        za = z1 + 0.085
+        ring(m, 0.61, 0.53, [(0.0, za), (0.0, za + 0.028), (0.012, za + 0.04), (0.208, za + 0.04), (0.22, za + 0.028), (0.22, za)], ST, c=0.13)
+        ring(m, 0.27, 0.21, [(0.0, z1 - 0.004), (0.01, z1 + 0.03), (0.04, z1 + 0.03), (0.05, z1 - 0.004)], T, c=0.05)
+        m.box((0.44, 0.32, 0.01), (0, 0, z1 + 0.003), SLIT)
+        for k in range(3):
+            m.prism([(-0.105 + k * 0.105 - 0.024, z1 + 0.004), (-0.105 + k * 0.105 + 0.024, z1 + 0.004),
+                     (-0.105 + k * 0.105 + 0.014, z1 + 0.024), (-0.105 + k * 0.105 - 0.014, z1 + 0.024)], -0.235, 0.235, "X", ST)
+        # the exhaust stack, up through the head's waist at the outlet end
+        with m.at((0.70, 0, 0)):
+            octa(m, 0.09, 0.07, zt - 0.01, zt + 0.045, T)
+            m.cyl(0.05, 0.92, (0, 0, zt + 0.46), ST, seg=12)
+            for k in range(3):
+                octa(m, 0.068, 0.068, 1.68 + k * 0.068, 1.715 + k * 0.068, TD)
+            oct_ring(m, 0.068, 0.022, 1.90, 1.94, TD)
+            octa(m, 0.047, 0.047, 1.89, 1.925, SLIT)
+    # on the platform: the mould receiver on the body's wall, the arm over it, and the rack
+    with m.at((0.0, y0 - 0.085, 0), rad(90)):                 # the receiver: an open-topped box against the wall
+        shell(m, [(0.085, 0.20, 0.02, 0.11), (0.09, 0.205, 0.022, 0.30), (0.078, 0.193, 0.018, 0.315),
+                  (0.05, 0.168, 0.012, 0.315), (0.046, 0.164, 0.01, 0.20)], T)
+        tower(m, [(0.049, 0.167, 0.011, 0.115), (0.049, 0.167, 0.011, 0.205)], SLIT)
+        mould(m, 0.19)
+    ax, ay = 0.52, -0.71
+    ux, uy = 0.0 - ax, (y0 - 0.085) - ay
+    reach = math.hypot(ux, uy)
+    with m.at((ax, ay, 0), math.atan2(-ux, uy)):
+        arm4(m, 1, 0.0, 0.12, (-0.14, 0.12 + 0.78), (reach, 0.12 + 0.67))
+    with m.at((-0.60, -0.70, 0)):                             # the rack: a trough with the other moulds standing in it
+        shell(m, [(0.33, 0.20, 0.03, 0.11), (0.34, 0.21, 0.035, 0.21), (0.325, 0.195, 0.03, 0.225),
+                  (0.30, 0.17, 0.02, 0.225), (0.29, 0.16, 0.018, 0.15)], ST)
+        tower(m, [(0.295, 0.165, 0.02, 0.115), (0.295, 0.165, 0.02, 0.155)], SLIT)
+        for k in range(4):
+            with m.at((-0.215 + k * 0.143, 0, 0)):
+                mould(m, 0.15)
+
+
+former2.frame, former2.shadow = {"iso": (4.5, 1.0), "side": (4.4, 1.1), "top": (3.9, 0.6), "end": (3.6, 1.1)}, True
+_hero.HEROES["former2"] = former2
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
