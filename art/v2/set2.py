@@ -450,6 +450,66 @@ def assembler4(m):
         m.prism([(0.38, Z + 0.17), (0.86, 0.96), (0.86, 0.78), (0.38, Z - 0.01)], a, b, "Y", G)
 
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def on_side(m, d, y, zc, xc=0.0):
+    """Build on a side wall: local x runs along the wall, local y up it, local z out of it. The frame is
+    a proper rotation on both sides of the belt, so what is built is mirrored exactly."""
+    from mathutils import Matrix
+    m.stack.append(m.stack[-1] @ Matrix(((-d, 0, 0, xc), (0, 0, d, y), (0, 1, 0, zc), (0, 0, 0, 1))))
+    yield
+    m.stack.pop()
+
+
+def smelter3(m):
+    """Smelter, 3x1. Concept: ore goes into the fire and comes out as an ingot; the machine is a fire
+    with a pot of melting metal on it. A firebox astride the belt carries a dark deck; on it stands a pot whose belly
+    swells and draws in again to a thick rim with the melt glowing inside. An uptake grows out of each
+    end of the pot and tapers up to a flared cap. Each side wall has one fire mouth, the fire set back
+    behind bars inside a one-piece frame, over a masonry base with its ash pit."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1)
+    cover(m, -BX, -1)
+    for d in SIDES:                                           # masonry base each side, its top sloped back to the wall
+        bprism(m, [(d * 0.36, 0.0), (d * 0.487, 0.0), (d * 0.487, 0.19), (d * 0.452, 0.27), (d * 0.36, 0.27)], -0.39, 0.39, "X", T, bevel=0.018)
+        with on_side(m, d, d * 0.487, 0.105):
+            m.box((0.26, 0.085, 0.006), (0, 0, 0.002), SLIT)
+            m.box((0.22, 0.022, 0.006), (0, -0.022, 0.004), "h_glow")
+            ring(m, 0.16, 0.07, [(0.0, 0.0), (0.008, 0.013), (0.022, 0.013), (0.03, 0.0)], TD, c=0.02)
+    slab(m, BX, BY, 0.26, 0.74, 0.022, G, bevel=0.02)
+    slab(m, BX, BY + 0.02, 0.70, 0.82, 0.03, TD, bevel=0.022)
+    for d in SIDES:                                           # fire mouth: glow at the back, bars, then the frame
+        with on_side(m, d, d * BY, 0.50):
+            m.box((0.27, 0.17, 0.006), (0, 0, 0.003), "h_glow")
+            for k in range(4):
+                m.box((0.026, 0.19, 0.016), (-0.09 + k * 0.06, 0, 0.016), TD, bevel=0.006)
+            ring(m, 0.185, 0.135, [(0.0, 0.0), (0.012, 0.034), (0.036, 0.034), (0.05, 0.0)], T, c=0.04)
+    Z = 0.82
+    slab(m, 0.47, 0.37, Z - 0.02, Z + 0.07, 0.13, T, bevel=0.02)   # one base under the pot and both uptakes
+    # the pot: a swelling belly with a ridge, a shoulder, a thick rim
+    octa(m, 0.27, 0.315, Z + 0.07, Z + 0.24, ST)
+    octa(m, 0.315, 0.335, Z + 0.24, Z + 0.29, LT)
+    octa(m, 0.335, 0.315, Z + 0.29, Z + 0.34, LT)
+    octa(m, 0.315, 0.25, Z + 0.34, Z + 0.56, ST)
+    octa(m, 0.25, 0.30, Z + 0.56, Z + 0.62, TD)
+    oct_ring(m, 0.30, 0.075, Z + 0.62, Z + 0.68, TD)
+    octa(m, 0.228, 0.228, Z + 0.58, Z + 0.635, "h_glow")
+    for sx in SIDES:                                          # an uptake grown out of each end of the pot
+        x = sx * 0.365
+        with m.at((x, 0, 0)):
+            octa(m, 0.115, 0.078, Z + 0.05, Z + 0.92, ST)
+            octa(m, 0.078, 0.118, Z + 0.92, Z + 1.01, TD)
+            octa(m, 0.092, 0.092, Z + 1.005, Z + 1.014, SLIT)
+        # a saddle between the pot's shoulder and the uptake, so the two read as one casting
+        with m.at((sx * 0.265, 0, 0)):
+            octa(m, 0.075, 0.055, Z + 0.34, Z + 0.56, ST)
+
+
+smelter3.frame, smelter3.shadow = F31, True
+_hero.HEROES["smelter3"] = smelter3
+
 assembler4.frame, assembler4.shadow = F33, True
 _hero.HEROES["assembler4"] = assembler4
 
