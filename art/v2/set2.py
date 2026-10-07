@@ -1327,6 +1327,17 @@ def former2(m):
 former2.frame, former2.shadow = {"iso": (4.5, 1.0), "side": (4.4, 1.1), "top": (3.9, 0.6), "end": (3.6, 1.1)}, True
 _hero.HEROES["former2"] = former2
 
+def lineup1(m):
+    """Not a machine: the smelter, the former and the assembler side by side, to judge whether they
+    belong to one set. Nearest the usual camera is the smallest."""
+    for fn, y in ((smelter8, -3.5), (former2, -1.0), (assembler4, 2.5)):
+        with m.at((0, y, 0)):
+            fn(m)
+
+
+lineup1.frame, lineup1.shadow = {"iso": (9.6, 1.0), "side": (4.6, 1.3), "top": (9.0, 1.0), "end": (9.0, 1.3)}, True
+_hero.HEROES["lineup1"] = lineup1
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
