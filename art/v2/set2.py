@@ -1009,6 +1009,65 @@ def press6(m):
 press6.frame, press6.shadow = F31, True
 _hero.HEROES["press6"] = press6
 
+def press7(m):
+    """Press, 3x1, grade 2 (hitbox 3x1x2). The developer asked for this one to follow Satisfactory's
+    Constructor, as the assembler followed that game's look: a closed body, four short thick columns,
+    and a heavy head riding on them whose plan swells into a lobe round each column.
+    Ours keeps its own conveyor, mouths, chassis and grey palette, and its own proportions.
+    A dark chassis grips both rails. The body on it is closed, a louvred vent in a one-piece frame on
+    each side, under a dark deck. On the deck stand the anvil and four thick round columns on collared
+    feet. The head rides on the columns: a dark block with an eight-sided lobe round each column, a
+    light band round each lobe; under it hangs the die, over the plate lying on the anvil. On the head
+    lie a shouldered cap, a small motor box, and a ringed exhaust pipe standing off-centre."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis
+    hy, zd = 0.40, 0.80                                       # the body's half width, the deck's underside
+    bprism(m, [(-BX, -hy), (BX, -hy), (BX, hy), (-BX, hy)], 0.37, zd + 0.012, "Z", G, bevel=0.012)      # body, running a little way up into the deck
+    slab(m, BX, hy + 0.015, zd, zd + 0.07, 0.03, TD, bevel=0.016)                                        # deck, its eave past the body
+    for d in SIDES:                                           # louvred vent: dark behind, slats set into a one-piece frame
+        with on_side(m, d, d * hy, 0.585):
+            m.box((0.40, 0.20, 0.008), (0, 0, 0.002), SLIT)
+            for k in range(4):
+                y = -0.075 + k * 0.05
+                m.prism([(y - 0.02, 0.004), (y + 0.012, 0.004), (y + 0.02, 0.024), (y + 0.006, 0.024)], -0.215, 0.215, "X", ST)
+            ring(m, 0.25, 0.14, [(0.0, -0.004), (0.012, 0.03), (0.036, 0.03), (0.05, -0.004)], T, c=0.04)
+    Z = zd + 0.07                                             # the deck's top
+    tower(m, [(0.27, 0.22, 0.035, Z - 0.01), (0.24, 0.19, 0.03, Z + 0.045)], ST)                         # the anvil
+    m.box((0.30, 0.22, 0.02), (0, 0, Z + 0.052), LT, bevel=0.006)                                        # the work: a plate on the anvil
+    xc, yc, rc = 0.33, 0.30, 0.062                            # where a column stands, and its radius
+    z0, z1 = Z + 0.17, Z + 0.43                               # the head, at the top of its stroke
+    head = (0.31, 0.27, 0.05)
+    slab(m, head[0], head[1], z0, z1, head[2], TD, bevel=0.018)
+    tower(m, [(0.22, 0.18, 0.03, z0 - 0.09), (0.26, 0.21, 0.03, z0 + 0.01)], ST)                         # the die
+    for sx in SIDES:
+        for sy in SIDES:
+            with m.at((sx * xc, sy * yc, 0)):
+                octa(m, 0.085, 0.07, Z - 0.005, Z + 0.035, T)                                            # collared foot
+                m.cyl(rc, z1 + 0.14 - Z, (0, 0, (z1 + 0.14 + Z) / 2), LT, seg=14)                        # the column
+                octa(m, 0.115, 0.115, z0, z0 + 0.085, TD)                                                # the head's lobe round it,
+                octa(m, 0.123, 0.123, z0 + 0.085, z1 - 0.085, LT)                                        # with a light band
+                octa(m, 0.115, 0.115, z1 - 0.085, z1, TD)
+                octa(m, 0.072, 0.058, z1 + 0.135, z1 + 0.17, T)                                          # the column's cap
+    # on the head: a shouldered cap, a motor box, and a ringed exhaust pipe standing off-centre
+    tower(m, [(0.20, 0.16, 0.03, z1 - 0.01), (0.20, 0.16, 0.03, z1 + 0.04), (0.16, 0.12, 0.025, z1 + 0.08)], ST)
+    motor = (0.07, 0.06, 0.015)
+    with m.at((0.08, -0.03, 0)):
+        slab(m, motor[0], motor[1], z1 + 0.07, z1 + 0.17, motor[2], G, bevel=0.008)
+        slab(m, 0.078, 0.068, z1 + 0.16, z1 + 0.19, cut_to(0.078, 0.068, motor, 0.008), TD, bevel=0.006)
+    with m.at((-0.09, 0.04, 0)):
+        octa(m, 0.045, 0.036, z1 + 0.07, z1 + 0.10, T)
+        m.cyl(0.028, 0.30, (0, 0, z1 + 0.23), ST, seg=10)
+        for k in range(3):
+            octa(m, 0.04, 0.04, z1 + 0.15 + k * 0.06, z1 + 0.175 + k * 0.06, TD)
+        oct_ring(m, 0.04, 0.014, z1 + 0.36, z1 + 0.39, TD)
+        octa(m, 0.029, 0.029, z1 + 0.34, z1 + 0.375, SLIT)
+
+
+press7.frame, press7.shadow = F31, True
+_hero.HEROES["press7"] = press7
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
