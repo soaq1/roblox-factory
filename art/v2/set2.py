@@ -1637,6 +1637,43 @@ def blast5(m):
 blast5.frame, blast5.shadow = {"iso": (6.4, 1.8), "side": (5.0, 2.0), "top": (3.9, 1.0), "end": (5.0, 2.0)}, True
 _hero.HEROES["blast5"] = blast5
 
+from . import belts as _belts
+
+
+def belts_demo(m):
+    """Not a machine: every conveyor piece laid end to end, with a machine in the line, to judge the
+    joints. Far row: straight, open, straight, the smelter, straight. Near row: two straights, a right
+    turn, a straight, a left turn, a straight, the ramp, and a straight on a block one cell up."""
+    def put(fn, x, y, rz=0.0, z=0.0):
+        with m.at((x, y, z), rz):
+            fn(m)
+
+    put(_belts.straight, -4, 2)
+    put(_belts.open_belt, -3, 2)
+    put(_belts.straight, -2, 2)
+    put(smelter8, 0, 2)
+    put(_belts.straight, 2, 2)
+    put(_belts.straight, -4, 0)
+    put(_belts.straight, -3, 0)
+    put(_belts.corner_right, -2, 0)
+    put(_belts.straight, -2, -1, rad(-90))
+    put(_belts.corner_left, -2, -2, rad(-90))
+    put(_belts.straight, -1, -2)
+    put(_belts.ramp, 0.5, -2)
+    put(_belts.straight, 2, -2, 0.0, 1.0)
+    with m.at((2, -2, 0)):                                    # the block the upper belt lies on
+        slab(m, 0.5, 0.5, 0.0, 1.0, 0.0, "h_stone", bevel=0.01)
+
+
+belts_demo.frame, belts_demo.shadow = {"iso": (10.4, 0.6), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
+_hero.HEROES["belts_demo"] = belts_demo
+F11 = {"iso": (1.9, 0.25), "side": (1.6, 0.4), "top": (1.5, 0.3), "end": (1.6, 0.4)}
+for _n, _f, _fr in (("belt_straight", _belts.straight, F11), ("belt_right", _belts.corner_right, F11), ("belt_left", _belts.corner_left, F11),
+                    ("belt_open", _belts.open_belt, F11),
+                    ("belt_ramp2", _belts.ramp, {"iso": (3.3, 0.7), "side": (2.8, 0.8), "top": (2.6, 0.5), "end": (2.2, 0.8)})):
+    _f.frame, _f.shadow = _fr, True
+    _hero.HEROES[_n] = _f
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f

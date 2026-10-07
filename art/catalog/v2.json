@@ -10,7 +10,7 @@
     1,
     1
    ],
-   "tris": 296,
+   "tris": 344,
    "colors": 4,
    "height": 0.35,
    "v1size": [
@@ -28,7 +28,7 @@
     1,
     1
    ],
-   "tris": 392,
+   "tris": 512,
    "colors": 4,
    "height": 0.35,
    "v1size": [
@@ -46,8 +46,8 @@
     2,
     1
    ],
-   "tris": 384,
-   "colors": 4,
+   "tris": 1572,
+   "colors": 7,
    "height": 1.35,
    "v1size": [
     2,
@@ -245,7 +245,7 @@
     3,
     1
    ],
-   "tris": 2708,
+   "tris": 2836,
    "colors": 11,
    "height": 1.62,
    "v1size": [
@@ -274,7 +274,7 @@
     3,
     1
    ],
-   "tris": 2544,
+   "tris": 2672,
    "colors": 11,
    "height": 1.93,
    "v1size": [
@@ -316,8 +316,8 @@
     2,
     1
    ],
-   "tris": 1380,
-   "colors": 8,
+   "tris": 1444,
+   "colors": 9,
    "height": 1.38,
    "v1size": [
     1,
@@ -376,7 +376,7 @@
     2,
     1
    ],
-   "tris": 1924,
+   "tris": 1988,
    "colors": 11,
    "height": 2.38,
    "v1size": [
@@ -400,7 +400,7 @@
     2,
     1
    ],
-   "tris": 1432,
+   "tris": 1496,
    "colors": 10,
    "height": 1.68,
    "v1size": [
@@ -568,8 +568,8 @@
     2,
     1
    ],
-   "tris": 1580,
-   "colors": 8,
+   "tris": 1644,
+   "colors": 9,
    "height": 1.6,
    "v1size": [
     1,
@@ -592,8 +592,8 @@
     2,
     1
    ],
-   "tris": 1600,
-   "colors": 10,
+   "tris": 1664,
+   "colors": 11,
    "height": 1.6,
    "v1size": [
     1,
@@ -616,8 +616,8 @@
     2,
     1
    ],
-   "tris": 1600,
-   "colors": 10,
+   "tris": 1664,
+   "colors": 11,
    "height": 1.6,
    "v1size": [
     1,
@@ -640,7 +640,7 @@
     2,
     1
    ],
-   "tris": 1712,
+   "tris": 1776,
    "colors": 11,
    "height": 1.87,
    "v1size": [
@@ -664,7 +664,7 @@
     2,
     1
    ],
-   "tris": 1864,
+   "tris": 1928,
    "colors": 10,
    "height": 1.77,
    "v1size": [
@@ -688,7 +688,7 @@
     3,
     1
    ],
-   "tris": 1644,
+   "tris": 1708,
    "colors": 9,
    "height": 1.9,
    "v1size": [
@@ -712,7 +712,7 @@
     2,
     1
    ],
-   "tris": 1996,
+   "tris": 2060,
    "colors": 13,
    "height": 1.38,
    "v1size": [
@@ -754,7 +754,7 @@
     2,
     1
    ],
-   "tris": 1628,
+   "tris": 1692,
    "colors": 11,
    "height": 1.35,
    "v1size": [
@@ -783,8 +783,8 @@
     3,
     1
    ],
-   "tris": 3360,
-   "colors": 10,
+   "tris": 3488,
+   "colors": 11,
    "height": 1.89,
    "v1size": [
     1,
@@ -812,7 +812,7 @@
     3,
     1
    ],
-   "tris": 5168,
+   "tris": 5296,
    "colors": 11,
    "height": 1.38,
    "v1size": [
@@ -841,7 +841,7 @@
     3,
     1
    ],
-   "tris": 4072,
+   "tris": 4200,
    "colors": 11,
    "height": 2.13,
    "v1size": [
@@ -870,7 +870,7 @@
     3,
     1
    ],
-   "tris": 2960,
+   "tris": 3088,
    "colors": 10,
    "height": 1.35,
    "v1size": [
@@ -899,8 +899,8 @@
     3,
     1
    ],
-   "tris": 2448,
-   "colors": 10,
+   "tris": 2576,
+   "colors": 11,
    "height": 1.37,
    "v1size": [
     1,
@@ -928,7 +928,7 @@
     3,
     1
    ],
-   "tris": 2808,
+   "tris": 2936,
    "colors": 11,
    "height": 1.48,
    "v1size": [
@@ -957,8 +957,8 @@
     3,
     1
    ],
-   "tris": 2460,
-   "colors": 10,
+   "tris": 2588,
+   "colors": 11,
    "height": 1.62,
    "v1size": [
     1,
@@ -986,7 +986,7 @@
     3,
     1
    ],
-   "tris": 3004,
+   "tris": 3132,
    "colors": 14,
    "height": 1.6,
    "v1size": [
@@ -1015,7 +1015,7 @@
     3,
     1
    ],
-   "tris": 2516,
+   "tris": 2644,
    "colors": 10,
    "height": 1.51,
    "v1size": [
@@ -1044,8 +1044,8 @@
     3,
     1
    ],
-   "tris": 2324,
-   "colors": 10,
+   "tris": 2452,
+   "colors": 11,
    "height": 1.56,
    "v1size": [
     1,
@@ -1073,7 +1073,7 @@
     3,
     1
    ],
-   "tris": 2632,
+   "tris": 2760,
    "colors": 10,
    "height": 1.32,
    "v1size": [
@@ -1102,7 +1102,7 @@
     3,
     1
    ],
-   "tris": 2932,
+   "tris": 3060,
    "colors": 13,
    "height": 1.94,
    "v1size": [
@@ -1131,7 +1131,7 @@
     3,
     1
    ],
-   "tris": 2592,
+   "tris": 2720,
    "colors": 10,
    "height": 1.38,
    "v1size": [
@@ -1160,7 +1160,7 @@
     3,
     1
    ],
-   "tris": 2716,
+   "tris": 2844,
    "colors": 11,
    "height": 1.56,
    "v1size": [
@@ -1189,7 +1189,7 @@
     3,
     1
    ],
-   "tris": 2484,
+   "tris": 2612,
    "colors": 10,
    "height": 1.5,
    "v1size": [
@@ -1218,7 +1218,7 @@
     3,
     1
    ],
-   "tris": 3124,
+   "tris": 3252,
    "colors": 11,
    "height": 1.54,
    "v1size": [
@@ -1257,8 +1257,8 @@
     3,
     1
    ],
-   "tris": 2396,
-   "colors": 8,
+   "tris": 2524,
+   "colors": 9,
    "height": 2.36,
    "v1size": [
     1,
@@ -1296,7 +1296,7 @@
     3,
     1
    ],
-   "tris": 2592,
+   "tris": 2720,
    "colors": 9,
    "height": 1.82,
    "v1size": [
@@ -1335,8 +1335,8 @@
     3,
     1
    ],
-   "tris": 2252,
-   "colors": 8,
+   "tris": 2380,
+   "colors": 9,
    "height": 1.48,
    "v1size": [
     1,
@@ -1374,8 +1374,8 @@
     3,
     1
    ],
-   "tris": 2528,
-   "colors": 11,
+   "tris": 2656,
+   "colors": 12,
    "height": 2.39,
    "v1size": [
     2,
@@ -1413,7 +1413,7 @@
     3,
     1
    ],
-   "tris": 2440,
+   "tris": 2568,
    "colors": 10,
    "height": 1.62,
    "v1size": [
@@ -1452,7 +1452,7 @@
     3,
     1
    ],
-   "tris": 2248,
+   "tris": 2376,
    "colors": 11,
    "height": 1.52,
    "v1size": [
@@ -1491,7 +1491,7 @@
     3,
     1
    ],
-   "tris": 2536,
+   "tris": 2664,
    "colors": 10,
    "height": 1.61,
    "v1size": [
@@ -1530,8 +1530,8 @@
     3,
     1
    ],
-   "tris": 2316,
-   "colors": 10,
+   "tris": 2444,
+   "colors": 11,
    "height": 1.71,
    "v1size": [
     1,
@@ -1569,8 +1569,8 @@
     3,
     1
    ],
-   "tris": 2436,
-   "colors": 10,
+   "tris": 2564,
+   "colors": 11,
    "height": 1.4,
    "v1size": [
     1,
@@ -1608,8 +1608,8 @@
     3,
     1
    ],
-   "tris": 2416,
-   "colors": 8,
+   "tris": 2544,
+   "colors": 9,
    "height": 1.49,
    "v1size": [
     2,
@@ -1632,7 +1632,7 @@
     2,
     1
    ],
-   "tris": 1752,
+   "tris": 1816,
    "colors": 10,
    "height": 2.06,
    "v1size": [
@@ -1656,8 +1656,8 @@
     2,
     1
    ],
-   "tris": 1652,
-   "colors": 10,
+   "tris": 1716,
+   "colors": 11,
    "height": 2.27,
    "v1size": [
     1,
@@ -1965,7 +1965,7 @@
     5,
     5
    ],
-   "tris": 3768,
+   "tris": 3896,
    "colors": 10,
    "height": 2.94,
    "v1size": [

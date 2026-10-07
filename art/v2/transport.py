@@ -2,56 +2,25 @@
 import math
 from mathutils import Matrix
 from .d import *          # noqa: F401,F403
+from . import belts
 from .d import through, free, run, chev, buttress, mouth, panel, lamps, hatch, neck, frame, DIRS, SECTION, RAILPOLY, BED, K
 
 W_IN, E_OUT = ("W", "in", 0), ("E", "out", 0)
 
 
 def belt(m):
-    """Straight belt, 1x1."""
-    run(m, -0.5, 0.5, braces=(-1 / 3, 0.0, 1 / 3))
+    """Straight belt, 1x1. The conveyor pieces live in belts.py; these keep the catalog's names."""
+    belts.straight(m)
 
 
 def belt_corner(m):
-    """Corner belt, 1x1: in from the west, out to the south. The two outer rails meet in a mitre and a
-    post stands in the inner corner."""
-    m.prism(RAILPOLY, -0.5, 0.5, "X", R)                                  # north rail
-    m.prism(RAILPOLY, -0.5, 0.5, "Y", R)                                  # east rail
-    m.prism([(-y, z) for y, z in RAILPOLY], -0.5, -BH, "X", R)            # the post: south rail meets west rail
-    m.prism([(-y, z) for y, z in RAILPOLY], -0.5, -BH, "Y", R)
-    m.box((0.5 + BH, 2 * BH, BED), ((BH - 0.5) / 2, 0, BED / 2), R)
-    m.box((2 * BH, 0.5 - BH, BED), (0, (-0.5 - BH) / 2, BED / 2), R)
-    m.box((0.5 + BH, 2 * BH, 0.03), ((BH - 0.5) / 2, 0, BZ - 0.015), "h_belt")
-    m.box((2 * BH, 0.5 - BH, 0.03), (0, (-0.5 - BH) / 2, BZ - 0.015), "h_belt")
-    chev(m, -0.30)
-    with m.at((-0.03, -0.03, 0), rad(-45)):
-        chev(m, 0.0)
-    with m.at((0, -0.30, 0), rad(-90)):
-        chev(m, 0.0)
-    for x in (-1 / 3, 0.0, 1 / 3):
-        m.prism([(0.40, 0.268), (0.498, 0.17), (0.498, 0.055), (0.47, 0.055)], x - 0.022, x + 0.022, "X", RD)
-        m.prism([(0.40, 0.268), (0.498, 0.17), (0.498, 0.055), (0.47, 0.055)], x - 0.022, x + 0.022, "Y", RD)
+    """Corner belt, 1x1: in from the west, out to the south, the whole section swept round the corner."""
+    belts.corner_right(m)
 
 
 def belt_ramp(m):
-    """Ramp, 2x1: in low at the west, out one cell higher at the east, on a solid ribbed bank."""
-    m.prism([(-1, 0), (1, 0), (1, 1 + BED), (-1, BED)], -BH, BH, "Y", R)
-    m.prism([(-1, BZ - 0.03), (1, 1 + BZ - 0.03), (1, 1 + BZ), (-1, BZ)], -BH, BH, "Y", "h_belt")
-    for s in SIDES:
-        a, b = sorted((s * BH, s * 0.402))
-        m.prism([(-1, 0), (1, 0), (1, 1.352), (-1, 0.352)], a, b, "Y", R)
-        a, b = sorted((s * 0.402, s * 0.50))
-        m.prism([(-1, 0), (1, 0), (1, 1.20), (-1, 0.20)], a, b, "Y", R)
-        a, b = sorted((s * 0.49, s * 0.502))
-        for x in (-0.5, 0.0, 0.5):
-            h = 0.20 + (x + 1) / 2
-            m.prism([(x - 0.03, 0.0), (x + 0.03, 0.0), (x + 0.03, h - 0.045), (x - 0.03, h - 0.075)], a, b, "Y", RD)
-    ang = math.atan2(1, 2)
-    for i in range(5):
-        x = -0.8 + i * 0.4
-        m.stack.append(m.stack[-1] @ Matrix.Translation((x, 0, BZ + (x + 1) / 2)) @ Matrix.Rotation(-ang, 4, "Y"))
-        chev(m, 0.0, 1, z=0.0)
-        m.stack.pop()
+    """Ramp, 2x1: in low at the west, out one cell higher at the east, level at both ends, on two piers."""
+    belts.ramp(m)
 
 
 def junction(m, ins, outs, top=0.80):
