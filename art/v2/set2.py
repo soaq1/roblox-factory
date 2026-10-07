@@ -122,9 +122,14 @@ def big_arm(m, d, base, elbow, wrist, k=1.6):
 
 
 def assembler3(m):
-    """Assembler, 3x3: two inputs side by side, one output. Two arms on an open deck, under a pair of
-    dark steel arches, fit parts from a tray at each side onto the frame on the turntable between them.
-    A control cabin stands between the inputs and a ribbed power cabinet at each back corner."""
+    """Assembler, 3x3, first version: the lower works with the plain upper works."""
+    _asm_lower(m)
+    _asm_upper_v1(m)
+
+
+def _asm_lower(m):
+    """Assembler, 3x3: two inputs side by side, one output. The hall, the mouths, a control cabin
+    between the inputs and a ribbed power cabinet at each back corner."""
     for sy in SIDES:
         with m.at((0, sy * 1.0, 0)):
             run(m, -1.5, -0.5, braces=(-4 / 3, -1.0))
@@ -171,7 +176,10 @@ def assembler3(m):
             m.cyl(0.06, 0.16, (x, sy * 1.0, 1.18), LT, seg=8)
             m.cyl(0.085, 0.04, (x, sy * 1.0, 1.25), TD, seg=8)
         bx(m, (0.46, 0.64), tuple(sorted((sy * 0.86, sy * 1.14))), (0.62, 0.84), ST, bevel=0.025)
-    # on the deck
+
+
+def _asm_upper_v1(m):
+    """The first upper works: plain arches, plain arms. Kept for comparison."""
     Z = 0.96
     octa(m, 0.36, 0.36, Z - 0.01, Z + 0.08, T)
     octa(m, 0.29, 0.29, Z + 0.08, Z + 0.12, LT)
@@ -198,6 +206,122 @@ def assembler3(m):
         a, b = sorted((s * 0.17, s * 0.225))
         m.prism([(0.33, Z + 0.17), (0.86, 0.96), (0.86, 0.78), (0.33, Z - 0.01)], a, b, "Y", G)
 
+
+# ---- upper works built the way the mouths are: every member has a section, every joint a transition ----
+def h_portal(m, x, w, top, leg, depth=0.20, web=0.07, c=0.34):
+    """A portal frame of H section standing on z = 0: a thin web between an outer and an inner flange,
+    the knees cut off at an angle. Returns nothing; build it inside m.at() to stand it on a deck."""
+    hw, ht, ci = w / 2 - leg, top - leg, c - leg * 0.45
+    f = 0.05                                                  # flange thickness
+    m.prism(arch_pts(w - 2 * f, top - f, hole_top=ht + f, hw=hw + f, c=c - f * 0.4, ci=ci + f * 0.4), x - web / 2, x + web / 2, "X", TD)
+    m.prism(arch_pts(w, top, hole_top=top - f, hw=w / 2 - f, c=c, ci=c - f * 0.45), x - depth / 2, x + depth / 2, "X", ST)
+    m.prism(arch_pts(2 * (hw + f), ht + f, hole_top=ht, hw=hw, c=ci + f * 0.45, ci=ci), x - depth / 2, x + depth / 2, "X", ST)
+    for s in SIDES:
+        yc = s * (w / 2 - leg / 2)
+        for z in (0.34, 0.70):                                # stiffeners across the web of each leg
+            m.box((depth - 0.02, leg - 2 * f, 0.03), (x, yc, z), ST)
+        bx(m, (x - depth / 2 - 0.05, x + depth / 2 + 0.05), tuple(sorted((yc - s * (leg / 2 + 0.05), yc + s * (leg / 2 + 0.05)))),
+           (-0.01, 0.07), T, bevel=0.02)                      # base plate
+
+
+def taper_link(m, d, p, q, h0, h1, xh, mk):
+    """A link that is deeper at p than at q."""
+    (y0, z0), (y1, z1) = p, q
+    L = math.hypot(y1 - y0, z1 - z0)
+    ny, nz = -(z1 - z0) / L, (y1 - y0) / L
+    m.prism([(d * (y0 + ny * h0), z0 + nz * h0), (d * (y1 + ny * h1), z1 + nz * h1), (d * (y1 - ny * h1), z1 - nz * h1),
+             (d * (y0 - ny * h0), z0 - nz * h0)], -xh, xh, "X", mk)
+
+
+def joint(m, d, y, z, r, xh):
+    """A joint: a dark drum between the link's cheeks, with a lighter cap on each end."""
+    m.cyl(r, 2 * xh + 0.05, (0, d * y, z), T, seg=10, axis="X")
+    for sx in SIDES:
+        m.cyl(r * 0.62, 0.03, (sx * (xh + 0.035), d * y, z), LT, seg=8, axis="X")
+
+
+def arm4(m, d, yb, zb, elbow, wrist):
+    """An arm on a stepped turret: yoke, a tapered upper link, a tapered forearm, a two-fingered hand."""
+    with m.at((0, d * yb, 0)):
+        octa(m, 0.23, 0.23, zb - 0.01, zb + 0.07, T)
+        octa(m, 0.18, 0.15, zb + 0.07, zb + 0.20, G)
+        oct_ring(m, 0.20, 0.05, zb + 0.06, zb + 0.10, ST)
+    sh = (yb, zb + 0.38)
+    for sx in SIDES:                                          # yoke cheeks
+        bx(m, tuple(sorted((sx * 0.085, sx * 0.145))), (d * yb - 0.10, d * yb + 0.10), (zb + 0.18, zb + 0.46), G, bevel=0.02)
+    joint(m, d, sh[0], sh[1], 0.125, 0.085)
+    taper_link(m, d, sh, elbow, 0.105, 0.075, 0.075, LT)
+    taper_link(m, d, sh, elbow, 0.06, 0.04, 0.085, ST)        # a darker spine down the middle of the link
+    joint(m, d, elbow[0], elbow[1], 0.10, 0.075)
+    taper_link(m, d, elbow, wrist, 0.07, 0.05, 0.06, LT)
+    joint(m, d, wrist[0], wrist[1], 0.07, 0.06)
+    wy, wz = wrist
+    bx(m, (-0.07, 0.07), tuple(sorted((d * (wy - 0.05), d * (wy + 0.03)))), (wz - 0.16, wz - 0.05), TD, bevel=0.015)
+    for sx in SIDES:
+        m.box((0.03, 0.06, 0.13), (sx * 0.055, d * (wy - 0.02), wz - 0.215), LT)
+
+
+def bin4(m, x, y, z, w=0.36, l=0.26, h=0.15):
+    """An open parts bin: a rim of four walls round a dark floor."""
+    bx(m, (x - w / 2, x + w / 2), (y - l / 2, y + l / 2), (z - 0.01, z + 0.04), T, bevel=0.0)
+    for s in SIDES:
+        m.box((w, 0.04, h), (x, y + s * (l / 2 - 0.02), z + h / 2), ST)
+        m.box((0.04, l, h), (x + s * (w / 2 - 0.02), y, z + h / 2), ST)
+    m.box((w + 0.03, l + 0.03, 0.03), (x, y, z + h), D)
+    m.box((w - 0.07, l - 0.07, 0.012), (x, y, z + h + 0.012), SLIT)
+
+
+def assembler4(m):
+    """Assembler, 3x3, second version: the same lower works, with the upper works built like the mouths.
+    Two H-section portals on base plates carry a box girder with a hoist; the deck has a kerb and seams;
+    two tapered arms on stepped turrets work on the frame clamped to a rimmed turntable, each fed from a
+    walled bin."""
+    _asm_lower(m)
+    Z = 0.96
+    # deck: a kerb round the edge and seams across the floor
+    for s in SIDES:
+        bx(m, (-0.53, 0.53), tuple(sorted((s * 1.42, s * 1.50))), (Z - 0.02, Z + 0.045), ST, bevel=0.012)
+        bx(m, tuple(sorted((s * 0.46, s * 0.53))), (-1.43, 1.43), (Z - 0.02, Z + 0.045), ST, bevel=0.012)
+    for y in (-1.0, -0.5, 0.5, 1.0):
+        m.box((0.92, 0.014, 0.006), (0, y, Z + 0.003), ST)
+    # portals, tied at mid height and carrying the hoist girder
+    with m.at((0, 0, Z)):
+        for x in (-0.33, 0.33):
+            h_portal(m, x, 2.80, 1.30, 0.24)
+    for s in SIDES:
+        bx(m, (-0.33, 0.33), tuple(sorted((s * 1.245, s * 1.335))), (Z + 0.60, Z + 0.69), ST, bevel=0.015)
+        bx(m, (-0.33, 0.33), tuple(sorted((s * 0.96, s * 1.05))), (Z + 1.16, Z + 1.245), ST, bevel=0.015)
+    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.29, Z + 1.45), TD, bevel=0.035)
+    for sx in SIDES:
+        bx(m, tuple(sorted((sx * 0.44, sx * 0.53))), (-0.15, 0.15), (Z + 1.26, Z + 1.48), T, bevel=0.025)
+    bx(m, (-0.44, 0.44), (-0.045, 0.045), (Z + 1.215, Z + 1.30), ST, bevel=0.0)
+    bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 1.10, Z + 1.23), G, bevel=0.025)
+    m.cyl(0.07, 0.30, (0, 0, Z + 1.11), T, seg=8, axis="Y")
+    m.cyl(0.085, 0.03, (0, 0, Z + 1.03), "h_core", seg=10)
+    # turntable with the frame clamped to it
+    octa(m, 0.40, 0.40, Z - 0.01, Z + 0.07, T)
+    octa(m, 0.33, 0.33, Z + 0.07, Z + 0.13, ST)
+    oct_ring(m, 0.36, 0.055, Z + 0.10, Z + 0.155, LT)
+    bx(m, (-0.21, 0.21), (-0.17, 0.17), (Z + 0.13, Z + 0.33), G, bevel=0.03)
+    m.box((0.30, 0.22, 0.012), (0, 0, Z + 0.334), TD)
+    m.box((0.15, 0.11, 0.07), (0, 0, Z + 0.375), "h_copper", bevel=0.012)
+    for sx in SIDES:
+        for sy in SIDES:
+            m.box((0.07, 0.07, 0.10), (sx * 0.235, sy * 0.19, Z + 0.18), D, rot=rad(45))
+    for d in SIDES:
+        arm4(m, d, 0.70, Z, (0.57, Z + 1.02), (0.185, Z + 0.66))
+        bin4(m, -0.02, d * 1.06, Z)
+        m.box((0.11, 0.09, 0.08), (-0.10, d * 1.05, Z + 0.09), "h_copper", bevel=0.012)
+        m.box((0.11, 0.09, 0.08), (0.07, d * 1.07, Z + 0.09), LT, bevel=0.012)
+    # chute to the output
+    m.prism([(0.38, Z + 0.07), (0.86, 0.86), (0.86, 0.78), (0.38, Z - 0.01)], -0.17, 0.17, "Y", T)
+    for s in SIDES:
+        a, b = sorted((s * 0.17, s * 0.225))
+        m.prism([(0.38, Z + 0.17), (0.86, 0.96), (0.86, 0.78), (0.38, Z - 0.01)], a, b, "Y", G)
+
+
+assembler4.frame, assembler4.shadow = F33, True
+_hero.HEROES["assembler4"] = assembler4
 
 for _name, _fn, _frame in (("smelter2", smelter2, F31), ("washer2", washer2, F31), ("extractor2", extractor2, F21),
                            ("assembler3", assembler3, F33)):
