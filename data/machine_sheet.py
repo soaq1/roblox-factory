@@ -2,7 +2,7 @@
 # 기계 설계표: 기계마다 급, 크기, 높이, 벨트가 붙는 꼴, 주인공과 조연을 한 장에 모읍니다. 모델을 만들기 전에 정하는 표입니다.
 # 실행:  python3 data/machine_sheet.py   ->  docs/machine-sheet.html
 # 전부 제안입니다. 개발자가 보고 고칩니다. 크기의 단위는 칸(1칸 = 3스터드, 캐릭터 키는 1.67칸쯤).
-import html, os
+import html, math, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -59,6 +59,19 @@ def top(w, d, g, ins, outs, form):
     else:
         belts = "".join(f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" class="belt"/>' for x, y, bw, bh in
                         ((0, D / 2 - 5, C, 10), (W / 2 - 5, 0, 10, C), (W / 2 - 5, D - C, 10, C), (W - C, D / 2 - 5, C, 10)))
+    def arrow(x, y, dx, dy):                                  # a port: a small arrow at the middle of a cell's edge
+        s_ = 4
+        if dx:
+            return f'<polygon points="{x - dx * s_},{y - s_} {x + dx * s_},{y} {x - dx * s_},{y + s_}" class="port"/>'
+        return f'<polygon points="{x - s_},{y - dy * s_} {x},{y + dy * s_} {x + s_},{y - dy * s_}" class="port"/>'
+    if form == "지나감":
+        belts += arrow(6, D / 2, 1, 0) + arrow(W - 6, D / 2, 1, 0)
+    elif form == "내놓기만":
+        belts += arrow(W - 6, D / 2, 1, 0)
+    elif form == "합침":
+        belts += "".join(arrow(6, y, 1, 0) for y in ys) + arrow(W - 6, D / 2, 1, 0)
+    else:
+        belts += arrow(6, D / 2, 1, 0) + arrow(W / 2, 6, 0, 1) + arrow(W / 2, D - 6, 0, -1) + arrow(W - 6, D / 2, 1, 0)
     grid = "".join(f'<line x1="{i * C}" y1="0" x2="{i * C}" y2="{D}" class="grid"/>' for i in range(1, w)) + \
            "".join(f'<line x1="0" y1="{j * C}" x2="{W}" y2="{j * C}" class="grid"/>' for j in range(1, d))
     return f'<svg width="{W + 2}" height="{D + 2}" viewBox="-1 -1 {W + 2} {D + 2}"><rect width="{W}" height="{D}" rx="3" class="body g{g}"/>{grid}{belts}</svg>'
@@ -66,10 +79,12 @@ def top(w, d, g, ins, outs, form):
 
 def side(w, h, g, c=C, tall=None):
     """Height from the side, with a character for scale. `tall` is the canvas height in cells."""
-    tall = tall or max(h, MAN) + 0.25
+    tall = tall or max(math.ceil(h - 1e-9), MAN) + 0.25
     W, H, top_h, man, gut = w * c, tall * c, h * c, MAN * c, c * 1.3
     r = c * 0.27
+    hit = math.ceil(h - 1e-9) * c
     return (f'<svg width="{W + gut:.0f}" height="{H + 2:.0f}" viewBox="0 0 {W + gut:.0f} {H + 2:.0f}">'
+            f'<rect x="0.5" y="{H - hit + 0.5:.1f}" width="{W - 1}" height="{hit - 0.5:.1f}" class="hit"/>'
             f'<rect x="0" y="{H - top_h:.1f}" width="{W}" height="{top_h:.1f}" rx="4" class="body g{g}"/>'
             f'<rect x="0" y="{H - 0.36 * c:.1f}" width="{W}" height="{0.36 * c:.1f}" class="belt"/>'
             f'<g class="man"><circle cx="{W + gut * 0.6:.1f}" cy="{H - man + r:.1f}" r="{r:.1f}"/>'
@@ -84,15 +99,16 @@ for name, g, form, w, d, h, ins, outs, bp, concept, hero, extra, sil, state in M
   <header><h3>{name}</h3><span class="grade g{g}">{GN[g]}</span>{'<span class="bp">청사진</span>' if bp else ''}</header>
   <p class="concept">{html.escape(concept)}</p>
   <div class="draw"><figure>{top(w, d, g, ins, outs, form)}<figcaption>위에서 · {w}×{d}칸</figcaption></figure>
-    <figure>{side(w, h, g)}<figcaption>옆에서 · 높이 {h:g}칸</figcaption></figure></div>
-  <dl><div><dt>꼴</dt><dd>{form} · {io}</dd></div>
+    <figure>{side(w, h, g)}<figcaption>옆에서 · 보이는 높이 {h:g}칸</figcaption></figure></div>
+  <dl><div><dt>자리</dt><dd><b>{w}×{d}칸, 높이 {math.ceil(h - 1e-9)}칸</b> (히트박스. 보이는 높이는 {h:g}칸)</dd></div>
+    <div><dt>꼴</dt><dd>{form} · {io}</dd></div>
     <div><dt>실루엣</dt><dd>{html.escape(sil)}</dd></div>
     <div><dt>주인공</dt><dd>{html.escape(hero)}</dd></div>
     <div><dt>조연</dt><dd>{html.escape(extra) or "없음 (1급은 주인공 하나와 벽의 층 한 겹)"}</dd></div>
     <div><dt>모델</dt><dd>{html.escape(state)}</dd></div></dl>
 </article>'''
 
-ladder = "".join(f'<figure>{side(w, h, g, c=12, tall=5.2)}<figcaption>{name}<br>{h:g}칸</figcaption></figure>'
+ladder = "".join(f'<figure>{side(w, h, g, c=12, tall=5.2)}<figcaption>{name}<br>{h:g} → {math.ceil(h - 1e-9)}칸</figcaption></figure>'
                  for name, g, form, w, d, h, *_ in sorted(M, key=lambda r: (r[5], r[3] * r[4])))
 
 page = f'''<!doctype html>
@@ -128,7 +144,7 @@ figure {{ margin:0; text-align:center; font-size:12px; color:var(--mute); }}
 .concept {{ margin:6px 0 10px; font-size:14px; color:var(--mute); }}
 .draw {{ display:flex; align-items:flex-end; gap:18px; padding:8px 0 10px; overflow-x:auto; }}
 .body.g0 {{ fill:var(--g0); }} .body.g1 {{ fill:var(--g1); }} .body.g2 {{ fill:var(--g2); }} .body.g3 {{ fill:var(--g3); }}
-.belt {{ fill:var(--belt); }} .grid {{ stroke:var(--grid); stroke-width:1; }} .ground {{ stroke:var(--mute); stroke-width:1; }}
+.belt {{ fill:var(--belt); }} .port {{ fill:#fff; }} .hit {{ fill:none; stroke:var(--mute); stroke-width:1; stroke-dasharray:3 3; }} .grid {{ stroke:var(--grid); stroke-width:1; }} .ground {{ stroke:var(--mute); stroke-width:1; }}
 .man {{ fill:var(--mute); }}
 dl {{ margin:0; font-size:14px; }}
 dl div {{ display:grid; grid-template-columns:64px 1fr; gap:8px; border-top:1px solid var(--line); padding:5px 0; }}
@@ -140,15 +156,17 @@ footer {{ margin-top:40px; font-size:13px; color:var(--mute); }}
 
 <h2>정하는 규칙</h2>
 <div class="box"><ul style="margin:0; padding-left:20px">
+  <li><b>히트박스는 정수 칸입니다(개발자 확정).</b> 가로, 세로, 높이 모두 정수 칸이고, 보이는 모델은 그 안에서 소수 칸이어도 됩니다. 모델은 히트박스 밖으로 나가지 않습니다. 그림의 점선이 히트박스입니다.</li>
+  <li><b>따로 놓는 벨트와 맞물립니다(개발자 확정).</b> 입구와 출구는 항상 칸 한 변의 한가운데에 있고(그림의 흰 화살표), 기계에 붙은 벨트는 따로 놓는 벨트와 폭, 높이, 난간이 똑같으며 칸 경계에서 반듯하게 끝납니다. 그래서 어느 벨트를 대도 이음매 없이 이어집니다.</li>
   <li><b>꼴은 셋입니다.</b> 내놓기만 하는 기계는 벨트가 한쪽에만 붙고(2×1칸), 재료 하나를 받는 기계는 벨트가 몸통을 지나가고(3×1칸), 둘 이상을 받아 합치는 기계는 입구가 여럿입니다(3×3칸).</li>
-  <li><b>높이는 급을 따라갑니다.</b> 1급은 캐릭터 키보다 낮거나 비슷하게(1.3~1.6칸), 2급은 조금 높게(1.5~2칸), 3급은 올려다보게(2.2~3.5칸), 큰 목표는 섬에서 가장 높게(5칸).</li>
+  <li><b>높이는 급을 따라갑니다.</b> 보이는 높이는 1급이 캐릭터 키보다 낮거나 비슷하게(1.3~1.6칸), 2급은 조금 높게(1.5~2칸), 3급은 올려다보게(2.2~3.5칸), 큰 목표는 섬에서 가장 높게(5칸). 히트박스로는 1급과 2급이 모두 2칸, 3급이 3~4칸, 핵 제련소가 5칸입니다.</li>
   <li><b>볼거리도 급을 따라갑니다.</b> 1급은 주인공 하나, 2급은 주인공과 그것을 움직이는 장치 한둘, 3급은 주인공과 조연 여럿에 구조물.</li>
   <li><b>연료와 물은 같은 벨트로 받습니다.</b> 용광로의 석탄, 세척기의 물통은 재료와 한 벨트에 섞여 들어오는 것으로 보고 입구를 하나로 쳤습니다. 입구가 여럿인 기계는 합치는 기계 셋과 핵 제련소뿐입니다.</li>
   <li><b>청사진이 필요한 기계</b>는 문턱이 되는 넷으로 잡았습니다: 용광로, 제철소, 조립기, 핵 제련소.</li>
 </ul></div>
 
 <h2>높이를 한 줄로</h2>
-<p class="lead">낮은 것부터 늘어놓았습니다. 가로는 벨트 방향의 길이입니다.</p>
+<p class="lead">낮은 것부터 늘어놓았습니다. 색칠한 부분이 보이는 높이, 점선이 히트박스(정수 칸)입니다. 숫자는 "보이는 높이 → 히트박스 높이".</p>
 <div class="ladder">{ladder}</div>
 
 <h2>기계별로</h2>
