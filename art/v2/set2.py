@@ -127,9 +127,31 @@ def assembler3(m):
     _asm_upper_v1(m)
 
 
+def corrugated(m, x0, x1, y0, y1, z0, z1, faces, mk, pitch=0.15, depth=0.045):
+    """A cabinet whose walls are themselves folded into ribs (like a transformer's tank), instead of bars
+    stuck onto a flat wall. `faces` names the walls to fold: any of "ymin", "ymax", "xmax"."""
+    def wave(a, b, n):
+        (ax, ay), (bx_, by_) = a, b
+        L = math.hypot(bx_ - ax, by_ - ay)
+        tx, ty = (bx_ - ax) / L, (by_ - ay) / L
+        k = max(1, int((L - 0.10) / pitch))
+        gap = (L - k * pitch) / 2
+        pts = []
+        for i in range(k):
+            s0 = gap + i * pitch + pitch * 0.22
+            for s, dd in ((s0, 0.0), (s0 + pitch * 0.14, depth), (s0 + pitch * 0.42, depth), (s0 + pitch * 0.56, 0.0)):
+                pts.append((ax + tx * s + n[0] * dd, ay + ty * s + n[1] * dd))
+        return pts
+    c = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    pts = [c[0]] + (wave(c[0], c[1], (0, -1)) if "ymin" in faces else []) + [c[1]]
+    pts += (wave(c[1], c[2], (1, 0)) if "xmax" in faces else []) + [c[2]]
+    pts += (wave(c[2], c[3], (0, 1)) if "ymax" in faces else []) + [c[3]]
+    m.prism(pts, z0, z1, "Z", mk)
+
+
 def _asm_lower(m):
     """Assembler, 3x3: two inputs side by side, one output. The hall, the mouths, a control cabin
-    between the inputs and a ribbed power cabinet at each back corner."""
+    between the inputs and a power cabinet with folded walls at each back corner."""
     for sy in SIDES:
         with m.at((0, sy * 1.0, 0)):
             run(m, -1.5, -0.5, braces=(-4 / 3, -1.0))
@@ -141,41 +163,41 @@ def _asm_lower(m):
     bx(m, (-0.53, 0.53), (-1.50, 1.50), (0.82, 0.96), TD, bevel=0.03)
     for sy in SIDES:
         with frame(m, (0, sy * 1.5), (0, -sy)):
-            for y in (-0.42, 0.42):
-                bx(m, (0.0, 0.05), (y - 0.07, y + 0.07), (0.0, 0.84), D, bevel=0.02)
+            for y in (-0.42, 0.42):                           # buttresses that thin toward the top
+                m.prism([(0.0, 0.0), (0.05, 0.0), (0.05, 0.84), (0.032, 0.84), (0.0, 0.34)], y - 0.075, y + 0.075, "Y", D)
             m.box((0.04, 0.50, 0.40), (0.045, 0, 0.42), G, bevel=0.028)
             m.box((0.012, 0.012, 0.34), (0.022, 0, 0.42), SLIT)
             for s in SIDES:
-                m.box((0.02, 0.03, 0.12), (0.018, s * 0.05, 0.42), T)
+                m.cyl(0.013, 0.13, (0.014, s * 0.05, 0.42), T, seg=6)
             m.box((0.012, 0.62, 0.09), (0.026, 0, 0.73), "h_glass")
-            for y in (-0.31, -0.105, 0.105, 0.31):
-                m.box((0.02, 0.025, 0.10), (0.022, y, 0.73), D)
-    # control cabin between the inputs
+            m.prism([(0.03, 0.675), (0.008, 0.69), (0.008, 0.77), (0.03, 0.785)], -0.335, -0.31, "Y", D)
+            m.prism([(0.03, 0.675), (0.008, 0.69), (0.008, 0.77), (0.03, 0.785)], 0.31, 0.335, "Y", D)
+            for y in (-0.105, 0.105):
+                m.box((0.018, 0.022, 0.095), (0.022, y, 0.73), D, bevel=0.006)
+    # control cabin between the inputs, with a bezelled screen
     x0 = -1.15
     bx(m, (-1.18, -0.48), (-0.40, 0.40), (0.0, 0.16), T, bevel=0.04)
     bx(m, (x0, -0.48), (-0.37, 0.37), (0.12, 0.90), G, bevel=0.04)
-    bx(m, (-1.17, -0.48), (-0.39, 0.39), (0.86, 0.97), TD, bevel=0.025)
-    m.box((0.02, 0.50, 0.26), (x0 - 0.004, 0, 0.56), SLIT)
+    bx(m, (-1.17, -0.48), (-0.39, 0.39), (0.86, 0.97), TD, bevel=0.03)
+    m.box((0.012, 0.50, 0.26), (x0 - 0.002, 0, 0.56), SLIT)
     for sz in SIDES:
-        m.box((0.045, 0.58, 0.04), (x0 - 0.012, 0, 0.56 + sz * 0.15), T)
+        zi, zo = 0.56 + sz * 0.13, 0.56 + sz * 0.195
+        m.prism([(x0, zi), (x0 - 0.034, zi + sz * 0.014), (x0 - 0.034, zo - sz * 0.012), (x0, zo)], -0.315, 0.315, "Y", T)
     for s in SIDES:
-        m.box((0.045, 0.04, 0.30), (x0 - 0.012, s * 0.27, 0.56), T)
+        yi, yo = s * 0.25, s * 0.315
+        m.prism([(x0, yi), (x0 - 0.034, yi + s * 0.014), (x0 - 0.034, yo - s * 0.012), (x0, yo)], 0.416, 0.704, "Z", T)
     for i, w in enumerate((0.38, 0.24, 0.30)):
-        m.box((0.008, w, 0.03), (x0 - 0.016, 0, 0.56 + (1 - i) * 0.07), "h_core")
-    # a ribbed power cabinet at each back corner, with its duct into the hall
+        m.box((0.008, w, 0.03), (x0 - 0.01, 0, 0.56 + (1 - i) * 0.07), "h_core")
+    # a power cabinet at each back corner: its outer walls are folded into ribs
     for sy in SIDES:
-        ys = tuple(sorted((sy * 0.64, sy * 1.38)))
-        bx(m, (0.56, 1.40), tuple(sorted((sy * 0.60, sy * 1.42))), (0.0, 0.16), T, bevel=0.04)
-        bx(m, (0.60, 1.36), ys, (0.12, 1.02), ST, bevel=0.04)
-        bx(m, (0.58, 1.38), tuple(sorted((sy * 0.62, sy * 1.40))), (0.98, 1.10), TD, bevel=0.03)
-        for k in range(5):
-            m.box((0.05, 0.04, 0.72), (0.70 + k * 0.14, sy * 1.39, 0.56), LT)
-        for k in range(4):
-            m.box((0.04, 0.06, 0.72), (1.37, sy * (0.76 + k * 0.17), 0.56), LT)
+        y0, y1 = sorted((sy * 0.66, sy * 1.36))
+        bx(m, (0.56, 1.42), tuple(sorted((sy * 0.60, sy * 1.42))), (0.0, 0.16), T, bevel=0.04)
+        corrugated(m, 0.60, 1.36, y0, y1, 0.12, 1.02, ("ymin" if sy < 0 else "ymax", "xmax"), ST)
+        bx(m, (0.57, 1.41), tuple(sorted((sy * 0.62, sy * 1.41))), (0.98, 1.10), TD, bevel=0.035)
         for x in (0.82, 1.14):
-            m.cyl(0.06, 0.16, (x, sy * 1.0, 1.18), LT, seg=8)
-            m.cyl(0.085, 0.04, (x, sy * 1.0, 1.25), TD, seg=8)
-        bx(m, (0.46, 0.64), tuple(sorted((sy * 0.86, sy * 1.14))), (0.62, 0.84), ST, bevel=0.025)
+            m.cyl(0.055, 0.14, (x, sy * 1.0, 1.17), LT, seg=8, r2=0.035)
+            m.cyl(0.075, 0.05, (x, sy * 1.0, 1.255), TD, seg=8, r2=0.045)
+        bx(m, (0.46, 0.64), tuple(sorted((sy * 0.86, sy * 1.14))), (0.62, 0.84), ST, bevel=0.035)
 
 
 def _asm_upper_v1(m):
@@ -210,7 +232,7 @@ def _asm_upper_v1(m):
 # ---- upper works built the way the mouths are: every member has a section, every joint a transition ----
 def h_portal(m, x, w, top, leg, depth=0.20, web=0.07, c=0.34):
     """A portal frame of H section standing on z = 0: a thin web between an outer and an inner flange,
-    the knees cut off at an angle. Returns nothing; build it inside m.at() to stand it on a deck."""
+    the knees cut off at an angle, each leg on a tapered base. Build it inside m.at() to stand it on a deck."""
     hw, ht, ci = w / 2 - leg, top - leg, c - leg * 0.45
     f = 0.05                                                  # flange thickness
     m.prism(arch_pts(w - 2 * f, top - f, hole_top=ht + f, hw=hw + f, c=c - f * 0.4, ci=ci + f * 0.4), x - web / 2, x + web / 2, "X", TD)
@@ -218,10 +240,7 @@ def h_portal(m, x, w, top, leg, depth=0.20, web=0.07, c=0.34):
     m.prism(arch_pts(2 * (hw + f), ht + f, hole_top=ht, hw=hw, c=ci + f * 0.45, ci=ci), x - depth / 2, x + depth / 2, "X", ST)
     for s in SIDES:
         yc = s * (w / 2 - leg / 2)
-        for z in (0.34, 0.70):                                # stiffeners across the web of each leg
-            m.box((depth - 0.02, leg - 2 * f, 0.03), (x, yc, z), ST)
-        bx(m, (x - depth / 2 - 0.05, x + depth / 2 + 0.05), tuple(sorted((yc - s * (leg / 2 + 0.05), yc + s * (leg / 2 + 0.05)))),
-           (-0.01, 0.07), T, bevel=0.02)                      # base plate
+        m.box((depth + 0.12, leg + 0.12, 0.09), (x, yc, 0.035), T, bevel=0.012, taper=0.80)
 
 
 def taper_link(m, d, p, q, h0, h1, xh, mk):
@@ -234,85 +253,97 @@ def taper_link(m, d, p, q, h0, h1, xh, mk):
 
 
 def joint(m, d, y, z, r, xh):
-    """A joint: a dark drum between the link's cheeks, with a lighter cap on each end."""
+    """A joint: a dark drum between the link's cheeks, with a lighter domed cap on each end."""
     m.cyl(r, 2 * xh + 0.05, (0, d * y, z), T, seg=10, axis="X")
     for sx in SIDES:
-        m.cyl(r * 0.62, 0.03, (sx * (xh + 0.035), d * y, z), LT, seg=8, axis="X")
+        m.cyl(r * 0.66, 0.035, (sx * (xh + 0.04), d * y, z), LT, seg=8, axis="X", r2=r * 0.40) if sx > 0 else \
+            m.cyl(r * 0.40, 0.035, (sx * (xh + 0.04), d * y, z), LT, seg=8, axis="X", r2=r * 0.66)
+
+
+def strut(m, x0, x1, y, z, r=0.045, mk=ST):
+    """An eight-sided tie running along the belt between two frames, with a collar at each end."""
+    m.cyl(r * K, x1 - x0, ((x0 + x1) / 2, y, z), mk, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    for x in (x0 + 0.13, x1 - 0.13):
+        m.cyl(r * K * 1.5, 0.05, (x, y, z), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
 
 
 def arm4(m, d, yb, zb, elbow, wrist):
-    """An arm on a stepped turret: yoke, a tapered upper link, a tapered forearm, a two-fingered hand."""
+    """An arm on a stepped turret: yoke, a tapered upper link, a tapered forearm, a hand whose two
+    fingers narrow toward their tips."""
     with m.at((0, d * yb, 0)):
-        octa(m, 0.23, 0.23, zb - 0.01, zb + 0.07, T)
-        octa(m, 0.18, 0.15, zb + 0.07, zb + 0.20, G)
-        oct_ring(m, 0.20, 0.05, zb + 0.06, zb + 0.10, ST)
-    sh = (yb, zb + 0.38)
-    for sx in SIDES:                                          # yoke cheeks
-        bx(m, tuple(sorted((sx * 0.085, sx * 0.145))), (d * yb - 0.10, d * yb + 0.10), (zb + 0.18, zb + 0.46), G, bevel=0.02)
-    joint(m, d, sh[0], sh[1], 0.125, 0.085)
-    taper_link(m, d, sh, elbow, 0.105, 0.075, 0.075, LT)
-    taper_link(m, d, sh, elbow, 0.06, 0.04, 0.085, ST)        # a darker spine down the middle of the link
-    joint(m, d, elbow[0], elbow[1], 0.10, 0.075)
-    taper_link(m, d, elbow, wrist, 0.07, 0.05, 0.06, LT)
-    joint(m, d, wrist[0], wrist[1], 0.07, 0.06)
+        octa(m, 0.25, 0.25, zb - 0.01, zb + 0.07, T)
+        octa(m, 0.20, 0.16, zb + 0.07, zb + 0.22, G)
+        oct_ring(m, 0.22, 0.05, zb + 0.06, zb + 0.10, ST)
+    sh = (yb, zb + 0.42)
+    for sx in SIDES:                                          # yoke cheeks, cut back toward the top
+        xs = sorted((sx * 0.095, sx * 0.16))
+        m.prism([(d * yb - 0.12, zb + 0.20), (d * yb + 0.12, zb + 0.20), (d * yb + 0.07, zb + 0.52), (d * yb - 0.07, zb + 0.52)],
+                xs[0], xs[1], "X", G)
+    joint(m, d, sh[0], sh[1], 0.14, 0.095)
+    taper_link(m, d, sh, elbow, 0.12, 0.085, 0.085, LT)
+    taper_link(m, d, sh, elbow, 0.065, 0.045, 0.097, ST)      # a darker spine down the middle of the link
+    joint(m, d, elbow[0], elbow[1], 0.115, 0.085)
+    taper_link(m, d, elbow, wrist, 0.08, 0.055, 0.068, LT)
+    joint(m, d, wrist[0], wrist[1], 0.08, 0.068)
     wy, wz = wrist
-    bx(m, (-0.07, 0.07), tuple(sorted((d * (wy - 0.05), d * (wy + 0.03)))), (wz - 0.16, wz - 0.05), TD, bevel=0.015)
+    m.prism([(d * (wy - 0.075), wz - 0.05), (d * (wy + 0.045), wz - 0.05), (d * (wy + 0.03), wz - 0.17), (d * (wy - 0.06), wz - 0.17)],
+            -0.085, 0.085, "X", TD)
     for sx in SIDES:
-        m.box((0.03, 0.06, 0.13), (sx * 0.055, d * (wy - 0.02), wz - 0.215), LT)
+        xs = sorted((sx * 0.045, sx * 0.08))
+        m.prism([(d * (wy - 0.05), wz - 0.16), (d * (wy + 0.02), wz - 0.16), (d * (wy - 0.002), wz - 0.31), (d * (wy - 0.03), wz - 0.31)],
+                xs[0], xs[1], "X", LT)
 
 
-def bin4(m, x, y, z, w=0.36, l=0.26, h=0.15):
-    """An open parts bin: a rim of four walls round a dark floor."""
-    bx(m, (x - w / 2, x + w / 2), (y - l / 2, y + l / 2), (z - 0.01, z + 0.04), T, bevel=0.0)
-    for s in SIDES:
-        m.box((w, 0.04, h), (x, y + s * (l / 2 - 0.02), z + h / 2), ST)
-        m.box((0.04, l, h), (x + s * (w / 2 - 0.02), y, z + h / 2), ST)
-    m.box((w + 0.03, l + 0.03, 0.03), (x, y, z + h), D)
-    m.box((w - 0.07, l - 0.07, 0.012), (x, y, z + h + 0.012), SLIT)
+def bin4(m, x, y, z, w=0.34, l=0.25, h=0.15):
+    """An open parts bin: a tray that flares toward its rim, dark inside."""
+    m.box((w, l, h), (x, y, z + h / 2 - 0.005), ST, bevel=0.018, taper=1.20)
+    m.box((w * 1.20 - 0.09, l * 1.20 - 0.09, 0.012), (x, y, z + h - 0.002), SLIT)
 
 
 def assembler4(m):
     """Assembler, 3x3, second version: the same lower works, with the upper works built like the mouths.
-    Two H-section portals on base plates carry a box girder with a hoist; the deck has a kerb and seams;
-    two tapered arms on stepped turrets work on the frame clamped to a rimmed turntable, each fed from a
-    walled bin."""
+    Two H-section portals on tapered bases, tied by eight-sided struts, carry a box girder with a hoist;
+    the deck has a sloped kerb and seams; two tapered arms on stepped turrets work on the frame clamped
+    to a rimmed turntable, each fed from a flared bin."""
     _asm_lower(m)
     Z = 0.96
-    # deck: a kerb round the edge and seams across the floor
+    # deck: a kerb with a sloped inner face round the edge, and seams across the floor
     for s in SIDES:
-        bx(m, (-0.53, 0.53), tuple(sorted((s * 1.42, s * 1.50))), (Z - 0.02, Z + 0.045), ST, bevel=0.012)
-        bx(m, tuple(sorted((s * 0.46, s * 0.53))), (-1.43, 1.43), (Z - 0.02, Z + 0.045), ST, bevel=0.012)
+        m.prism([(s * 1.50, Z - 0.02), (s * 1.50, Z + 0.035), (s * 1.475, Z + 0.06), (s * 1.445, Z + 0.06), (s * 1.40, Z - 0.02)],
+                -0.53, 0.53, "X", ST)
+        m.prism([(s * 0.53, Z - 0.02), (s * 0.53, Z + 0.035), (s * 0.505, Z + 0.06), (s * 0.475, Z + 0.06), (s * 0.43, Z - 0.02)],
+                -1.42, 1.42, "Y", ST)
     for y in (-1.0, -0.5, 0.5, 1.0):
-        m.box((0.92, 0.014, 0.006), (0, y, Z + 0.003), ST)
-    # portals, tied at mid height and carrying the hoist girder
+        m.box((0.84, 0.014, 0.006), (0, y, Z + 0.003), ST)
+    # portals, tied by struts and carrying the hoist girder
     with m.at((0, 0, Z)):
         for x in (-0.33, 0.33):
             h_portal(m, x, 2.80, 1.30, 0.24)
     for s in SIDES:
-        bx(m, (-0.33, 0.33), tuple(sorted((s * 1.245, s * 1.335))), (Z + 0.60, Z + 0.69), ST, bevel=0.015)
-        bx(m, (-0.33, 0.33), tuple(sorted((s * 0.96, s * 1.05))), (Z + 1.16, Z + 1.245), ST, bevel=0.015)
-    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.29, Z + 1.45), TD, bevel=0.035)
+        strut(m, -0.33, 0.33, s * 1.28, Z + 0.66)
+        strut(m, -0.33, 0.33, s * 1.02, Z + 1.21)
+    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.29, Z + 1.45), TD, bevel=0.045)
     for sx in SIDES:
-        bx(m, tuple(sorted((sx * 0.44, sx * 0.53))), (-0.15, 0.15), (Z + 1.26, Z + 1.48), T, bevel=0.025)
-    bx(m, (-0.44, 0.44), (-0.045, 0.045), (Z + 1.215, Z + 1.30), ST, bevel=0.0)
-    bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 1.10, Z + 1.23), G, bevel=0.025)
-    m.cyl(0.07, 0.30, (0, 0, Z + 1.11), T, seg=8, axis="Y")
-    m.cyl(0.085, 0.03, (0, 0, Z + 1.03), "h_core", seg=10)
+        m.cyl(0.165 * K, 0.08, (sx * 0.50, 0, Z + 1.37), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.prism([(-0.045, Z + 1.30), (0.045, Z + 1.30), (0.07, Z + 1.215), (-0.07, Z + 1.215)], -0.44, 0.44, "X", ST)
+    bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 1.09, Z + 1.22), G, bevel=0.035)
+    m.cyl(0.075, 0.30, (0, 0, Z + 1.10), T, seg=8, axis="Y")
+    m.cyl(0.085, 0.03, (0, 0, Z + 1.02), "h_core", seg=10)
     # turntable with the frame clamped to it
     octa(m, 0.40, 0.40, Z - 0.01, Z + 0.07, T)
-    octa(m, 0.33, 0.33, Z + 0.07, Z + 0.13, ST)
+    octa(m, 0.34, 0.31, Z + 0.07, Z + 0.14, ST)
     oct_ring(m, 0.36, 0.055, Z + 0.10, Z + 0.155, LT)
-    bx(m, (-0.21, 0.21), (-0.17, 0.17), (Z + 0.13, Z + 0.33), G, bevel=0.03)
-    m.box((0.30, 0.22, 0.012), (0, 0, Z + 0.334), TD)
-    m.box((0.15, 0.11, 0.07), (0, 0, Z + 0.375), "h_copper", bevel=0.012)
+    m.box((0.44, 0.36, 0.20), (0, 0, Z + 0.23), G, bevel=0.035, taper=0.86)
+    m.box((0.28, 0.20, 0.012), (0, 0, Z + 0.334), TD)
+    m.box((0.16, 0.12, 0.08), (0, 0, Z + 0.375), "h_copper", bevel=0.02, taper=0.8)
     for sx in SIDES:
         for sy in SIDES:
-            m.box((0.07, 0.07, 0.10), (sx * 0.235, sy * 0.19, Z + 0.18), D, rot=rad(45))
+            m.box((0.085, 0.085, 0.11), (sx * 0.245, sy * 0.20, Z + 0.185), D, bevel=0.018, taper=0.65, rot=rad(45))
     for d in SIDES:
-        arm4(m, d, 0.70, Z, (0.57, Z + 1.02), (0.185, Z + 0.66))
+        arm4(m, d, 0.70, Z, (0.56, Z + 1.04), (0.20, Z + 0.72))
         bin4(m, -0.02, d * 1.06, Z)
-        m.box((0.11, 0.09, 0.08), (-0.10, d * 1.05, Z + 0.09), "h_copper", bevel=0.012)
-        m.box((0.11, 0.09, 0.08), (0.07, d * 1.07, Z + 0.09), LT, bevel=0.012)
+        m.box((0.11, 0.09, 0.08), (-0.09, d * 1.05, Z + 0.10), "h_copper", bevel=0.018)
+        m.box((0.11, 0.09, 0.08), (0.07, d * 1.07, Z + 0.10), LT, bevel=0.018)
     # chute to the output
     m.prism([(0.38, Z + 0.07), (0.86, 0.86), (0.86, 0.78), (0.38, Z - 0.01)], -0.17, 0.17, "Y", T)
     for s in SIDES:
