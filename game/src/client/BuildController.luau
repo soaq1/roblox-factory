@@ -593,7 +593,7 @@ local function keepLaying(dt: number)
 		return
 	end
 	local def = Defs.Machines[hotbar.selected()]
-	if def and def.behavior == "belt" and (def.shape == "straight" or def.shape == "open") then
+	if def and def.behavior == "belt" and def.shape == "straight" then
 		local facing =
 			HandLogic.dragDir(found.px - run.last[1], found.py - run.last[2], found.pz - run.last[3])
 		if facing then

@@ -79,15 +79,15 @@ function scenarios.iron_line(_player, island, args)
 	island.mode = "creative"
 	Tuning.speed = tonumber(args.speed) or 4
 	floor(island, 14, 26, -3, 3)
-	-- west to east along z = 0: extractor, belt, open belt (coal joins here), belt, smelter, belt, storage
+	-- west to east along z = 0: extractor, belt, merger (coal joins here), belt, smelter, belt, storage
 	put(island, problems, "extractor_fe", 15, 0, 0)
 	put(island, problems, "belt", 16, 0, 0)
-	put(island, problems, "belt_open", 17, 0, 0)
+	put(island, problems, "merger", 17, 0, 0)
 	put(island, problems, "belt", 18, 0, 0)
 	local smelter = put(island, problems, "smelter", 19, 0, 0)
 	put(island, problems, "belt", 20, 0, 0)
 	local storage = put(island, problems, "storage", 21, 0, 0)
-	-- coal comes down from the north onto the open belt
+	-- coal comes down from the north into the merger
 	put(island, problems, "extractor_coal", 17, -2, 1)
 	put(island, problems, "belt", 17, -1, 1)
 

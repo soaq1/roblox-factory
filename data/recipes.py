@@ -13,7 +13,7 @@ ITEM = {i["key"]: i["ko"] for i in catalog["items"]}
 # 심은 모습(땅에 꽂힌 묘목, 자라는 밀)은 아이템을 놓은 것이지 따로 만드는 물건이 아니므로 뺌
 MACHINE = {m["key"]: m["ko"] for m in catalog["machines"] if m["fam"] != "식물"}
 # 카탈로그에 카드가 따로 없고 게임에만 있는 것
-MACHINE.update({"belt_corner_l": "코너 벨트 (왼쪽)", "belt_open": "열린 벨트", "extractor_cu": "추출기 (구리 광맥 핵)"})
+MACHINE.update({"belt_corner_l": "코너 벨트 (왼쪽)", "extractor_cu": "추출기 (구리 광맥 핵)"})
 BLOCK = {"block:" + b["key"]: b["ko"] + " (블록)" for b in block_list}
 NAMES = {**ITEM, **MACHINE, **BLOCK}
 
@@ -189,7 +189,6 @@ C("belt", 4, "machine", 1, plate_fe=2, rod_fe=2)
 C("sign", 2, "basic", 1, plank=3, note="글자를 적는 표지판")
 C("belt_corner", 2, "machine", 1, plate_fe=2, rod_fe=2)
 C("belt_corner_l", 2, "machine", 1, plate_fe=2, rod_fe=2, note="왼쪽으로 꺾이는 것")
-C("belt_open", 4, "machine", 1, plate_fe=2, note="난간이 없어 철 막대가 안 듦")
 C("belt_ramp", 1, "machine", 1, plate_fe=3, rod_fe=4)
 C("merger", 1, "machine", 1, plate_fe=3, rod_fe=2)
 C("splitter", 1, "machine", 1, plate_fe=3, rod_fe=2, gear=2)

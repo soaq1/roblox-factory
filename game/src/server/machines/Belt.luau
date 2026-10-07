@@ -40,17 +40,6 @@ function Belt.build(machine)
 			Kit.part(model, base, Vector3.new(3, 0.6, 0.25), Vector3.new(0, -0.6, z), C.light)
 		end
 		chevron(model, base, 0, 0, 0)
-	elseif shape == "open" then
-		-- No side rails: items can roll on from either side and are carried forward. Two angled
-		-- guides at the front funnel them back to the width of the next belt.
-		Kit.conveyor(model, base, Vector3.new(3, 0.2, 3), Vector3.new(0, -0.8, 0), Vector3.new(speed, 0, 0))
-		for _, z in { -1, 1 } do
-			local guide =
-				Kit.part(model, base, Vector3.new(1.25, 0.6, 0.2), Vector3.new(0.9, -0.6, z * 1.34), C.light)
-			guide.CFrame *= CFrame.Angles(0, z * math.rad(15.2), 0)
-			chevron(model, base, -0.2, z, 0)
-		end
-		chevron(model, base, 0, 0, 0)
 	else
 		-- Enters travelling forward, leaves to the right (+Z) or left (-Z). The surface pushes
 		-- diagonally and the two outer walls turn that into a clean corner.

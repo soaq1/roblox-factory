@@ -12,7 +12,7 @@ KO = {i["key"]: i["ko"] for i in catalog["items"]}
 KO.update({m["key"]: m["ko"] for m in catalog["machines"]})
 KO.update({"barrel_water": "물통", "oilcan": "식물 기름", "lube": "윤활유", "electrolyte": "전해액", "plate_r": "강화판",
            "magnet": "전자석", "frame_steel": "강철 틀", "extractor_empty": "빈 추출기", "wb_all": "통합 작업대",
-           "belt_corner_l": "코너 벨트 (왼쪽)", "belt_open": "열린 벨트", "extractor_cu": "추출기 (구리 광맥 핵)"})
+           "belt_corner_l": "코너 벨트 (왼쪽)", "extractor_cu": "추출기 (구리 광맥 핵)"})
 NEW_ITEMS = ["lube", "electrolyte", "plate_r", "magnet", "frame_steel"]
 
 CRATE = 50          # 임시: 같은 물건 몇 개가 한 상자가 되는가 (v1 초안은 8)

@@ -2846,21 +2846,6 @@ Defs.Machines = {
 		needsPower = false,
 		shape = "left",
 	},
-	belt_open = {
-		name = "열린 벨트",
-		family = "운반",
-		note = "옆 난간이 없어서 옆에서 굴러 들어온 것도 싣고 감",
-		sx = 1,
-		sz = 1,
-		sy = 1,
-		height = 1.08,
-		icon = "belt",
-		ports = {},
-		behavior = "belt",
-		hidden = false,
-		needsPower = false,
-		shape = "open",
-	},
 }
 
 -- The creative palette, in the order it is shown. Each group belongs to one of three tabs.
@@ -2894,7 +2879,7 @@ Defs.Palette = {
 	{
 		tab = "기계",
 		name = "운반",
-		ids = { "belt", "belt_corner", "belt_corner_l", "belt_open", "belt_ramp", "splitter", "merger", "sorter", "storage", "magsep" },
+		ids = { "belt", "belt_corner", "belt_corner_l", "belt_ramp", "splitter", "merger", "sorter", "storage", "magsep" },
 	},
 	{
 		tab = "기계",

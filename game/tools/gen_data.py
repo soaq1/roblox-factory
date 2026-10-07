@@ -121,8 +121,6 @@ machines["tree"] = dict(name="나무", family="식물", note="도끼로 치면 �
 # belt variants that are not separate catalog models
 machines["belt_corner_l"] = dict(machines["belt_corner"], name="코너 벨트 (왼쪽)", shape="left")
 machines["belt_corner"]["name"] = "코너 벨트 (오른쪽)"
-machines["belt_open"] = dict(machines["belt"], name="열린 벨트", shape="open",
-                             note="옆 난간이 없어서 옆에서 굴러 들어온 것도 싣고 감")
 
 items = {key: dict(name=i["name"], category=i["category"], color=palette[i["colour"]]["rgb"],
                    size=[max(i["size"])] * 3 if i["ball"] else i["size"], ball=i["ball"])
@@ -153,7 +151,7 @@ for b in blocks:
         block_cats.append(b["cat"])
 for cat in block_cats:
     palette_groups.append(dict(tab="블록", name=cat, ids=[b["key"] for b in blocks if b["cat"] == cat]))
-order = ["belt", "belt_corner", "belt_corner_l", "belt_open"]
+order = ["belt", "belt_corner", "belt_corner_l"]
 for fam in FAMILY_ORDER:
     ids = [k for k in order if machines[k]["family"] == fam]
     ids += [k for k, m in machines.items() if m["family"] == fam and k not in order and not m["hidden"]]

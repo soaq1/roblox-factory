@@ -1642,35 +1642,45 @@ from . import belts as _belts
 
 def belts_demo(m):
     """Not a machine: every conveyor piece laid end to end, with a machine in the line, to judge the
-    joints. Far row: straight, open, straight, the smelter, straight. Near row: two straights, a right
-    turn, a straight, a left turn, a straight, the ramp, and a straight on a block one cell up."""
+    joints. Far row: three straights, the smelter, a straight, one ramp on its own, a straight on a
+    block. Near row: two straights, a right turn, a straight, a left turn, a straight, then two ramps
+    in a run (one straight climb of two cells) and a straight on a block two cells up."""
     def put(fn, x, y, rz=0.0, z=0.0):
         with m.at((x, y, z), rz):
             fn(m)
 
-    put(_belts.straight, -4, 2)
-    put(_belts.open_belt, -3, 2)
-    put(_belts.straight, -2, 2)
+    def block(x, y, h, x1=None):
+        x1 = x if x1 is None else x1
+        with m.at(((x + x1) / 2, y, 0)):
+            slab(m, (x1 - x) / 2 + 0.5, 0.5, 0.0, h, 0.0, "h_stone", bevel=0.01)
+
+    for x in (-4, -3, -2):
+        put(_belts.straight, x, 2)
     put(smelter8, 0, 2)
     put(_belts.straight, 2, 2)
-    put(_belts.straight, -4, 0)
-    put(_belts.straight, -3, 0)
-    put(_belts.corner_right, -2, 0)
-    put(_belts.straight, -2, -1, rad(-90))
-    put(_belts.corner_left, -2, -2, rad(-90))
-    put(_belts.straight, -1, -2)
-    put(_belts.ramp, 0.5, -2)
-    put(_belts.straight, 2, -2, 0.0, 1.0)
-    with m.at((2, -2, 0)):                                    # the block the upper belt lies on
-        slab(m, 0.5, 0.5, 0.0, 1.0, 0.0, "h_stone", bevel=0.01)
+    put(_belts.ramp, 3.5, 2)
+    put(_belts.straight, 5, 2, 0.0, 1.0)
+    block(5, 2, 1.0)
+    put(_belts.straight, -4, -1)
+    put(_belts.straight, -3, -1)
+    put(_belts.corner_right, -2, -1)
+    put(_belts.straight, -2, -2, rad(-90))
+    put(_belts.corner_left, -2, -3, rad(-90))
+    put(_belts.straight, -1, -3)
+    put(_belts.ramp_start, 0.5, -3)
+    put(_belts.ramp_end, 2.5, -3, 0.0, 1.0)
+    block(2, -3, 1.0, 3)
+    put(_belts.straight, 4, -3, 0.0, 2.0)
+    block(4, -3, 2.0)
 
 
-belts_demo.frame, belts_demo.shadow = {"iso": (10.4, 0.6), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
+belts_demo.frame, belts_demo.shadow = {"iso": (12.6, 0.9), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
 _hero.HEROES["belts_demo"] = belts_demo
 F11 = {"iso": (1.9, 0.25), "side": (1.6, 0.4), "top": (1.5, 0.3), "end": (1.6, 0.4)}
+F21R = {"iso": (3.3, 0.7), "side": (2.8, 0.8), "top": (2.6, 0.5), "end": (2.2, 0.8)}
 for _n, _f, _fr in (("belt_straight", _belts.straight, F11), ("belt_right", _belts.corner_right, F11), ("belt_left", _belts.corner_left, F11),
-                    ("belt_open", _belts.open_belt, F11),
-                    ("belt_ramp2", _belts.ramp, {"iso": (3.3, 0.7), "side": (2.8, 0.8), "top": (2.6, 0.5), "end": (2.2, 0.8)})):
+                    ("belt_ramp2", _belts.ramp, F21R), ("belt_ramp_start", _belts.ramp_start, F21R),
+                    ("belt_ramp_mid", _belts.ramp_mid, F21R), ("belt_ramp_end", _belts.ramp_end, F21R)):
     _f.frame, _f.shadow = _fr, True
     _hero.HEROES[_n] = _f
 

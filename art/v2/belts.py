@@ -5,10 +5,11 @@
 #   straight   1x1   west to east
 #   corner     1x1   west to south (right) or west to north (left): the whole section swept round the
 #                    cell's inner corner, so rails, bed and belt turn as one
-#   ramp       2x1   west, low, to east, one cell higher: level where it meets its neighbours at both
-#                    ends, easing into the slope between, carried on two portal piers
-#   open       1x1   no rails: the bed's shoulders lie level with the belt so things can roll on from
-#                    the side
+#   ramp       2x1   west, low, to east, one cell higher, carried on two portal piers. An end that meets
+#                    a flat belt is level there and eases into the slope; an end that meets another
+#                    ramp keeps its slope, so a run of ramps is one straight climb (four variants).
+#
+# There is no open, rail-less belt: the developer dropped it (2026-10-07).
 import math
 import bmesh
 from mathutils import Matrix
@@ -78,29 +79,41 @@ def corner_left(m):
 
 
 RISE, EASE = 1.0, 0.30
-SLOPE = RISE / (2.0 - EASE)
 
 
-def lift_at(x):
-    """How high the ramp stands at x (from -1 to 1): level at both ends, a straight slope between."""
-    u = x + 1.0
-    if u < EASE:
-        return SLOPE * u * u / (2 * EASE)
-    if u > 2.0 - EASE:
-        v = 2.0 - u
-        return RISE - SLOPE * v * v / (2 * EASE)
-    return SLOPE * (u - EASE / 2)
+def ramp_profile(low, high):
+    """How a ramp rises from x = -1 to x = 1: (height at x, pitch at x). An end marked True starts or
+    finishes level, to meet a flat belt; an end marked False keeps its slope, to meet another ramp, so
+    a run of ramps climbs in one straight line instead of rising and levelling at every joint."""
+    e0, e1 = (EASE if low else 0.0), (EASE if high else 0.0)
+    slope = RISE / (2.0 - (e0 + e1) / 2)
+
+    def lift(x):
+        u = x + 1.0
+        if u < e0:
+            return slope * u * u / (2 * e0)
+        if u > 2.0 - e1:
+            v = 2.0 - u
+            return RISE - slope * v * v / (2 * e1)
+        return slope * (u - e0 / 2)
+
+    def pitch(x):
+        u, f = x + 1.0, 1.0
+        if e0 and u < e0:
+            f = u / e0
+        if e1 and u > 2.0 - e1:
+            f = (2.0 - u) / e1
+        return math.atan(slope * f)
+
+    return lift, pitch
 
 
-def pitch_at(x):
-    u = x + 1.0
-    return math.atan(SLOPE * min(1.0, u / EASE, (2.0 - u) / EASE))
-
-
-def ramp(m, flow=1):
-    """Ramp, 2x1: from the west, low, to the east, one cell higher. Its two ends are level, so the rails
-    run on from a neighbour's without a kink. It stands on two portal piers, a leg under each rail and
-    a tie between them, the belt's underside open between the legs."""
+def ramp(m, low=True, high=True, flow=1):
+    """Ramp, 2x1: from the west, low, to the east, one cell higher. Which ends are level depends on
+    what it meets (see ramp_profile): level against a flat belt, sloping on against another ramp.
+    It stands on two portal piers, a leg under each rail and a tie between them, the belt's underside
+    open between the legs."""
+    lift_at, pitch_at = ramp_profile(low, high)
     n = 24
     xs = [-1.0 + 2.0 * i / n for i in range(n + 1)]
     loft(m, [[(x, y, z + lift_at(x)) for y, z in SECTION] for x in xs], R)
@@ -123,7 +136,7 @@ def ramp(m, flow=1):
     for xc in (0.10, 0.80):                                   # piers
         for s in SIDES:
             ya, yb = sorted((s * 0.27, s * 0.47))
-            m.prism([(xc - 0.17, 0.0), (xc + 0.17, 0.0), (xc + 0.10, lift_at(xc + 0.10) + 0.02), (xc - 0.10, lift_at(xc - 0.10) + 0.02)],
+            m.prism([(xc - 0.17, 0.02), (xc + 0.17, 0.02), (xc + 0.10, lift_at(xc + 0.10) + 0.02), (xc - 0.10, lift_at(xc - 0.10) + 0.02)],
                     ya, yb, "Y", T)
             ya, yb = sorted((s * 0.25, s * 0.49))
             m.prism([(xc - 0.20, 0.0), (xc + 0.20, 0.0), (xc + 0.18, 0.06), (xc - 0.18, 0.06)], ya, yb, "Y", TD)   # foot
@@ -131,18 +144,16 @@ def ramp(m, flow=1):
         m.prism([(xc - 0.05, zt - 0.05), (xc + 0.05, zt - 0.05), (xc + 0.035, zt + 0.05), (xc - 0.035, zt + 0.05)], -0.28, 0.28, "Y", ST)   # tie
 
 
-OPEN_SIDE = [(BH, BZ), (0.352, BZ), (0.374, BZ - 0.022), (0.474, 0.055), (0.50, 0.055), (0.50, 0.0)]
-OPEN = [(-y, z) for y, z in reversed(OPEN_SIDE)] + [(-BH, BED), (BH, BED)] + list(OPEN_SIDE)
+def ramp_start(m):
+    """The first ramp of a run: level where it leaves the flat belt, sloping on at the top."""
+    ramp(m, True, False)
 
 
-def open_belt(m):
-    """Open belt, 1x1: no rails. The bed's shoulders lie level with the belt and slope away to the same
-    foot as a railed belt's, so the foot and the belt run on unbroken into a neighbour."""
-    m.prism(OPEN, -0.5, 0.5, "X", R)
-    m.box((1.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
-    for x in (-1 / 3, 0.0, 1 / 3):
-        chev(m, x)
-        with m.at((x, 0, 0)):
-            bolt(m)
-            with m.at((0, 0, 0), math.pi):
-                bolt(m)
+def ramp_mid(m):
+    """A ramp between two ramps: one straight slope."""
+    ramp(m, False, False)
+
+
+def ramp_end(m):
+    """The last ramp of a run: sloping on from the ramp below, level where it meets the flat belt."""
+    ramp(m, False, True)

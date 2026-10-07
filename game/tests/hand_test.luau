@@ -117,7 +117,6 @@ end)
 
 test("a belt's outline shows it taking in at the back and giving out where it carries", function()
 	eq(HandLogic.beltPorts("straight")[2].side, "E")
-	eq(HandLogic.beltPorts("open")[2].side, "E")
 	eq(HandLogic.beltPorts("right")[2].side, "S")
 	eq(HandLogic.beltPorts("left")[2].side, "N")
 	eq(HandLogic.beltPorts(nil)[1].side, "W")

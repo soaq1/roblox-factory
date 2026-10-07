@@ -346,9 +346,5 @@
 "belt_corner_l": {
 "behavior": "belt",
 "hidden": false
-},
-"belt_open": {
-"behavior": "belt",
-"hidden": false
 }
 }

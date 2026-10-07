@@ -31131,21 +31131,6 @@ Defs.Machines = {
 		needsPower = false,
 		shape = "left",
 	},
-	belt_open = {
-		name = "열린 벨트",
-		family = "운반",
-		note = "옆 난간이 없어서 옆에서 굴러 들어온 것도 싣고 감",
-		sx = 1,
-		sz = 1,
-		sy = 1,
-		height = 1.08,
-		icon = "belt",
-		ports = {},
-		behavior = "belt",
-		hidden = false,
-		needsPower = false,
-		shape = "open",
-	},
 }
 
 -- The creative palette, in the order it is shown. Each group belongs to one of three tabs.
@@ -31179,7 +31164,7 @@ Defs.Palette = {
 	{
 		tab = "기계",
 		name = "운반",
-		ids = { "belt", "belt_corner", "belt_corner_l", "belt_open", "belt_ramp", "splitter", "merger", "sorter", "storage", "magsep" },
+		ids = { "belt", "belt_corner", "belt_corner_l", "belt_ramp", "splitter", "merger", "sorter", "storage", "magsep" },
 	},
 	{
 		tab = "기계",
@@ -36725,15 +36710,6 @@ return {
 			ins = {
 				plate_fe = 2,
 				rod_fe = 2,
-			},
-		},
-		{
-			out = "belt_open",
-			n = 4,
-			bench = "machine",
-			tier = 1,
-			ins = {
-				plate_fe = 2,
 			},
 		},
 		{
@@ -44418,15 +44394,15 @@ function scenarios.iron_line(_player, island, args)
 	island.mode = "creative"
 	Tuning.speed = tonumber(args.speed) or 4
 	floor(island, 14, 26, -3, 3)
-	-- west to east along z = 0: extractor, belt, open belt (coal joins here), belt, smelter, belt, storage
+	-- west to east along z = 0: extractor, belt, merger (coal joins here), belt, smelter, belt, storage
 	put(island, problems, "extractor_fe", 15, 0, 0)
 	put(island, problems, "belt", 16, 0, 0)
-	put(island, problems, "belt_open", 17, 0, 0)
+	put(island, problems, "merger", 17, 0, 0)
 	put(island, problems, "belt", 18, 0, 0)
 	local smelter = put(island, problems, "smelter", 19, 0, 0)
 	put(island, problems, "belt", 20, 0, 0)
 	local storage = put(island, problems, "storage", 21, 0, 0)
-	-- coal comes down from the north onto the open belt
+	-- coal comes down from the north into the merger
 	put(island, problems, "extractor_coal", 17, -2, 1)
 	put(island, problems, "belt", 17, -1, 1)
 
@@ -45539,17 +45515,6 @@ function Belt.build(machine)
 		)
 		for _, z in { -1.3, 1.3 } do
 			Kit.part(model, base, Vector3.new(3, 0.6, 0.25), Vector3.new(0, -0.6, z), C.light)
-		end
-		chevron(model, base, 0, 0, 0)
-	elseif shape == "open" then
-		-- No side rails: items can roll on from either side and are carried forward. Two angled
-		-- guides at the front funnel them back to the width of the next belt.
-		Kit.conveyor(model, base, Vector3.new(3, 0.2, 3), Vector3.new(0, -0.8, 0), Vector3.new(speed, 0, 0))
-		for _, z in { -1, 1 } do
-			local guide =
-				Kit.part(model, base, Vector3.new(1.25, 0.6, 0.2), Vector3.new(0.9, -0.6, z * 1.34), C.light)
-			guide.CFrame *= CFrame.Angles(0, z * math.rad(15.2), 0)
-			chevron(model, base, -0.2, z, 0)
 		end
 		chevron(model, base, 0, 0, 0)
 	else
@@ -49532,7 +49497,7 @@ local function keepLaying(dt: number)
 		return
 	end
 	local def = Defs.Machines[hotbar.selected()]
-	if def and def.behavior == "belt" and (def.shape == "straight" or def.shape == "open") then
+	if def and def.behavior == "belt" and def.shape == "straight" then
 		local facing =
 			HandLogic.dragDir(found.px - run.last[1], found.py - run.last[2], found.pz - run.last[3])
 		if facing then
