@@ -616,17 +616,20 @@ def tower(m, stations, mk):
 
 
 def _smelt_lower(m):
-    """The smelter below the crown: chassis, firebox with end piers, fire mouths, hood. Returns the crown's height."""
+    """The smelter below the crown: chassis, firebox with end piers, fire mouths, hood. Returns the crown's height.
+    The firebox's blocks run up a little way into the hood and the hood's eave stands out past them, so
+    the joint under the eave is one clean line. (With the blocks stopping flush under a hood no wider
+    than they were, each cut corner of a pier showed a dark chip of the hood's underside.)"""
     run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
     cover(m, BX, 1, sole=False)
     cover(m, -BX, -1, sole=False)
     collar(m, -BX - 0.318, BX + 0.318, mk=T)
-    hy, hc, xp = 0.40, 0.355, 0.30
-    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, 0.70, "Z", G, bevel=0.012)
+    hy, hc, xp, he, top = 0.40, 0.355, 0.30, 0.415, 0.712
+    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, top, "Z", G, bevel=0.012)
     for sx in SIDES:
-        with m.at((sx * (xp + BX) / 2, 0, 0)):
-            slab(m, (BX - xp) / 2, hy, 0.37, 0.70, 0.02, G, bevel=0.018)
-    bprism(m, [(-hy, 0.70), (-hy, 0.74), (-0.30, 0.90), (0.30, 0.90), (hy, 0.74), (hy, 0.70)], -BX, BX, "X", TD, bevel=0.016)
+        x0, x1 = sorted((sx * xp, sx * BX))
+        bprism(m, [(x0, -hy), (x1, -hy), (x1, hy), (x0, hy)], 0.37, top, "Z", G, bevel=0.012)
+    bprism(m, [(-he, 0.70), (-he, 0.74), (-0.30, 0.90), (0.30, 0.90), (he, 0.74), (he, 0.70)], -BX, BX, "X", TD, bevel=0.016)
     for d in SIDES:
         with on_side(m, d, d * hc, 0.535):
             m.box((0.27, 0.15, 0.008), (0, 0, 0.002), "h_glow")
@@ -832,7 +835,7 @@ def smelter8(m):
     xt, yt = -0.07, 0.03                                      # the hearth box
     with m.at((xt, yt, 0)):
         tower(m, [(0.325, 0.225, 0.05, P), (0.30, 0.20, 0.045, P + 0.05)], T)
-        tower(m, [(0.30, 0.20, 0.045, P + 0.05), (0.34, 0.24, 0.05, P + 0.40)], G)
+        tower(m, [(0.30, 0.20, 0.045, P + 0.05), (0.34, 0.24, 0.05, P + 0.40), (0.34, 0.24, 0.05, P + 0.412)], G)   # the wall runs a little way up into the rim
         shell(m, [(0.355, 0.255, 0.055, P + 0.40), (0.355, 0.255, 0.055, P + 0.445), (0.34, 0.24, 0.05, P + 0.46),
                   (0.295, 0.195, 0.035, P + 0.46), (0.285, 0.185, 0.03, P + 0.40)], TD)
         tower(m, [(0.292, 0.192, 0.03, P + 0.395), (0.292, 0.192, 0.03, P + 0.415)], "h_glow")
@@ -850,9 +853,9 @@ def smelter8(m):
         oct_ring(m, rw, 0.026, -0.004, 0.012, T)
         octa(m, 0.046, 0.046, -0.03, -0.008, SLIT)
     # the air pipe: along the front of the hearth, two branches into its wall, then out over the eave and down into the pier
-    ya, xa, za, ra, zp = -0.25, -0.34, 0.555, 0.034, P + 0.10
-    m.pipe([(xw - 0.05, ya, zp), (xa + 0.045, ya, zp), (xa, ya - 0.045, zp), (xa, -0.41, zp), (xa, -0.455, zp - 0.045),
-            (xa, -0.455, za + 0.045), (xa, -0.41, za), (xa, -0.385, za)], ra, ST)
+    ya, xa, za, ra, zp, yo = -0.25, -0.34, 0.555, 0.032, P + 0.10, -0.462
+    m.pipe([(xw - 0.05, ya, zp), (xa + 0.045, ya, zp), (xa, ya - 0.045, zp), (xa, yo + 0.045, zp), (xa, yo, zp - 0.045),
+            (xa, yo, za + 0.045), (xa, yo + 0.045, za), (xa, -0.385, za)], ra, ST)
     m.cyl(ra * 1.4, 0.028, (xw - case[0] - 0.012, ya, zp), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
     m.cyl(ra * 1.4, 0.028, (xa, -0.412, za), T, seg=8, axis="Y")
     for x in (-0.20, 0.02):
