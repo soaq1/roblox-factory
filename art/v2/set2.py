@@ -381,7 +381,7 @@ def bin4(m, x, y, z, w=0.34, l=0.25, h=0.15):
 
 def assembler4(m):
     """Assembler, 3x3, second version: the same lower works, with the upper works built like the mouths.
-    Two H-section portals on tapered bases, tied by eight-sided struts, carry a box girder with a hoist;
+    Two H-section portals on tapered bases, tied by eight-sided struts, with a hoist rail and a work lamp under their crowns;
     the deck has a sloped kerb and seams; two tapered arms on stepped turrets work on the frame clamped
     to a rimmed turntable, each fed from a flared bin. The finished piece goes down through the hall to
     the output belt, as in every other machine; nothing carries it outside the body."""
@@ -391,16 +391,13 @@ def assembler4(m):
     ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=0.09)
     for y in (-0.5, 0.5):                                     # the outer pair ran under the bins and showed at both sides of them
         m.box((0.82, 0.014, 0.006), (0, y, Z + 0.003), ST)
-    # portals, tied by struts and carrying the hoist girder
+    # portals, tied by struts; a hoist rail with a work lamp hangs under their crowns
     with m.at((0, 0, Z)):
         for x in (-0.29, 0.29):
             portal2(m, x)
     for s in SIDES:
         strut(m, -0.29, 0.29, s * 1.19, Z + 0.62)
         strut(m, -0.29, 0.29, s * 0.75, Z + 1.20)
-    bx(m, (-0.50, 0.50), (-0.12, 0.12), (Z + 1.38, Z + 1.54), TD, bevel=0.045)
-    for sx in SIDES:
-        m.cyl(0.165 * K, 0.08, (sx * 0.50, 0, Z + 1.46), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
     m.prism([(-0.045, Z + 1.16), (0.045, Z + 1.16), (0.07, Z + 1.09), (-0.07, Z + 1.09)], -0.44, 0.44, "X", ST)
     bx(m, (-0.11, 0.11), (-0.13, 0.13), (Z + 0.97, Z + 1.10), G, bevel=0.035)
     m.cyl(0.075, 0.30, (0, 0, Z + 0.98), T, seg=8, axis="Y")
