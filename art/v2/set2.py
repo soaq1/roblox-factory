@@ -483,6 +483,57 @@ def smelter3(m):
             octa(m, 0.076, 0.076, P + 0.75, P + 0.785, SLIT)   # the dark of the flue, down inside the rim
 
 
+def shell(m, stations, mk):
+    """One closed piece through a loop of rectangular outlines: `stations` lists (hx, hy, corner cut, z)
+    going up the outside, across the rim and down the inside, so a vessel's wall, rim and hollow are a
+    single mitred piece. Like `ring`, but each station has its own half-sizes."""
+    import bmesh
+    bm = bmesh.new()
+    rows = [[bm.verts.new((x, y, z)) for x, y in plan(hx, hy, c)] for hx, hy, c, z in stations]
+    n, k = len(rows), len(rows[0])
+    for i in range(n):
+        a, b = rows[i], rows[(i + 1) % n]
+        for j in range(k):
+            bm.faces.new((a[j], a[(j + 1) % k], b[(j + 1) % k], b[j]))
+    m._add(bm, mk)
+
+
+def crusher3(m):
+    """Crusher, 3x1. Concept: stone and ore drop between two toothed rolls turning into each other and
+    come out broken small; the machine is an open hopper with the rolls turning in it.
+    A dark chassis grips both rails. The crush box on it leans in toward a waist. From the waist rises
+    one dark piece: the roll housing, upright, then the hopper spreading wide above the mouths, over a
+    lip and a rim and down inside as a funnel to the throat, a real hollow. Two long toothed rolls lie
+    across the throat, a tooth of one in a gap of the other, with ore lying in the nip. Each roll's
+    shaft runs into the housing's side walls, and where it does the wall carries a bearing housing with
+    its cap, the same on both sides."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis
+    # crush box: leans in from the chassis to a waist
+    bprism(m, [(-0.40, 0.37), (0.40, 0.37), (0.37, 0.66), (-0.37, 0.66)], -BX, BX, "X", G, bevel=0.02)
+    # roll housing and hopper in one: out from the waist, up, spreading, over the lip and rim, down the funnel to the throat
+    shell(m, [(BX, 0.37, 0.004, 0.66), (BX, 0.40, 0.025, 0.70), (BX, 0.40, 0.025, 1.03), (0.60, 0.49, 0.06, 1.21),
+              (0.60, 0.49, 0.06, 1.25), (0.58, 0.47, 0.055, 1.27), (0.55, 0.44, 0.05, 1.27),
+              (0.30, 0.25, 0.02, 0.92), (0.30, 0.25, 0.02, 0.76)], TD)
+    slab(m, 0.31, 0.26, 0.66, 0.765, 0.02, SLIT, bevel=0.004)  # the dark of the throat, at the bottom of the hollow
+    zr, xr, rr = 0.93, 0.135, 0.14
+    for sx in SIDES:                                          # the rolls: a tooth of one lies in a gap of the other
+        gear(m, rr, 0.43, (sx * xr, 0, zr), LT, teeth=12, half_step=sx > 0)
+        m.cyl(0.038 * K, 0.78, (sx * xr, 0, zr), T, seg=8, axis="Y", rot=(0, rad(22.5), 0))    # shaft, its ends inside the walls
+        for d in SIDES:                                       # bearing housing and cap where the shaft meets the wall
+            big, small = (0.10 * K, 0.08 * K), (0.05 * K, 0.038 * K)
+            for (r_in, r_out), y, depth, mk in ((big, 0.415, 0.04, ST), (small, 0.44, 0.014, LT)):
+                r1, r2 = (r_in, r_out) if d > 0 else (r_out, r_in)
+                m.cyl(r1, depth, (sx * xr, d * y, zr), mk, seg=8, axis="Y", r2=r2, rot=(0, rad(22.5), 0))
+    for x, y, r in ((0.0, -0.10, 0.055), (0.012, 0.08, 0.045), (-0.006, -0.005, 0.036)):    # ore lying in the nip between the rolls
+        m.ico(r, (x, y, zr + math.sqrt((rr + r) ** 2 - xr ** 2) + 0.004), "h_ore", squash=0.85, jitter=0.12)
+
+
+crusher3.frame, crusher3.shadow = F31, True
+_hero.HEROES["crusher3"] = crusher3
+
 smelter3.frame, smelter3.shadow = F31, True
 _hero.HEROES["smelter3"] = smelter3
 
