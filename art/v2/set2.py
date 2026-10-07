@@ -817,6 +817,52 @@ def smelter7(m):
 smelter7.frame, smelter7.shadow = F31, True
 _hero.HEROES["smelter7"] = smelter7
 
+def smelter8(m):
+    """Smelter, 3x1, grade 2 (hitbox 3x1x2). After the upright vessels failed, the developer pointed to
+    the Islands smelter as a guide to the kind of thing wanted, not to be copied: there the star is a
+    wide box open at the top, the fire seen through a grate, with pipes and small works set about it.
+    Ours keeps its own body (chassis, piered firebox with its fire mouth, sloped hood) and puts on the
+    crown a wide hearth box that spreads toward its rim: a flared foot, light walls leaning out, a dark
+    rim round a real hollow where the fire lies under a row of bars. At the far end the hearth taps
+    into a mould box through a spout. At the front corner stands the blower, a square fan casing with a rimmed intake,
+    and its air pipe runs the length of the hearth, sends two branches into its wall, then turns out
+    over the eave and down into the firebox's pier."""
+    P = _smelt_lower(m)
+    xt, yt = -0.10, 0.03                                      # the hearth box
+    with m.at((xt, yt, 0)):
+        tower(m, [(0.295, 0.225, 0.05, P), (0.27, 0.20, 0.045, P + 0.05)], T)
+        tower(m, [(0.27, 0.20, 0.045, P + 0.05), (0.31, 0.24, 0.05, P + 0.40)], G)
+        shell(m, [(0.325, 0.255, 0.055, P + 0.40), (0.325, 0.255, 0.055, P + 0.445), (0.31, 0.24, 0.05, P + 0.46),
+                  (0.265, 0.195, 0.035, P + 0.46), (0.255, 0.185, 0.03, P + 0.40)], TD)
+        tower(m, [(0.262, 0.192, 0.03, P + 0.395), (0.262, 0.192, 0.03, P + 0.415)], "h_glow")
+        for k in range(6):                                    # bars across the hearth, their ends set into the rim
+            x = -0.20 + k * 0.08
+            m.prism([(x - 0.02, P + 0.41), (x + 0.02, P + 0.41), (x + 0.011, P + 0.44), (x - 0.011, P + 0.44)], -0.20, 0.20, "Y", TD)
+    with m.at((0, 0.07, 0)):                                  # tap spout and mould box at the far end
+        pour(m, (xt + 0.28, P + 0.33), 0.39, P)
+    # blower at the front corner of the far end: a square fan casing on a foot under a dark cap, its rimmed intake facing out
+    xw, yw, zw, rw = 0.36, -0.205, P + 0.115, 0.058
+    case = (0.085, 0.075, 0.022)
+    with m.at((xw, yw, 0)):
+        tower(m, [(0.10, 0.09, 0.03, P), (case[0], case[1], case[2], P + 0.04)], T)
+        slab(m, case[0], case[1], P + 0.04, P + 0.20, case[2], ST, bevel=0.012)
+        slab(m, 0.097, 0.087, P + 0.20, P + 0.235, cut_to(0.097, 0.087, case, 0.012), TD, bevel=0.008)
+    with on_side(m, -1, yw - case[1], zw, xc=xw):
+        oct_ring(m, rw, 0.022, -0.004, 0.02, T)
+        octa(m, 0.04, 0.04, -0.03, -0.006, SLIT)
+    # the air pipe: along the front of the hearth, two branches into its wall, then out over the eave and down into the pier
+    ya, xa, za, ra = -0.25, -0.34, 0.555, 0.034
+    m.pipe([(xw - 0.06, ya, zw), (xa + 0.045, ya, zw), (xa, ya - 0.045, zw), (xa, -0.41, zw), (xa, -0.455, zw - 0.045),
+            (xa, -0.455, za + 0.045), (xa, -0.41, za), (xa, -0.385, za)], ra, ST)
+    m.cyl(ra * 1.4, 0.028, (xw - case[0] - 0.012, ya, zw), T, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl(ra * 1.4, 0.028, (xa, -0.412, za), T, seg=8, axis="Y")
+    for x in (-0.22, -0.02):
+        m.pipe([(x, ya, zw), (x, ya + 0.03, zw + 0.03), (x, ya + 0.09, zw + 0.09)], 0.024, ST)
+
+
+smelter8.frame, smelter8.shadow = F31, True
+_hero.HEROES["smelter8"] = smelter8
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
