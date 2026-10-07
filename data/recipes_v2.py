@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 레시피 초안 v2 (제안). 기계 14종과 핵 제련소, 깊은 사슬, 상자로 뭉치기.
+# 레시피 초안 v2 (제안). 기계 13종과 핵 제련소, 깊은 사슬, 상자로 뭉치기.
 # 설계 문서 8.19~8.21절에 따라 다시 짠 것이고, 게임에는 아직 들어가지 않습니다. 게임이 읽는 것은 여전히 recipes.py 입니다.
 # 실행:  python3 data/recipes_v2.py   ->  data/recipes_v2.json, docs/recipes-v2.md
 import collections, json, os
@@ -21,7 +21,7 @@ CRATE = 50          # 임시: 같은 물건 몇 개가 한 상자가 되는가 (
 MACHINES = [("extractor", "추출기", 1, "광맥 핵에서 원석을 내놓음"), ("logger", "벌목기", 1, "곁의 나무를 통나무로 내놓음"),
             ("harvester", "수확기", 2, "밭에서 다 자란 것을 내놓음"), ("pump", "물 펌프", 2, "물을 끌어올려 내놓음"),
             ("crusher", "분쇄기", 1, "부숨"), ("washer", "세척기", 2, "씻음"), ("smelter", "용광로", 2, "녹이고 구움"),
-            ("press", "프레스", 2, "누름"), ("roller", "롤러", 2, "늘임"), ("cutter", "절단기", 1, "자르고 깎음"),
+            ("former", "성형기", 2, "끼운 틀대로 모양을 냄"), ("cutter", "절단기", 1, "자름"),
             ("mixer", "혼합기", 3, "섞음"), ("blast", "제철소", 3, "함께 녹여 합금으로"), ("assembler", "조립기", 3, "부품을 합침"),
             ("packer", "포장기", 2, "상자로 뭉침"), ("coreforge", "핵 제련소", 0, "광맥 핵을 만듦 (큰 목표)")]
 MK = {k: ko for k, ko, _, _ in MACHINES}
@@ -58,6 +58,10 @@ def name(k):
     return KO.get(k, k)
 
 
+# 성형기에 끼우는 틀 (설계 문서 8.23절). 틀을 얻는 법과 틀을 만드는 재료는 미정.
+MOULDS = {"판 틀": "주괴를 눌러 판으로", "막대 틀": "주괴를 뽑아 막대와 들보로", "선 틀": "주괴를 가늘게 뽑아 선으로",
+          "볼트 틀": "막대를 끊어 볼트로", "기어 틀": "판을 따 내어 기어로"}
+
 # 겹 1. 늘리고 걸러 낸다
 for m in ("fe", "cu", "au"):
     c = "crushed" if m == "cu" else "crushed_" + m
@@ -78,19 +82,21 @@ P("smelter", "가열", {"clay": 1}, {"brick": 1}, 3)
 P("smelter", "가열", {"log": 1}, {"charcoal": 1}, 3, "석탄이 없을 때의 연료")
 # 겹 3. 모양을 낸다
 for m in ("fe", "cu", "steel"):
-    P("press", "누르기", {"ingot_" + m: 1}, {"plate_" + m: 1}, 2)
-P("press", "누르기", {"ingot_steel": 2}, {"beam": 1}, 4)
-P("press", "누르기", {"oilseed": 4}, {"oilcan": 1}, 4, "연료이자 윤활유의 원료")
-P("press", "누르기", {"cotton": 2}, {"cloth": 1}, 3, "목화를 눌러 천으로")
-P("press", "누르기", {"sawdust": 4}, {"briquette": 1}, 3, "부산물이 연료가 됨")
+    P("former", "판 틀", {"ingot_" + m: 1}, {"plate_" + m: 1}, 2)
 for m in ("fe", "cu", "steel"):
-    P("roller", "늘이기", {"ingot_" + m: 1}, {"rod_" + m: 2}, 2)
-P("roller", "늘이기", {"ingot_cu": 1}, {"coil": 2}, 2)
-P("roller", "늘이기", {"ingot_au": 1}, {"wire_au": 2}, 2)
+    P("former", "막대 틀", {"ingot_" + m: 1}, {"rod_" + m: 2}, 2)
+P("former", "막대 틀", {"ingot_steel": 2}, {"beam": 1}, 4)
+P("former", "선 틀", {"ingot_cu": 1}, {"coil": 2}, 2)
+P("former", "선 틀", {"ingot_au": 1}, {"wire_au": 2}, 2)
+P("former", "볼트 틀", {"rod_fe": 1}, {"bolt": 4}, 2)
+P("former", "기어 틀", {"plate_fe": 1}, {"gear": 1}, 3)
+# 프레스가 하던 일 가운데 쇠가 아닌 것. 성형기가 판 틀로 맡아 두었지만 어느 기계의 일인지는 정해야 함.
+OPEN_NOTE = "쇠가 아닌 것을 누르는 일. 어느 기계가 맡을지 미정"
+P("former", "판 틀", {"oilseed": 4}, {"oilcan": 1}, 4, "연료이자 윤활유의 원료. " + OPEN_NOTE)
+P("former", "판 틀", {"cotton": 2}, {"cloth": 1}, 3, OPEN_NOTE)
+P("former", "판 틀", {"sawdust": 4}, {"briquette": 1}, 3, "부산물이 연료가 됨. " + OPEN_NOTE)
 P("cutter", "자르기", {"log": 1}, {"plank": 4, "sawdust": 1}, 2)
 P("cutter", "자르기", {"stone": 1}, {"stone_block": 1}, 2)
-P("cutter", "자르기", {"rod_fe": 1}, {"bolt": 4}, 2)
-P("cutter", "자르기", {"plate_fe": 1}, {"gear": 1}, 3)
 P("cutter", "자르기", {"ore_dia": 1}, {"diamond": 1}, 6)
 # 겹 4. 섞는다
 P("mixer", "섞기", {"oilcan": 1, "charcoal": 1}, {"lube": 2}, 4, "모터에 들어감")
@@ -119,8 +125,8 @@ BUILD = {
     "cutter": (1, {"plate_fe": 6, "rod_fe": 4, "gear": 2}, ""),
     "smelter": (2, {"frame": 4, "brick": 40, "ingot_steel": 20, "ingot_au": 10, "monster_part": 1},
                 "얻기 힘든 기계 (설계 문서 8.11절). 손으로 만든 강철, 허브의 금, 몬스터의 부품이 모두 듦"),
-    "press": (2, {"frame": 2, "plate_r": 6, "gear": 4}, ""),
-    "roller": (2, {"frame": 2, "gear": 6, "rod_fe": 12}, ""),
+    "former": (2, {"frame": 4, "plate_r": 6, "gear": 8, "rod_fe": 12},
+               "프레스와 롤러를 합친 큰 기계(3×2칸). 재료는 손 작업 자리에서 만들어 첫 대를 지음. 틀은 따로 듦"),
     "washer": (2, {"frame": 1, "plate_cu": 8, "glass": 4}, ""),
     "pump": (2, {"frame": 1, "rod_fe": 8, "plate_cu": 4}, ""),
     "harvester": (2, {"frame": 1, "gear": 2, "plank": 10}, ""),
@@ -182,7 +188,7 @@ CRAFT = [c for c in CRAFT if c["out"] in depth]
 
 json.dump({"version": 2, "crate": CRATE, "machines": [{"key": k, "ko": ko, "grade": g, "act": a} for k, ko, g, a in MACHINES],
            "names": {k: name(k) for k in set(depth) | {i for ins, outs in recs for i in list(ins) + list(outs)}},
-           "new_items": NEW_ITEMS, "raw": RAW, "sources": SOURCES, "fuel": FUEL, "fuel_users": FUEL_USERS, "process": PROCESS,
+           "new_items": NEW_ITEMS, "moulds": MOULDS, "raw": RAW, "sources": SOURCES, "fuel": FUEL, "fuel_users": FUEL_USERS, "process": PROCESS,
            "craft": CRAFT, "upgrades": UPGRADES, "depth": depth,
            "dropped_machines": sorted(DROPPED), "unmade": [c["out"] for c in unmade]},
           open(os.path.join(HERE, "recipes_v2.json"), "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=1)
@@ -194,7 +200,7 @@ def amt(d):
 
 
 L = ["# 레시피 초안 v2 (제안)", "",
-     "기계 14종과 핵 제련소를 기준으로 다시 짠 레시피입니다. 설계 문서 8.19~8.21절의 결정(기계는 동작, 깊은 사슬, 상자로 뭉치기)을 따랐습니다.", "",
+     "기계 13종과 핵 제련소를 기준으로 다시 짠 레시피입니다. 설계 문서 8.19~8.21절의 결정(기계는 동작, 깊은 사슬, 상자로 뭉치기)과 8.23절의 결정(프레스와 롤러를 틀을 끼워 쓰는 성형기 하나로 합침)을 따랐습니다.", "",
      "- 이 문서는 `data/recipes_v2.py`에서 자동으로 만들어집니다. 고칠 때는 그 파일을 고치고 `python3 data/recipes_v2.py`를 실행합니다.",
      "- **제안입니다.** 개발자가 보고 고칠 초안이고, 게임에는 아직 들어가지 않았습니다. 게임은 여전히 [v1 레시피](recipes.md)를 씁니다.",
      "- **숫자는 전부 임시입니다.** 수량, 시간, 한 상자의 개수 모두 해 보면서 고칠 값입니다.",
@@ -214,6 +220,12 @@ for k, ko, g, act in MACHINES:
     if k == "packer":
         L += [f"같은 물건 {CRATE}개를 한 상자로 뭉칩니다. 어떤 물건이든 됩니다. 지금 상자를 요구하는 곳은 큰 관문들입니다: " +
               ", ".join(name(r_) for r_ in wanted) + ".", ""]
+        continue
+    if k == "former":
+        L += ["틀을 끼우면 그 틀대로 일합니다. 틀은 아이템이고, 끼운 틀이 기계 겉에서 보입니다. 틀을 얻는 법은 정하지 않았습니다.", "",
+              "| 틀 | 넣는 것 | 나오는 것 | 시간(초) | 비고 |", "|---|---|---|---|---|"]
+        L += [f"| {r['kind']} | {amt(r['ins'])} | {amt(r['outs'])} | {r['secs']} | {r['note']} |" for r in rs]
+        L.append("")
         continue
     L += ["| 넣는 것 | 나오는 것 | 시간(초) | 비고 |", "|---|---|---|---|"]
     L += [f"| {amt(r['ins'])} | {amt(r['outs'])} | {r['secs']} | {r['note']} |" for r in rs]

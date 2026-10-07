@@ -45,22 +45,16 @@
    "act": "녹이고 구움"
   },
   {
-   "key": "press",
-   "ko": "프레스",
+   "key": "former",
+   "ko": "성형기",
    "grade": 2,
-   "act": "누름"
-  },
-  {
-   "key": "roller",
-   "ko": "롤러",
-   "grade": 2,
-   "act": "늘임"
+   "act": "끼운 틀대로 모양을 냄"
   },
   {
    "key": "cutter",
    "ko": "절단기",
    "grade": 1,
-   "act": "자르고 깎음"
+   "act": "자름"
   },
   {
    "key": "mixer",
@@ -94,212 +88,212 @@
   }
  ],
  "names": {
-  "crate:stone_block": "석재 상자",
-  "shovel_iron": "철 삽",
-  "wb_basic": "기본 작업대",
-  "block:cloth_white": "cloth_white 블록",
-  "core_cu": "구리 광맥 핵",
+  "counter": "계수기",
+  "wb_all": "통합 작업대",
+  "pick_steel": "강철 곡괭이",
+  "bolt": "볼트",
+  "clean_fe": "정제 철광",
+  "frame": "기계 틀",
+  "barrel_water": "물통",
   "extractor_dia": "추출기 (다이아 광맥 핵)",
-  "asphalt": "포장재",
-  "belt": "직선 벨트",
-  "crate:coal": "석탄 상자",
-  "storage": "보관함",
-  "ingot_au": "금 주괴",
-  "bucket": "양동이",
-  "launcher": "발사기",
+  "concrete": "콘크리트",
+  "axe_gold": "금 도끼",
+  "crate:frame_steel": "강철 틀 상자",
+  "cell": "전지",
+  "gear": "기어",
+  "chest": "상자",
+  "coal": "석탄",
+  "ingot_fe": "철 주괴",
+  "crate:diamond": "다이아 상자",
+  "blast": "제철소",
+  "assembler": "조립기",
+  "block:cloth_yellow": "cloth_yellow 블록",
+  "watering_can": "물뿌리개",
+  "extractor_cu": "추출기 (구리 광맥 핵)",
+  "block:block_coal": "block_coal 블록",
   "ingot_steel": "강철 주괴",
-  "crate:concrete": "콘크리트 상자",
+  "crate:cloth": "천 상자",
+  "reactor": "무한 동력로",
+  "extractor_au": "추출기 (금 광맥 핵)",
+  "pick_iron": "철 곡괭이",
+  "charcoal": "숯",
+  "crate:ingot_au": "금 주괴 상자",
+  "diamond": "다이아",
+  "briquette": "연료 덩이",
+  "hoe_gold": "금 괭이",
+  "crate:coal": "석탄 상자",
+  "wb_elec": "전기 작업대",
+  "chute": "낙하 통로",
+  "crate:board_adv": "고급 회로 상자",
+  "crate:ingot_steel": "강철 주괴 상자",
+  "rod_steel": "강철 막대",
+  "hoe_iron": "철 괭이",
+  "funnel": "깔때기",
+  "stone_block": "석재",
+  "wire_au": "금선",
+  "blower": "송풍기",
+  "core_fe": "철 광맥 핵",
+  "bucket": "양동이",
+  "windturbine": "풍력 터빈",
+  "plank": "판자",
+  "hoe_steel": "강철 괭이",
+  "frame_steel": "강철 틀",
+  "harvester": "수확기",
+  "logic": "논리 회로함",
+  "crate:board": "회로 기판 상자",
+  "belt_open": "열린 벨트",
+  "hoe_dia": "다이아 괭이",
+  "block:stone_bricks": "stone_bricks 블록",
+  "electrolyte": "전해액",
+  "block:bricks": "bricks 블록",
+  "crate:ingot_cu": "구리 주괴 상자",
+  "pick_wood": "나무 곡괭이",
+  "block:cloth_blue": "cloth_blue 블록",
+  "plate_steel": "강철판",
   "belt_ramp": "경사 벨트",
+  "core_stone": "돌 광맥 핵",
+  "crushed_fe": "분쇄 철광",
+  "splitter": "분배기",
+  "sword_wood": "나무 검",
+  "seed": "씨앗",
+  "clay": "점토",
+  "crate:plate_steel": "강철판 상자",
+  "block:grating": "grating 블록",
+  "axe_dia": "다이아 도끼",
+  "block:asphalt": "asphalt 블록",
+  "hammer": "망치",
+  "timer": "타이머",
+  "block:cloth_white": "cloth_white 블록",
+  "block:gravel": "gravel 블록",
+  "plate_r": "강화판",
+  "axe_wood": "나무 도끼",
+  "crushed_au": "분쇄 금광",
+  "pick_stone": "돌 곡괭이",
+  "board_adv": "고급 회로",
+  "vending": "자판기",
+  "crate:glass": "유리 상자",
+  "crate:stone_block": "석재 상자",
+  "oilcan": "식물 기름",
+  "sword_gold": "금 검",
+  "block:block_au": "block_au 블록",
+  "mixer": "혼합기",
+  "magsep": "자석 분리기",
   "wb_tool": "도구 작업대",
   "pole": "전신주",
-  "axe_stone": "돌 도끼",
-  "sapling": "묘목",
-  "wb_cook": "조리대",
-  "crate:ingot_au": "금 주괴 상자",
-  "block:block_dia": "block_dia 블록",
-  "cotton": "목화",
-  "block:clay": "clay 블록",
-  "plank": "판자",
-  "cell": "전지",
-  "axe_iron": "철 도끼",
-  "solar": "태양광 패널",
-  "crate:diamond": "다이아 상자",
-  "extractor_stone": "추출기 (돌 광맥 핵)",
-  "blast": "제철소",
-  "crate:ingot_cu": "구리 주괴 상자",
-  "assembler": "조립기",
-  "campfire": "모닥불",
-  "block:stone_bricks": "stone_bricks 블록",
-  "beacon": "신호등",
-  "block:block_fe": "block_fe 블록",
-  "axe_steel": "강철 도끼",
-  "block:grating": "grating 블록",
-  "belt_corner_l": "코너 벨트 (왼쪽)",
-  "lift": "수직 승강기",
-  "merger": "합류기",
-  "block:gravel": "gravel 블록",
-  "crate:ingot_steel": "강철 주괴 상자",
-  "core_au": "금 광맥 핵",
-  "coil": "구리선",
-  "pick_gold": "금 곡괭이",
-  "pick_steel": "강철 곡괭이",
-  "block:cloth_green": "cloth_green 블록",
-  "pump": "물 펌프",
-  "block:block_coal": "block_coal 블록",
-  "crushed": "분쇄 구리광",
-  "lube": "윤활유",
-  "ingot_fe": "철 주괴",
-  "ore_fe": "철 광석",
-  "sword_gold": "금 검",
-  "barrel_water": "물통",
-  "sand": "모래",
-  "wb_machine": "기계 작업대",
-  "shovel_wood": "나무 삽",
-  "slag": "찌꺼기",
-  "sword_iron": "철 검",
-  "roller": "롤러",
-  "harvester": "수확기",
-  "stone_block": "석재",
-  "crushed_fe": "분쇄 철광",
-  "logic": "논리 회로함",
-  "clean_fe": "정제 철광",
-  "gear": "기어",
-  "hoe_steel": "강철 괭이",
-  "coal": "석탄",
-  "block:block_au": "block_au 블록",
-  "rod_cu": "구리 막대",
-  "block:block_cu": "block_cu 블록",
-  "glass": "유리",
-  "wb_all": "통합 작업대",
-  "clean": "정제 구리광",
-  "pick_dia": "다이아 곡괭이",
-  "pick_stone": "돌 곡괭이",
-  "funnel": "깔때기",
-  "counter": "계수기",
-  "mixer": "혼합기",
-  "block:block_steel": "block_steel 블록",
-  "block:cloth_blue": "cloth_blue 블록",
-  "chest": "상자",
-  "generator": "석탄 발전기",
-  "hoe_gold": "금 괭이",
-  "magnet": "전자석",
-  "plate_fe": "철판",
-  "rod_steel": "강철 막대",
-  "pick_wood": "나무 곡괭이",
-  "dirt_clod": "흙",
-  "crate:plate_steel": "강철판 상자",
-  "motor": "모터",
-  "ingot_alloy": "합금 주괴",
-  "clay": "점토",
-  "core_dia": "다이아 광맥 핵",
-  "coreforge": "핵 제련소",
-  "seed": "씨앗",
-  "electrolyte": "전해액",
-  "crate:wire_au": "금선 상자",
-  "extractor_empty": "빈 추출기",
-  "stone": "돌",
-  "sign": "표지판",
-  "hand_furnace": "손 화덕",
-  "wrench": "렌치",
-  "gravel": "자갈",
-  "extractor_au": "추출기 (금 광맥 핵)",
-  "core_coal": "석탄 광맥 핵",
-  "splitter": "분배기",
-  "block:cloth_yellow": "cloth_yellow 블록",
-  "clean_au": "정제 금광",
-  "crusher": "분쇄기",
-  "smelter": "용광로",
-  "extractor_cu": "추출기 (구리 광맥 핵)",
-  "block:cloth_red": "cloth_red 블록",
-  "incinerator": "소각로",
-  "press": "프레스",
-  "gate": "여닫이 문",
-  "hammer": "망치",
-  "shovel_stone": "돌 삽",
-  "core_stone": "돌 광맥 핵",
-  "watering_can": "물뿌리개",
-  "axe_wood": "나무 도끼",
-  "extractor_coal": "추출기 (석탄 광맥 핵)",
-  "beam": "강철 기둥",
-  "block:bricks": "bricks 블록",
-  "cloth": "천",
-  "hoe_wood": "나무 괭이",
-  "hoe_dia": "다이아 괭이",
-  "sensor": "감지기",
-  "oilcan": "식물 기름",
-  "plate_steel": "강철판",
-  "block:concrete": "concrete 블록",
-  "windturbine": "풍력 터빈",
-  "crate:cloth": "천 상자",
-  "wb_elec": "전기 작업대",
+  "launcher": "발사기",
   "sword_steel": "강철 검",
-  "chute": "낙하 통로",
-  "pusher": "밀대",
-  "sword_wood": "나무 검",
-  "concrete": "콘크리트",
-  "hoe_stone": "돌 괭이",
-  "board_adv": "고급 회로",
-  "sorter": "분류기",
+  "block:concrete": "concrete 블록",
+  "shovel_wood": "나무 삽",
+  "belt_corner": "코너 벨트",
+  "wrench": "렌치",
+  "battery": "축전지",
+  "ore_fe": "철 광석",
+  "former": "성형기",
+  "pump": "물 펌프",
   "block:planks": "planks 블록",
+  "core_cu": "구리 광맥 핵",
+  "block:sand": "sand 블록",
+  "oilseed": "기름 작물",
+  "block:block_fe": "block_fe 블록",
+  "block:block_cu": "block_cu 블록",
+  "incinerator": "소각로",
+  "extractor_empty": "빈 추출기",
+  "ingot_au": "금 주괴",
+  "monster_part": "핵심 부품",
+  "sorter": "분류기",
+  "motor": "모터",
+  "core_coal": "석탄 광맥 핵",
+  "slag": "찌꺼기",
+  "wb_basic": "기본 작업대",
+  "belt_corner_l": "코너 벨트 (왼쪽)",
+  "ingot_cu": "구리 주괴",
+  "clean_au": "정제 금광",
+  "crate:wire_au": "금선 상자",
+  "merger": "합류기",
+  "cotton": "목화",
+  "log": "통나무",
+  "axe_steel": "강철 도끼",
+  "wb_machine": "기계 작업대",
+  "stone": "돌",
+  "ore_dia": "다이아 원석",
+  "rod_cu": "구리 막대",
+  "smelter": "용광로",
+  "logger": "벌목기",
+  "axe_iron": "철 도끼",
+  "shovel_stone": "돌 삽",
+  "glass": "유리",
+  "solar": "태양광 패널",
+  "crate:ingot_fe": "철 주괴 상자",
+  "belt": "직선 벨트",
+  "coreforge": "핵 제련소",
+  "wb_cook": "조리대",
+  "shovel_steel": "강철 삽",
+  "ore_au": "금 광석",
+  "shovel_gold": "금 삽",
+  "wb_part": "부품 작업대",
+  "block:clay": "clay 블록",
+  "washer": "세척기",
+  "clean": "정제 구리광",
+  "sword_dia": "다이아 검",
+  "generator": "석탄 발전기",
+  "block:cloth_green": "cloth_green 블록",
+  "crushed": "분쇄 구리광",
+  "beam": "강철 기둥",
+  "sand": "모래",
+  "shovel_iron": "철 삽",
+  "hoe_wood": "나무 괭이",
+  "hoe_stone": "돌 괭이",
+  "cloth": "천",
+  "sword_stone": "돌 검",
+  "lift": "수직 승강기",
+  "storage": "보관함",
   "block:tread": "tread 블록",
-  "shovel_dia": "다이아 삽",
-  "crushed_au": "분쇄 금광",
+  "asphalt": "포장재",
+  "core_dia": "다이아 광맥 핵",
+  "pick_dia": "다이아 곡괭이",
+  "wb_furn": "가구 작업대",
+  "sapling": "묘목",
+  "block:cloth_red": "cloth_red 블록",
+  "hand_furnace": "손 화덕",
+  "cutter": "절단기",
+  "rod_fe": "철 막대",
+  "coil": "구리선",
+  "sword_iron": "철 검",
+  "brick": "벽돌",
+  "plate_cu": "구리판",
+  "dirt_clod": "흙",
+  "press": "압연 프레스",
+  "magnet": "전자석",
+  "gravel": "자갈",
+  "sensor": "감지기",
+  "fishing_rod": "낚싯대",
+  "beacon": "신호등",
+  "crusher": "분쇄기",
+  "block:block_dia": "block_dia 블록",
+  "core_au": "금 광맥 핵",
+  "ore_cu": "구리 광석",
+  "crate:plate_fe": "철판 상자",
+  "sawdust": "톱밥",
+  "campfire": "모닥불",
+  "extractor_stone": "추출기 (돌 광맥 핵)",
   "board": "회로 기판",
   "packer": "포장기",
-  "sawdust": "톱밥",
-  "axe_dia": "다이아 도끼",
-  "rod_fe": "철 막대",
-  "bolt": "볼트",
-  "wb_furn": "가구 작업대",
-  "crate:board": "회로 기판 상자",
-  "logger": "벌목기",
-  "axe_gold": "금 도끼",
-  "block:sand": "sand 블록",
-  "fishing_rod": "낚싯대",
-  "core_fe": "철 광맥 핵",
-  "wb_part": "부품 작업대",
-  "block:glass": "glass 블록",
-  "reactor": "무한 동력로",
-  "switch": "스위치",
-  "ore_dia": "다이아 원석",
-  "crate:board_adv": "고급 회로 상자",
-  "vending": "자판기",
-  "wire_au": "금선",
-  "ingot_cu": "구리 주괴",
-  "belt_open": "열린 벨트",
-  "frame_steel": "강철 틀",
-  "sword_dia": "다이아 검",
-  "monster_part": "핵심 부품",
-  "log": "통나무",
-  "sword_stone": "돌 검",
-  "brick": "벽돌",
-  "frame": "기계 틀",
-  "crate:frame_steel": "강철 틀 상자",
-  "hoe_iron": "철 괭이",
-  "ore_au": "금 광석",
-  "plate_r": "강화판",
-  "shovel_gold": "금 삽",
-  "block:asphalt": "asphalt 블록",
-  "plate_cu": "구리판",
-  "battery": "축전지",
-  "washer": "세척기",
-  "timer": "타이머",
-  "magsep": "자석 분리기",
-  "oilseed": "기름 작물",
-  "crate:glass": "유리 상자",
+  "pusher": "밀대",
+  "lube": "윤활유",
   "extractor_fe": "추출기 (철 광맥 핵)",
-  "cutter": "절단기",
-  "charcoal": "숯",
+  "sign": "표지판",
+  "extractor_coal": "추출기 (석탄 광맥 핵)",
+  "pick_gold": "금 곡괭이",
+  "block:glass": "glass 블록",
+  "gate": "여닫이 문",
+  "shovel_dia": "다이아 삽",
+  "crate:concrete": "콘크리트 상자",
+  "ingot_alloy": "합금 주괴",
+  "switch": "스위치",
+  "block:block_steel": "block_steel 블록",
   "crate:motor": "모터 상자",
-  "crate:ingot_fe": "철 주괴 상자",
-  "belt_corner": "코너 벨트",
-  "blower": "송풍기",
-  "ore_cu": "구리 광석",
-  "shovel_steel": "강철 삽",
-  "crate:plate_fe": "철판 상자",
-  "diamond": "다이아",
-  "pick_iron": "철 곡괭이",
-  "briquette": "연료 덩이"
+  "axe_stone": "돌 도끼",
+  "plate_fe": "철판"
  },
  "new_items": [
   "lube",
@@ -308,6 +302,13 @@
   "magnet",
   "frame_steel"
  ],
+ "moulds": {
+  "판 틀": "주괴를 눌러 판으로",
+  "막대 틀": "주괴를 뽑아 막대와 들보로",
+  "선 틀": "주괴를 가늘게 뽑아 선으로",
+  "볼트 틀": "막대를 끊어 볼트로",
+  "기어 틀": "판을 따 내어 기어로"
+ },
  "raw": {
   "stone": "섬의 땅을 팜 · 돌 광맥 핵을 꽂은 추출기",
   "coal": "허브 광산 · 석탄 광맥 핵을 꽂은 추출기",
@@ -601,8 +602,8 @@
    "note": "석탄이 없을 때의 연료"
   },
   {
-   "machine": "press",
-   "kind": "누르기",
+   "machine": "former",
+   "kind": "판 틀",
    "ins": {
     "ingot_fe": 1
    },
@@ -613,8 +614,8 @@
    "note": ""
   },
   {
-   "machine": "press",
-   "kind": "누르기",
+   "machine": "former",
+   "kind": "판 틀",
    "ins": {
     "ingot_cu": 1
    },
@@ -625,8 +626,8 @@
    "note": ""
   },
   {
-   "machine": "press",
-   "kind": "누르기",
+   "machine": "former",
+   "kind": "판 틀",
    "ins": {
     "ingot_steel": 1
    },
@@ -637,56 +638,8 @@
    "note": ""
   },
   {
-   "machine": "press",
-   "kind": "누르기",
-   "ins": {
-    "ingot_steel": 2
-   },
-   "outs": {
-    "beam": 1
-   },
-   "secs": 4,
-   "note": ""
-  },
-  {
-   "machine": "press",
-   "kind": "누르기",
-   "ins": {
-    "oilseed": 4
-   },
-   "outs": {
-    "oilcan": 1
-   },
-   "secs": 4,
-   "note": "연료이자 윤활유의 원료"
-  },
-  {
-   "machine": "press",
-   "kind": "누르기",
-   "ins": {
-    "cotton": 2
-   },
-   "outs": {
-    "cloth": 1
-   },
-   "secs": 3,
-   "note": "목화를 눌러 천으로"
-  },
-  {
-   "machine": "press",
-   "kind": "누르기",
-   "ins": {
-    "sawdust": 4
-   },
-   "outs": {
-    "briquette": 1
-   },
-   "secs": 3,
-   "note": "부산물이 연료가 됨"
-  },
-  {
-   "machine": "roller",
-   "kind": "늘이기",
+   "machine": "former",
+   "kind": "막대 틀",
    "ins": {
     "ingot_fe": 1
    },
@@ -697,8 +650,8 @@
    "note": ""
   },
   {
-   "machine": "roller",
-   "kind": "늘이기",
+   "machine": "former",
+   "kind": "막대 틀",
    "ins": {
     "ingot_cu": 1
    },
@@ -709,8 +662,8 @@
    "note": ""
   },
   {
-   "machine": "roller",
-   "kind": "늘이기",
+   "machine": "former",
+   "kind": "막대 틀",
    "ins": {
     "ingot_steel": 1
    },
@@ -721,8 +674,20 @@
    "note": ""
   },
   {
-   "machine": "roller",
-   "kind": "늘이기",
+   "machine": "former",
+   "kind": "막대 틀",
+   "ins": {
+    "ingot_steel": 2
+   },
+   "outs": {
+    "beam": 1
+   },
+   "secs": 4,
+   "note": ""
+  },
+  {
+   "machine": "former",
+   "kind": "선 틀",
    "ins": {
     "ingot_cu": 1
    },
@@ -733,8 +698,8 @@
    "note": ""
   },
   {
-   "machine": "roller",
-   "kind": "늘이기",
+   "machine": "former",
+   "kind": "선 틀",
    "ins": {
     "ingot_au": 1
    },
@@ -743,6 +708,66 @@
    },
    "secs": 2,
    "note": ""
+  },
+  {
+   "machine": "former",
+   "kind": "볼트 틀",
+   "ins": {
+    "rod_fe": 1
+   },
+   "outs": {
+    "bolt": 4
+   },
+   "secs": 2,
+   "note": ""
+  },
+  {
+   "machine": "former",
+   "kind": "기어 틀",
+   "ins": {
+    "plate_fe": 1
+   },
+   "outs": {
+    "gear": 1
+   },
+   "secs": 3,
+   "note": ""
+  },
+  {
+   "machine": "former",
+   "kind": "판 틀",
+   "ins": {
+    "oilseed": 4
+   },
+   "outs": {
+    "oilcan": 1
+   },
+   "secs": 4,
+   "note": "연료이자 윤활유의 원료. 쇠가 아닌 것을 누르는 일. 어느 기계가 맡을지 미정"
+  },
+  {
+   "machine": "former",
+   "kind": "판 틀",
+   "ins": {
+    "cotton": 2
+   },
+   "outs": {
+    "cloth": 1
+   },
+   "secs": 3,
+   "note": "쇠가 아닌 것을 누르는 일. 어느 기계가 맡을지 미정"
+  },
+  {
+   "machine": "former",
+   "kind": "판 틀",
+   "ins": {
+    "sawdust": 4
+   },
+   "outs": {
+    "briquette": 1
+   },
+   "secs": 3,
+   "note": "부산물이 연료가 됨. 쇠가 아닌 것을 누르는 일. 어느 기계가 맡을지 미정"
   },
   {
    "machine": "cutter",
@@ -767,30 +792,6 @@
     "stone_block": 1
    },
    "secs": 2,
-   "note": ""
-  },
-  {
-   "machine": "cutter",
-   "kind": "자르기",
-   "ins": {
-    "rod_fe": 1
-   },
-   "outs": {
-    "bolt": 4
-   },
-   "secs": 2,
-   "note": ""
-  },
-  {
-   "machine": "cutter",
-   "kind": "자르기",
-   "ins": {
-    "plate_fe": 1
-   },
-   "outs": {
-    "gear": 1
-   },
-   "secs": 3,
    "note": ""
   },
   {
@@ -1355,28 +1356,17 @@
    "note": "얻기 힘든 기계 (설계 문서 8.11절). 손으로 만든 강철, 허브의 금, 몬스터의 부품이 모두 듦"
   },
   {
-   "out": "press",
+   "out": "former",
    "n": 1,
    "bench": "machine",
    "tier": 2,
    "ins": {
-    "frame": 2,
+    "frame": 4,
     "plate_r": 6,
-    "gear": 4
-   },
-   "note": ""
-  },
-  {
-   "out": "roller",
-   "n": 1,
-   "bench": "machine",
-   "tier": 2,
-   "ins": {
-    "frame": 2,
-    "gear": 6,
+    "gear": 8,
     "rod_fe": 12
    },
-   "note": ""
+   "note": "프레스와 롤러를 합친 큰 기계(3×2칸). 재료는 손 작업 자리에서 만들어 첫 대를 지음. 틀은 따로 듦"
   },
   {
    "out": "washer",
@@ -2235,6 +2225,18 @@
    "note": ""
   },
   {
+   "out": "press",
+   "n": 1,
+   "bench": "machine",
+   "tier": 2,
+   "ins": {
+    "frame": 2,
+    "plate_fe": 20,
+    "ingot_steel": 10
+   },
+   "note": ""
+  },
+  {
    "out": "vending",
    "n": 1,
    "bench": "machine",
@@ -2723,17 +2725,17 @@
   "charcoal": 1,
   "plate_fe": 2,
   "plate_cu": 2,
-  "oilcan": 1,
-  "cloth": 1,
   "rod_fe": 2,
   "rod_cu": 2,
   "coil": 2,
   "wire_au": 2,
+  "bolt": 3,
+  "gear": 3,
+  "oilcan": 1,
+  "cloth": 1,
   "plank": 1,
   "sawdust": 1,
   "stone_block": 1,
-  "bolt": 3,
-  "gear": 3,
   "diamond": 1,
   "lube": 2,
   "electrolyte": 3,
@@ -2767,8 +2769,7 @@
   "logger": 4,
   "crusher": 4,
   "cutter": 4,
-  "press": 5,
-  "roller": 4,
+  "former": 5,
   "washer": 4,
   "pump": 4,
   "harvester": 4,
@@ -2830,6 +2831,7 @@
   "blower": 5,
   "lift": 5,
   "pusher": 5,
+  "press": 4,
   "vending": 4,
   "pole": 4,
   "generator": 4,
@@ -2863,9 +2865,9 @@
   "block:cloth_blue": 2,
   "brick": 2,
   "plate_steel": 3,
+  "rod_steel": 3,
   "beam": 3,
   "briquette": 2,
-  "rod_steel": 3,
   "frame_steel": 5,
   "core_stone": 3,
   "core_coal": 2,

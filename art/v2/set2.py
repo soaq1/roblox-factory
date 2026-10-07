@@ -1046,9 +1046,9 @@ def press7(m):
             with m.at((sx * xc, sy * yc, 0)):
                 octa(m, 0.085, 0.07, Z - 0.005, Z + 0.035, T)                                            # collared foot
                 m.cyl(rc, z1 + 0.14 - Z, (0, 0, (z1 + 0.14 + Z) / 2), LT, seg=14)                        # the column
-                octa(m, 0.115, 0.115, z0, z0 + 0.085, TD)                                                # the head's lobe round it,
+                octa(m, 0.115, 0.115, z0 - 0.012, z0 + 0.085, TD)                                                # the head's lobe round it,
                 octa(m, 0.123, 0.123, z0 + 0.085, z1 - 0.085, LT)                                        # with a light band
-                octa(m, 0.115, 0.115, z1 - 0.085, z1, TD)
+                octa(m, 0.115, 0.115, z1 - 0.085, z1 + 0.012, TD)
                 octa(m, 0.072, 0.058, z1 + 0.135, z1 + 0.17, T)                                          # the column's cap
     # on the head: a shouldered cap, a motor box, and a ringed exhaust pipe standing off-centre
     tower(m, [(0.20, 0.16, 0.03, z1 - 0.01), (0.20, 0.16, 0.03, z1 + 0.04), (0.16, 0.12, 0.025, z1 + 0.08)], ST)
@@ -1067,6 +1067,140 @@ def press7(m):
 
 press7.frame, press7.shadow = F31, True
 _hero.HEROES["press7"] = press7
+
+def vent(m, hx=0.25, hy=0.14):
+    """A louvred vent, to be built inside on_side: dark behind, slats set into a one-piece frame."""
+    m.box((2 * hx - 0.10, 2 * hy - 0.08, 0.008), (0, 0, 0.002), SLIT)
+    n = max(2, round((2 * hy - 0.08) / 0.05))
+    for k in range(n):
+        y = -(n - 1) * 0.025 + k * 0.05
+        m.prism([(y - 0.02, 0.004), (y + 0.012, 0.004), (y + 0.02, 0.024), (y + 0.006, 0.024)], -(hx - 0.035), hx - 0.035, "X", ST)
+    ring(m, hx, hy, [(0.0, -0.004), (0.012, 0.03), (0.036, 0.03), (0.05, -0.004)], T, c=0.04)
+
+
+def mould(m, z):
+    """A mould: a thick dark plate standing on edge, its top corners drawn in, a light grip on top."""
+    tower(m, [(0.028, 0.15, 0.01, z), (0.028, 0.15, 0.01, z + 0.22), (0.02, 0.12, 0.008, z + 0.26)], TD)
+    tower(m, [(0.014, 0.05, 0.006, z + 0.255), (0.014, 0.04, 0.006, z + 0.285)], LT)
+
+
+def former1(m):
+    """Former, 3x2 (hitbox 3x2x2). The developer's decision: not a press and a roller and so on, but one
+    big machine that does whatever the mould put into it says, in the manner of Satisfactory's
+    Constructor and of the Islands press with its moulds.
+    The belt runs along the front row. Astride it stands the press: a closed body with a louvred vent
+    under a dark deck, an anvil and four thick round columns on the deck, and a dark head riding on
+    the columns, swelling into a banded lobe round each. Along the back row runs a long hall, taller
+    than the press's deck. On its roof, from one end to the other: the power pack, a square casing
+    whose open top is its intake, with a pipe that runs along the roof and drops into a boot on the
+    press's deck; the slot at the roof's edge beside the press, where the working mould goes, and over it
+    the arm on its stepped turret, lowering a mould in; and the rack,
+    a trough with the other moulds standing in it. The hall has a screen in its front wall beside the
+    belt, a door and two vents in its back wall, and a ribbed panel in each end wall."""
+    yb = -0.5                                                 # the belt's row
+    with m.at((0, yb, 0)):
+        run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+        cover(m, BX, 1, sole=False)
+        cover(m, -BX, -1, sole=False)
+        collar(m, -BX - 0.318, BX + 0.318, mk=T)
+    # the press's body: from the front wall back to the hall, a little way up into its deck
+    hy, zd = 0.40, 0.80
+    bprism(m, [(-BX, yb - hy), (BX, yb - hy), (BX, 0.02), (-BX, 0.02)], 0.37, zd + 0.012, "Z", G, bevel=0.012)
+    with m.at((0, (yb - hy - 0.015 + 0.0) / 2, 0)):
+        slab(m, BX, (0.0 - (yb - hy - 0.015)) / 2, zd, zd + 0.07, 0.03, TD, bevel=0.016)
+    with on_side(m, -1, yb - hy, 0.585):
+        vent(m)
+    Z = zd + 0.07
+    with m.at((0, yb, 0)):
+        tower(m, [(0.27, 0.22, 0.035, Z - 0.01), (0.24, 0.19, 0.03, Z + 0.045)], ST)                     # the anvil
+        m.box((0.30, 0.22, 0.02), (0, 0, Z + 0.052), LT, bevel=0.006)                                    # the work
+        xc, yc, rc = 0.33, 0.30, 0.062
+        z0, z1 = Z + 0.17, Z + 0.43
+        m.box((0.62, 0.54, z1 - z0), (0, 0, (z0 + z1) / 2), TD, bevel=0.018)                             # the head, its corners buried in the lobes
+        tower(m, [(0.22, 0.18, 0.03, z0 - 0.09), (0.26, 0.21, 0.03, z0 + 0.01)], ST)                     # the die
+        for sx in SIDES:
+            for sy in SIDES:
+                with m.at((sx * xc, sy * yc, 0)):
+                    octa(m, 0.085, 0.07, Z - 0.005, Z + 0.035, T)
+                    m.cyl(rc, z1 + 0.14 - Z, (0, 0, (z1 + 0.14 + Z) / 2), LT, seg=14)
+                    octa(m, 0.115, 0.115, z0 - 0.012, z0 + 0.085, TD)
+                    octa(m, 0.123, 0.123, z0 + 0.085, z1 - 0.085, LT)
+                    octa(m, 0.115, 0.115, z1 - 0.085, z1 + 0.012, TD)
+                    octa(m, 0.072, 0.058, z1 + 0.135, z1 + 0.17, T)
+        tower(m, [(0.20, 0.16, 0.03, z1 - 0.01), (0.20, 0.16, 0.03, z1 + 0.04), (0.16, 0.12, 0.025, z1 + 0.08)], ST)
+    # the hall along the back row
+    hx, y0, y1, zr = 1.44, 0.015, 0.95, 0.90                  # half length, front and back walls, the roof's underside
+    yc_, hyh = (y0 + y1) / 2, (y1 - y0) / 2
+    with m.at((0, yc_, 0)):
+        slab(m, hx + 0.005, hyh + 0.005, 0.0, 0.16, 0.03, T, bevel=0.012)                                # kick plinth
+    bprism(m, [(-hx, y0), (hx, y0), (hx, y1), (-hx, y1)], 0.12, zr + 0.012, "Z", G, bevel=0.014)
+    with m.at((0, yc_, 0)):
+        slab(m, hx + 0.015, hyh + 0.015, zr, zr + 0.06, 0.04, TD, bevel=0.018)                           # roof, its eave past the walls
+    R_ = zr + 0.06                                            # the roof's top
+    with on_side(m, -1, y0, 0.63, xc=-1.11):                  # screen in the front wall, clear of the mouth and above the rail
+        m.box((0.44, 0.26, 0.008), (0, 0, 0.002), SLIT)
+        for i, w in enumerate((0.34, 0.22, 0.28)):
+            m.box((w, 0.03, 0.006), (0, (1 - i) * 0.07, 0.008), "h_core")
+        ring(m, 0.29, 0.195, [(0.0, -0.004), (0.012, 0.034), (0.051, 0.034), (0.065, -0.004)], T, c=0.04)
+    with on_side(m, -1, y0, 0.63, xc=1.11):
+        vent(m, 0.28, 0.16)
+    for sx in SIDES:                                          # each end wall: a ribbed panel between two pilasters
+        with on_end(m, sx, sx * hx, yc_, 0.53):
+            for k in range(5):
+                x = -0.20 + k * 0.10
+                m.prism([(x - 0.032, -0.004), (x + 0.032, -0.004), (x + 0.018, 0.03), (x - 0.018, 0.03)], -0.27, 0.27, "Y", ST)
+            ring(m, 0.31, 0.33, [(0.0, -0.004), (0.012, 0.04), (0.04, 0.04), (0.055, -0.004)], T, c=0.04)
+    for x in (-0.92, 0.92):                                   # the back wall: a vent each side of a double door
+        with on_side(m, 1, y1, 0.52, xc=x):
+            vent(m, 0.30, 0.16)
+    with on_side(m, 1, y1, 0.44, xc=0):
+        m.box((0.44, 0.52, 0.02), (0, 0, 0.008), G, bevel=0.01)
+        m.box((0.012, 0.48, 0.012), (0, 0, 0.016), SLIT)
+        for sx in SIDES:
+            m.box((0.022, 0.13, 0.012), (sx * 0.05, 0, 0.016), SLIT)
+        ring(m, 0.27, 0.31, [(0.0, -0.004), (0.01, 0.03), (0.03, 0.03), (0.042, -0.004)], T, c=0.03)
+    # on the roof, at one end: the power pack, its open top the intake
+    xp, yp = -1.02, 0.50
+    case = (0.24, 0.26, 0.04)
+    with m.at((xp, yp, 0)):
+        tower(m, [(0.265, 0.285, 0.05, R_ - 0.01), (case[0], case[1], case[2], R_ + 0.05)], T)
+        slab(m, case[0], case[1], R_ + 0.05, R_ + 0.32, case[2], G, bevel=0.016)
+        cc = cut_to(0.25, 0.27, case, 0.01)
+        shell(m, [(0.25, 0.27, cc, R_ + 0.31), (0.25, 0.27, cc, R_ + 0.36), (0.235, 0.255, cc, R_ + 0.38),
+                  (0.19, 0.21, 0.03, R_ + 0.38), (0.18, 0.20, 0.026, R_ + 0.31)], TD)
+        tower(m, [(0.186, 0.206, 0.028, R_ + 0.305), (0.186, 0.206, 0.028, R_ + 0.335)], SLIT)
+        for y in (-0.10, 0.0, 0.10):
+            m.prism([(y - 0.018, R_ + 0.33), (y + 0.018, R_ + 0.33), (y + 0.01, R_ + 0.365), (y - 0.01, R_ + 0.365)], -0.20, 0.20, "X", ST)
+    # its pipe: square out of the casing through a flange, along the roof, down into a boot on the press's deck
+    zp, ra, rf, xq, yq = R_ + 0.14, 0.03, 0.04, -0.14, -0.05
+    m.pipe([(xp + case[0] - 0.03, 0.34, zp), (xq - 0.045, 0.34, zp), (xq, 0.295, zp), (xq, yq + 0.045, zp), (xq, yq, zp - 0.045),
+            (xq, yq, Z + 0.07)], ra, ST)
+    m.cyl(rf, 0.024, (xp + case[0] + 0.012, 0.34, zp), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with m.at((xq, yq, 0)):
+        tower(m, [(0.052, 0.036, 0.012, Z - 0.01), (0.044, 0.034, 0.01, Z + 0.09)], T)                   # the boot
+        m.cyl(rf * 0.82, 0.02, (0, 0, Z + 0.10), TD, seg=8)
+    # the slot the working mould drops into, at the roof's edge beside the press, and the arm lowering a mould into it
+    xa, ys = 0.24, 0.20
+    with m.at((xa, ys, 0)):
+        shell(m, [(0.062, 0.185, 0.02, R_ - 0.01), (0.068, 0.19, 0.022, R_ + 0.045), (0.058, 0.18, 0.018, R_ + 0.06),
+                  (0.04, 0.162, 0.012, R_ + 0.06), (0.036, 0.158, 0.01, R_ + 0.01)], T)
+        tower(m, [(0.039, 0.161, 0.011, R_ - 0.005), (0.039, 0.161, 0.011, R_ + 0.015)], SLIT)
+        mould(m, R_ + 0.08)
+    with m.at((xa, 0, 0)):
+        arm4(m, 1, 0.66, R_, (0.82, R_ + 0.78), (ys + 0.015, R_ + 0.67))
+    # the rack: a trough with the other moulds standing in it
+    xr, yr = 1.0, 0.52
+    with m.at((xr, yr, 0)):
+        shell(m, [(0.36, 0.20, 0.03, R_ - 0.01), (0.37, 0.21, 0.035, R_ + 0.09), (0.355, 0.195, 0.03, R_ + 0.105),
+                  (0.33, 0.17, 0.02, R_ + 0.105), (0.32, 0.16, 0.018, R_ + 0.03)], ST)
+        tower(m, [(0.325, 0.165, 0.02, R_ - 0.005), (0.325, 0.165, 0.02, R_ + 0.035)], SLIT)
+        for k in range(4):
+            with m.at((-0.24 + k * 0.16, 0, 0)):
+                mould(m, R_ + 0.03)
+
+
+former1.frame, former1.shadow = {"iso": (4.5, 0.85), "side": (4.4, 1.0), "top": (3.9, 0.6), "end": (3.6, 1.0)}, True
+_hero.HEROES["former1"] = former1
 
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
