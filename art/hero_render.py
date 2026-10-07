@@ -7,7 +7,7 @@ args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 sys.argv = sys.argv[:1] + ["--", "none"]          # keep factorykit from rendering its own catalog
 
 import factorykit as fk
-from v2 import base, hero, works, pairs
+from v2 import base, hero, works, pairs, bay
 
 out = next((a.split("=", 1)[1] for a in args if a.startswith("out=")), os.path.join(HERE, "catalog", "img", "hero"))
 style = next((a.split("=", 1)[1] for a in args if a.startswith("base=")), "d")
