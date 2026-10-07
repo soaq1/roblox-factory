@@ -94,12 +94,12 @@ P("cutter", "자르기", {"plate_fe": 1}, {"gear": 1}, 3)
 P("cutter", "자르기", {"ore_dia": 1}, {"diamond": 1}, 6)
 # 겹 4. 섞는다
 P("mixer", "섞기", {"oilcan": 1, "charcoal": 1}, {"lube": 2}, 4, "모터에 들어감")
-P("mixer", "섞기", {"barrel_water": 1, "charcoal": 2, "crushed": 1}, {"electrolyte": 2}, 4, "전지에 들어감")
+P("mixer", "섞기", {"barrel_water": 1, "charcoal": 2, "clean": 1}, {"electrolyte": 2}, 4, "전지에 들어감. 씻은 구리 가루로만 만듦")
 P("mixer", "섞기", {"gravel": 2, "slag": 1, "barrel_water": 1}, {"concrete": 4}, 4, "큰 기계의 기초")
 P("mixer", "섞기", {"dirt_clod": 4, "barrel_water": 1}, {"clay": 4}, 4, "벽돌의 원료")
 # 겹 7. 강철
-P("blast", "합금", {"clean_fe": 4, "coal": 2}, {"ingot_steel": 4}, 8, "씻은 광석으로만 만듦")
-P("blast", "합금", {"clean_fe": 4, "charcoal": 3}, {"ingot_steel": 4}, 8, "석탄 없이 만드는 길")
+P("blast", "합금", {"ingot_fe": 4, "coal": 2}, {"ingot_steel": 4}, 8, "철 주괴를 석탄과 함께 한 번 더 구움. 손으로는 손 화덕에서")
+P("blast", "합금", {"ingot_fe": 4, "charcoal": 3}, {"ingot_steel": 4}, 8, "석탄 없이 만드는 길")
 P("blast", "합금", {"ingot_cu": 1, "ingot_au": 1}, {"ingot_alloy": 2}, 8)
 # 겹 5~7. 부품 (조립기. 손으로는 부품 작업대와 전기 작업대에서)
 PARTS = [("frame", {"plate_fe": 2, "rod_fe": 2}, "거의 모든 기계의 뼈대"), ("plate_r", {"plate_fe": 2, "bolt": 4}, "볼트로 죈 두 겹 철판"),
