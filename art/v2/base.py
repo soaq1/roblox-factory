@@ -468,8 +468,7 @@ def foot_bin(m):
 
 def foundation_d(m, top=0.82, foot=None):
     """Foundation D, our own, with the richness of A kept and its shapes changed.
-    The rail leans in all the way up to a stout eight-sided cap, and is braced by a row of triangular
-    buttresses instead of bolts. Each tunnel mouth is a folding cover of our own proportions: four
+    The rail leans in all the way up to a stout eight-sided cap, and carries a row of pale bolt heads. Each tunnel mouth is a folding cover of our own proportions: four
     broad-shouldered ridges with darker, smaller webs between them, closed by a heavier end frame. The
     body stands on two cross beams whose I-section ends show at each side, and has a chamfered base
     course of its own."""
@@ -478,10 +477,9 @@ def foundation_d(m, top=0.82, foot=None):
     m.prism(section, -1.5, 1.5, "X", R)
     m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
     chevrons2(m, -1.5, 1.5)
-    for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # buttresses along both rails, three to a cell
+    for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # a pale bolt head on each rail's sloping wall, three to a cell
         for s in SIDES:
-            pts = [(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)]
-            m.prism(pts, x - 0.022, x + 0.022, "X", RD)
+            m.cyl(0.03, 0.022, (x, s * 0.4374, 0.1685), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
     (foot or foot_beams)(m)
     bx(m, (-BX - 0.02, BX + 0.02), (-BY - 0.02, BY + 0.02), (0.262, 0.345), G, bevel=0.03)      # base course
     bx(m, (-BX, BX), (-BY, BY), (0.30, top), G, bevel=0.028)

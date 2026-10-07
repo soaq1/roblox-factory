@@ -465,46 +465,44 @@ def on_side(m, d, y, zc, xc=0.0):
 
 def smelter3(m):
     """Smelter, 3x1. Concept: ore goes into the fire and comes out as an ingot; the machine is a fire
-    with a pot of melting metal on it. A firebox astride the belt carries a dark deck; on it stands a pot whose belly
-    swells and draws in again to a thick rim with the melt glowing inside. An uptake grows out of each
-    end of the pot and tapers up to a flared cap. Each side wall has one fire mouth, the fire set back
-    behind bars inside a one-piece frame, over a masonry base with its ash pit."""
+    with a pot of melting metal on it. A firebox astride the belt carries a dark deck; on one base on
+    the deck stand a pot, whose belly swells and draws in again to a thick rim with the melt glowing
+    inside, and an uptake either side of it, clear of the pot. Each side wall has one fire mouth, the
+    fire set back behind bars inside a one-piece frame, over a masonry base with its ash pit.
+    The parts are stacked and butted, never sunk into one another: each begins where the last ends."""
     run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
     cover(m, BX, 1)
     cover(m, -BX, -1)
-    for d in SIDES:                                           # masonry base each side, its top sloped back to the wall
-        bprism(m, [(d * 0.36, 0.0), (d * 0.487, 0.0), (d * 0.487, 0.19), (d * 0.452, 0.27), (d * 0.36, 0.27)], -0.39, 0.39, "X", T, bevel=0.018)
+    hy = 0.40                                                 # the body is narrower than the mouths' collars, not nearly level with them
+    for d in SIDES:                                           # masonry base each side, butting the mouths' sills
+        bprism(m, [(d * 0.36, 0.0), (d * 0.487, 0.0), (d * 0.487, 0.19), (d * 0.452, 0.27), (d * 0.36, 0.27)], -BX, BX, "X", T, bevel=0.018)
         with on_side(m, d, d * 0.487, 0.105):
-            m.box((0.26, 0.085, 0.006), (0, 0, 0.002), SLIT)
-            m.box((0.22, 0.022, 0.006), (0, -0.022, 0.004), "h_glow")
+            m.box((0.26, 0.085, 0.006), (0, 0, 0.003), SLIT)
+            m.box((0.22, 0.022, 0.004), (0, -0.022, 0.008), "h_glow")
             ring(m, 0.16, 0.07, [(0.0, 0.0), (0.008, 0.013), (0.022, 0.013), (0.03, 0.0)], TD, c=0.02)
-    slab(m, BX, BY, 0.26, 0.74, 0.022, G, bevel=0.02)
-    slab(m, BX, BY + 0.02, 0.70, 0.82, 0.03, TD, bevel=0.022)
-    for d in SIDES:                                           # fire mouth: glow at the back, bars, then the frame
-        with on_side(m, d, d * BY, 0.50):
+    slab(m, BX, hy, 0.27, 0.74, 0.022, G, bevel=0.02)         # firebox, standing on the bases
+    slab(m, BX, hy, 0.74, 0.82, 0.022, TD, bevel=0.02)        # deck, lying on the firebox
+    for d in SIDES:                                           # fire mouth: glow at the back, bars on it, the frame round them
+        with on_side(m, d, d * hy, 0.50):
             m.box((0.27, 0.17, 0.006), (0, 0, 0.003), "h_glow")
             for k in range(4):
-                m.box((0.026, 0.19, 0.016), (-0.09 + k * 0.06, 0, 0.016), TD, bevel=0.006)
+                m.box((0.026, 0.17, 0.014), (-0.09 + k * 0.06, 0, 0.013), TD, bevel=0.005)
             ring(m, 0.185, 0.135, [(0.0, 0.0), (0.012, 0.034), (0.036, 0.034), (0.05, 0.0)], T, c=0.04)
     Z = 0.82
-    slab(m, 0.47, 0.37, Z - 0.02, Z + 0.07, 0.13, T, bevel=0.02)   # one base under the pot and both uptakes
-    # the pot: a swelling belly with a ridge, a shoulder, a thick rim
-    octa(m, 0.27, 0.315, Z + 0.07, Z + 0.24, ST)
-    octa(m, 0.315, 0.335, Z + 0.24, Z + 0.29, LT)
-    octa(m, 0.335, 0.315, Z + 0.29, Z + 0.34, LT)
-    octa(m, 0.315, 0.25, Z + 0.34, Z + 0.56, ST)
-    octa(m, 0.25, 0.30, Z + 0.56, Z + 0.62, TD)
-    oct_ring(m, 0.30, 0.075, Z + 0.62, Z + 0.68, TD)
-    octa(m, 0.228, 0.228, Z + 0.58, Z + 0.635, "h_glow")
-    for sx in SIDES:                                          # an uptake grown out of each end of the pot
-        x = sx * 0.365
-        with m.at((x, 0, 0)):
-            octa(m, 0.115, 0.078, Z + 0.05, Z + 0.92, ST)
-            octa(m, 0.078, 0.118, Z + 0.92, Z + 1.01, TD)
-            octa(m, 0.092, 0.092, Z + 1.005, Z + 1.014, SLIT)
-        # a saddle between the pot's shoulder and the uptake, so the two read as one casting
-        with m.at((sx * 0.265, 0, 0)):
-            octa(m, 0.075, 0.055, Z + 0.34, Z + 0.56, ST)
+    slab(m, 0.455, 0.30, Z, Z + 0.07, 0.10, T, bevel=0.02)    # one base on the deck, under the pot and both uptakes
+    P = Z + 0.07                                              # the pot stands on the base
+    octa(m, 0.21, 0.25, P, P + 0.16, ST)
+    octa(m, 0.25, 0.266, P + 0.16, P + 0.21, LT)
+    octa(m, 0.266, 0.25, P + 0.21, P + 0.26, LT)
+    octa(m, 0.25, 0.20, P + 0.26, P + 0.46, ST)
+    octa(m, 0.20, 0.24, P + 0.46, P + 0.52, TD)
+    oct_ring(m, 0.24, 0.06, P + 0.52, P + 0.58, TD)
+    octa(m, 0.178, 0.178, P + 0.52, P + 0.55, "h_glow")
+    for sx in SIDES:                                          # an uptake each side, standing on the same base, clear of the pot
+        with m.at((sx * 0.375, 0, 0)):
+            octa(m, 0.08, 0.062, P, P + 0.68, ST)
+            octa(m, 0.062, 0.10, P + 0.68, P + 0.77, TD)
+            octa(m, 0.078, 0.078, P + 0.77, P + 0.776, SLIT)
 
 
 smelter3.frame, smelter3.shadow = F31, True

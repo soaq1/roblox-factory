@@ -50,13 +50,15 @@ def chev(m, x, flow=1, z=BZ):
 
 
 def buttress(m, x):
+    """A pale bolt head on the sloping wall of each rail. (It replaced a pointed brace; the name is kept
+    for the callers.) The head lies square to the wall's slope."""
     for s in SIDES:
-        m.prism([(s * 0.40, 0.268), (s * 0.498, 0.17), (s * 0.498, 0.055), (s * 0.47, 0.055)], x - 0.022, x + 0.022, "X", RD)
+        m.cyl(0.03, 0.022, (x, s * 0.4374, 0.1685), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
 
 
 def run(m, x0, x1, flow=1, braces=()):
-    """A length of conveyor: rails and bed in one piece, the belt, its arrows, and a buttress at each
-    place listed in `braces`."""
+    """A length of conveyor: rails and bed in one piece, the belt, its arrows, and a bolt at each place
+    listed in `braces`."""
     m.prism(SECTION, x0, x1, "X", R)
     m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
     n = max(1, round((x1 - x0) / 0.375))
