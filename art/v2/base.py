@@ -236,6 +236,15 @@ def show(build, name, out_dir):
         key = bpy.data.objects.new("hero_key", sd)
         fk.col.objects.link(key)
         fk.aim(key, (-7.0, -1.6, 9.0), (0, 0, 0))
+    # a build may ask for cast shadows and a dimmer sky, which gives big plain masses some depth
+    key_light = bpy.data.objects["hero_key"].data
+    deep = getattr(build, "shadow", False)
+    try:
+        key_light.use_shadow = deep
+    except Exception:
+        pass
+    key_light.angle, key_light.energy = (rad(16), 2.5) if deep else (rad(4), 1.9)
+    fk.bg.inputs[1].default_value = 0.46 if deep else 0.70
     elev = rad(30)
     iso = Vector((-math.cos(elev) * math.cos(rad(45)), -math.cos(elev) * math.sin(rad(45)), math.sin(elev)))
     up = (-iso).cross(Vector((0, 0, 1))).normalized().cross(-iso)

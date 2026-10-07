@@ -2,6 +2,7 @@
 # comes out at the other) while opening the middle, so the work done on the item is in plain sight instead
 # of hidden in a closed box. The mouths at each end are the same folding covers as foundation D.
 import math
+import factorykit as fk
 from . import hero as _hero
 from . import pairs as _pairs
 from .base import foot_anchor, foot_bin
@@ -146,6 +147,119 @@ def blast3(m):
 
 
 blast3.frame = {"iso": (5.2, 1.25), "side": (4.6, 1.5), "top": (3.8, 1.0), "end": (4.6, 1.5)}
+fk.PAL.update({"h_acc_grey": "#7f8687", "h_acc_red": "#a9523c"})
+
+
+def blast3x(acc):
+    """The same blast furnace with its masses told apart: a dark deck and dark steel for the frames and
+    stoves, the big plain faces broken up by ribs, windows and buttresses, and one accent (`acc`, a
+    palette key) on the ribs of the galleries, the ring main and the bands."""
+    ST = "h_steel"
+
+    def build(m):
+        from .works import ring_pipe
+        for sy in SIDES:
+            with m.at((0, sy * 1.0, 0)):
+                run(m, -1.5, -0.5, braces=(-4 / 3, -1.0))
+                cover(m, -0.5, -1)
+        run(m, 0.5, 1.5, braces=(1.0, 4 / 3))
+        cover(m, 0.5, 1)
+        # the hall: dark foot, light wall with buttresses and a strip of windows, dark deck
+        bx(m, (-0.52, 0.52), (-1.49, 1.49), (0.0, 0.20), T, bevel=0.045)
+        bx(m, (-0.50, 0.50), (-1.47, 1.47), (0.16, 0.86), G, bevel=0.035)
+        bx(m, (-0.53, 0.53), (-1.50, 1.50), (0.82, 0.96), TD, bevel=0.03)
+        for sy in SIDES:
+            with frame(m, (0, sy * 1.5), (0, -sy)):
+                for y in (-0.42, 0.42):
+                    bx(m, (0.0, 0.05), (y - 0.07, y + 0.07), (0.0, 0.84), D, bevel=0.02)
+                m.box((0.04, 0.50, 0.40), (0.045, 0, 0.42), G, bevel=0.028)
+                m.box((0.012, 0.012, 0.34), (0.022, 0, 0.42), SLIT)
+                for s in SIDES:
+                    m.box((0.02, 0.03, 0.12), (0.018, s * 0.05, 0.42), T)
+                m.box((0.012, 0.62, 0.09), (0.026, 0, 0.73), "h_glass")
+                for y in (-0.31, -0.105, 0.105, 0.31):
+                    m.box((0.02, 0.025, 0.10), (0.022, y, 0.73), D)
+            for x in (-0.47, 0.47):                           # corner buttresses on the long faces
+                bx(m, (x - 0.06, x + 0.06), tuple(sorted((sy * 1.36, sy * 1.50))), (0.0, 0.84), D, bevel=0.02)
+        # blower house
+        bx(m, (-1.18, -0.48), (-0.40, 0.40), (0.0, 0.16), T, bevel=0.04)
+        bx(m, (-1.15, -0.48), (-0.37, 0.37), (0.12, 0.74), G, bevel=0.04)
+        bx(m, (-1.17, -0.48), (-0.39, 0.39), (0.70, 0.80), TD, bevel=0.025)
+        m.cyl(0.27, 0.05, (-1.16, 0, 0.42), acc, seg=12, axis="X")
+        m.cyl(0.215, 0.02, (-1.166, 0, 0.42), SLIT, seg=12, axis="X")
+        for i in (-1, 0, 1):
+            m.box((0.03, 0.40 * (1 - abs(i) * 0.25), 0.032), (-1.176, 0, 0.42 + i * 0.11), G)
+        for s in SIDES:
+            for k in range(3):
+                m.box((0.34, 0.012, 0.035), (-0.82, s * 0.372, 0.34 + k * 0.09), SLIT)
+        bx(m, (-0.84, -0.46), (-0.17, 0.17), (0.76, 1.04), ST, bevel=0.035)
+        # the furnace
+        Z = 0.94
+        octa(m, 0.48, 0.48, Z, Z + 0.34, T)
+        oct_ring(m, 0.51, 0.11, Z + 0.30, Z + 0.40, TD)
+        octa(m, 0.47, 0.30, Z + 0.36, Z + 1.50, G)
+        for z in (Z + 0.74, Z + 1.12):
+            a = 0.47 - (z - Z - 0.36) / 1.14 * 0.17
+            octa(m, a + 0.026, a + 0.013, z - 0.035, z + 0.035, acc)
+        oct_ring(m, 0.35, 0.10, Z + 1.46, Z + 1.57, TD)
+        octa(m, 0.27, 0.15, Z + 1.53, Z + 1.70, ST)
+        m.cyl(0.10, 0.20, (0, 0, Z + 1.80), ST, seg=8)
+        m.cyl(0.09, 0.08, (0, 0, Z + 1.94), TD, seg=8, r2=0.14)
+        for k in range(3):
+            m.box((0.012, 0.06, 0.09), (-0.49, (k - 1) * 0.13, Z + 0.15), "h_glow")
+        for dz in (-0.065, 0.065):
+            m.box((0.03, 0.44, 0.03), (-0.496, 0, Z + 0.15 + dz), TD)
+        # hot blast
+        ring_pipe(m, 0.58, Z + 0.52, 0.065, acc)
+        for j in range(8):
+            a = j * math.pi / 4
+            m.cyl(0.04, 0.17, (math.cos(a) * 0.50, math.sin(a) * 0.50, Z + 0.52), ST, seg=8, axis="X", rot=a)
+        for sy in SIDES:
+            with m.at((1.0, sy * 1.0, 0)):
+                octa(m, 0.42, 0.42, 0.0, 0.16, T)
+                octa(m, 0.36, 0.36, 0.12, 1.88, ST)
+                for z in (0.48, 0.95, 1.42):
+                    octa(m, 0.382, 0.382, z - 0.035, z + 0.035, acc)
+                oct_ring(m, 0.44, 0.10, 1.80, 1.87, TD)                    # gallery round the shoulder
+                octa(m, 0.36, 0.22, 1.88, 2.08, G)
+                octa(m, 0.22, 0.10, 2.08, 2.18, TD)
+                for j in range(8):                                         # staves between the bands
+                    a = j * math.pi / 4
+                    with m.at((0, 0, 0), a):
+                        m.box((0.02, 0.10, 1.60), (0.366, 0, 1.0), D)
+            a = math.atan2(sy, 1)
+            m.cyl(0.07, 0.56, (math.cos(a) * 0.82, math.sin(a) * 0.82, Z + 0.52), acc, seg=8, axis="X", rot=a)
+            m.cyl(0.095, 0.045, (math.cos(a) * 1.06, math.sin(a) * 1.06, Z + 0.52), TD, seg=8, axis="X", rot=a)
+        # galleries: a dark duct with ribs across it
+        top = Z + 1.50
+        for s in SIDES:
+            def at(t, wide=0.0):
+                y0, y1 = 1.22 + wide + (0.40 + wide - 1.22 - wide) * t, 0.94 - wide + (0.12 - wide - 0.94 + wide) * t
+                z = 0.94 + (top - 0.94) * t
+                return (s * y0, z), (s * y1, z)
+            (a0, a1), (b0, b1) = at(0.0), at(1.0)
+            m.prism([a0, a1, b1, b0], -0.14, 0.14, "X", ST)
+            for k in range(7):
+                t0 = 0.08 + k * 0.135
+                (p0, p1), (q0, q1) = at(t0, 0.03), at(t0 + 0.035, 0.03)
+                m.prism([p0, p1, q1, q0], -0.17, 0.17, "X", acc)
+            bx(m, (-0.21, 0.21), tuple(sorted((s * 0.88, s * 1.32))), (0.92, 1.08), TD, bevel=0.03)
+        # the tap
+        m.prism([(0.46, Z + 0.10), (0.86, 0.86), (0.86, 0.78), (0.46, Z + 0.02)], -0.10, 0.10, "Y", TD)
+        m.prism([(0.46, Z + 0.12), (0.86, 0.88), (0.86, 0.86), (0.46, Z + 0.10)], -0.09, 0.09, "Y", "h_glow")
+        for s in SIDES:
+            a, b = sorted((s * 0.10, s * 0.155))
+            m.prism([(0.46, Z + 0.20), (0.86, 0.96), (0.86, 0.78), (0.46, Z + 0.02)], a, b, "Y", G)
+    return build
+
+
+for _name, _acc in (("blast3_b", "h_acc_grey"), ("blast3_c", "h_acc_red")):
+    _fn = blast3x(_acc)
+    _fn.frame = {"iso": (5.2, 1.25), "side": (4.6, 1.5), "top": (3.8, 1.0), "end": (4.6, 1.5)}
+    _fn.shadow = True
+    _hero.HEROES[_name] = _fn
+
+
 _hero.HEROES["blast3"] = blast3
 
 
