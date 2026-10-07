@@ -25,13 +25,15 @@
 | 문서의 명령 | 윈도우에서 |
 |---|---|
 | `python3 ...` | `py ...` (3.14.5). `python`은 마이크로소프트 스토어 껍데기라 아무것도 안 하고 끝납니다. |
-| `/Applications/Blender.app/Contents/MacOS/Blender` | `"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe"` (4.0.2) |
+| `/Applications/Blender.app/Contents/MacOS/Blender` | `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe"` (5.2.2 LTS) |
 | `~/Library/Logs/Roblox` | `%LOCALAPPDATA%\Roblox\logs` |
 | `~/Documents/Roblox/Plugins` | `%LOCALAPPDATA%\Roblox\Plugins` |
 
 - 도구는 Rokit 1.2.0을 `%USERPROFILE%\.rokit`에 넣고 `game/`에서 `rokit install`로 맞췄습니다(rojo 7.7.1, lune 0.10.5, StyLua 2.5.2, selene 0.32.0, luau-lsp 1.70.1). 새 컴퓨터에서는 [Rokit 릴리스](https://github.com/rojo-rbx/rokit/releases)의 `windows-x86_64` 압축을 풀고 `rokit self-install`을 먼저 실행합니다.
 - **StyLua는 출력을 다른 명령으로 넘기면(파이프) 윈도우에서 죽습니다**(`fatal runtime error: I/O error`). 터미널에서 그대로 실행합니다.
 - **줄끝은 LF로 고정입니다.** `.gitattributes`가 `* text=auto eol=lf`로 못 박아 두었습니다. 윈도우 깃의 기본 설정이 CRLF로 바꿔 놓으면 고친 것이 없어도 StyLua가 모든 파일을 다르다고 하고, 319개 파일이 전부 바뀐 것으로 보입니다. 파일을 만드는 파이썬 스크립트도 `newline="\n"`을 명시해 윈도우에서도 LF로 씁니다. 이걸 빼면 스크립트를 한 번 돌릴 때마다 내용은 같은데 200개 파일이 바뀝니다.
+- **Blender는 5.2.2 LTS를 씁니다(2026-10-07에 4.0.2에서 올림).** 4.0은 지우지 않아 `Blender 4.0` 폴더에 그대로 있습니다. 두 판으로 각각 돌려 맞대 본 결과: v1 `gamedata`는 부품 3030개 중 파이프류 6개의 회전값 표현만 다르고(돌려도 같아 보이는 부품이라 그림은 같음), v1 그림(펌프)과 v2 그림(용광로)은 똑같이 나오며, FBX는 197개의 중심 좌표 정보가 완전히 같습니다. `art/check_models.py`도 5.2.2에서 돕니다.
+- **블렌더 MCP**: 저장소의 `.mcp.json`이 `mcp-for-blender`를 부릅니다. 새 컴퓨터에서는 `py -m pip install --user mcp-for-blender` 뒤 `mcp-for-blender install-addon`으로 애드온을 넣고, 파이썬 `Scripts` 폴더가 PATH에 있어야 합니다. Claude Code를 **이 저장소 폴더에서** 켜야 서버가 붙고(처음 한 번 승인을 묻습니다), 블렌더에서는 환경 설정 → 애드온에서 "MCP for Blender"를 켠 뒤 3D 화면의 N → MCP for Blender 탭 → Start MCP Server를 누릅니다.
 - 확인된 것: 이 컴퓨터에서 `stylua --check`, `selene src`, `lune run tests/all.luau`(261개 통과), `rojo build`, `py data/recipes.py`, `py game/tools/gen_data.py`, `py art/build_catalog.py`가 모두 맥에서와 같은 결과를 냅니다.
 
 ## 지켜야 할 결정
