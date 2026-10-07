@@ -958,6 +958,57 @@ def press5(m):
 press5.frame, press5.shadow = {"iso": (3.3, 0.85), "side": (3.4, 0.95), "top": (3.2, 0.6), "end": (2.6, 1.0)}, True
 _hero.HEROES["press5"] = press5
 
+def press6(m):
+    """Press, 3x1, grade 2 (hitbox 3x1x2). Concept: an ingot lies under the platen and is flattened to a
+    plate by the blow that comes down on it; the pressing is in plain sight.
+    press5 stood tall on four thin columns with the platen hanging in an empty frame. After looking at
+    how Satisfactory's Constructor does the same job (short thick columns, one heavy block riding on
+    them), the developer chose that build: low, wide and heavy.
+    A dark chassis grips both rails. On it, along each side of the open bay, runs a light bed. Four
+    short round columns stand on the beds, and one thick steel head rides on them, a bushing where each
+    column passes through; the columns' capped ends show above it. Under the head hangs the dark die,
+    over the work lying on the belt. On the head lies the drive: a housing with a bearing at each end,
+    a heavy flywheel on one end of its shaft and a gear on the other."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis
+    m.box((0.30, 0.24, 0.03), (0, 0, BZ + 0.016), LT, bevel=0.008)                            # the work: a plate on the belt
+    for d in SIDES:                                           # a bed along each side of the bay
+        bprism(m, [(d * 0.32, 0.35), (d * 0.43, 0.35), (d * 0.43, 0.545), (d * 0.42, 0.56), (d * 0.33, 0.56), (d * 0.32, 0.545)],
+               -BX, BX, "X", G, bevel=0.012)
+    xc, yc, rc = 0.36, 0.375, 0.042                           # where a column stands, and its radius
+    z0, z1 = 0.82, 1.06                                       # the head, at the top of its stroke
+    for sx in SIDES:
+        for sy in SIDES:
+            with m.at((sx * xc, sy * yc, 0)):
+                octa(m, 0.05, 0.044, 0.555, 0.60, T)          # foot
+                m.cyl(rc, 0.66, (0, 0, 0.87), LT, seg=12)     # the column, from inside the bed to above the head
+                octa(m, 0.058, 0.05, z0 - 0.03, z0 + 0.005, T)        # bushing under the head
+                octa(m, 0.05, 0.058, z1 - 0.005, z1 + 0.03, T)        # bushing on the head
+                octa(m, 0.05, 0.04, 1.195, 1.225, T)          # the column's cap
+    head = (0.43, 0.44, 0.04)
+    slab(m, head[0], head[1], z0, z1, head[2], TD, bevel=0.02)                              # dark, so the heavy head is what the eye finds
+    tower(m, [(0.26, 0.24, 0.03, z0 - 0.16), (0.29, 0.27, 0.03, z0 + 0.01)], ST)              # the die, its top a little way up into the head
+    # the drive, lying on the head
+    zs = z1 + 0.19
+    tower(m, [(0.17, 0.27, 0.035, z1 - 0.01), (0.17, 0.27, 0.035, z1 + 0.16), (0.12, 0.22, 0.03, z1 + 0.24)], G)
+    for d in SIDES:
+        with on_side(m, d, d * 0.27, zs - 0.07):
+            octa(m, 0.07, 0.055, -0.004, 0.03, T)
+    m.cyl(0.034 * K, 0.80, (0, 0.0, zs - 0.07), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    with on_side(m, -1, -0.365, zs - 0.07):                   # flywheel: a heavy rim round a set-back web, and its hub
+        ring_round(m, 0.17, 0.13, -0.026, 0.026, ST)
+        m.cyl(0.135, 0.024, (0, 0, 0), T, seg=16)
+        m.cyl(0.055, 0.064, (0, 0, 0), T, seg=10)
+        m.cyl(0.03, 0.012, (0, 0, 0.037), LT, seg=10)
+    gear(m, 0.13, 0.045, (0, 0.365, zs - 0.07), T, teeth=10)                                  # a gear on the other end
+    m.cyl(0.045, 0.06, (0, 0.365, zs - 0.07), LT, seg=10, axis="Y")
+
+
+press6.frame, press6.shadow = F31, True
+_hero.HEROES["press6"] = press6
+
 for _n, _f in (("smelter5a", smelter5a), ("smelter5b", smelter5b), ("smelter5c", smelter5c)):
     _f.frame, _f.shadow = F31, True
     _hero.HEROES[_n] = _f
