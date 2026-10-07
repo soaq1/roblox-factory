@@ -240,23 +240,6 @@ def h_portal(m, x, w, top, leg, depth=0.20, web=0.07, c=0.34):
         m.box((depth + 0.12, leg + 0.12, 0.09), (x, yc, 0.035), T, bevel=0.012, taper=0.80)
 
 
-def bprism(m, pts, lo, hi, axis, mk, bevel=0.015):
-    """Like Model.prism, with every edge chamfered, so an extruded outline has no square edge left."""
-    import bmesh
-    bm = bmesh.new()
-    if axis == "X":
-        verts, vec = [bm.verts.new((lo, a, b)) for a, b in pts], (hi - lo, 0, 0)
-    elif axis == "Y":
-        verts, vec = [bm.verts.new((a, lo, b)) for a, b in pts], (0, hi - lo, 0)
-    else:
-        verts, vec = [bm.verts.new((a, b, lo)) for a, b in pts], (0, 0, hi - lo)
-    face = bm.faces.new(verts)
-    ext = bmesh.ops.extrude_face_region(bm, geom=[face])
-    bmesh.ops.translate(bm, verts=[e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)], vec=vec)
-    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
-    m._add(bm, mk)
-
-
 def offset_line(pts, f):
     """The polyline moved f to the right of its direction of travel, corners mitred."""
     out = []
@@ -296,20 +279,6 @@ def plan(hx, hy, c):
     return [(hx, -(hy - c)), (hx, hy - c), (hx - c, hy), (-(hx - c), hy), (-hx, hy - c), (-hx, -(hy - c)), (-(hx - c), -hy), (hx - c, -hy)]
 
 
-def offset_closed(poly, u):
-    """A counter-clockwise outline moved inward by u, corners mitred."""
-    out, n = [], len(poly)
-    for i in range(n):
-        ns = []
-        for a, b in ((poly[i - 1], poly[i]), (poly[i], poly[(i + 1) % n])):
-            dx, dy = b[0] - a[0], b[1] - a[1]
-            L = math.hypot(dx, dy)
-            ns.append((-dy / L, dx / L))
-        k = u / (1.0 + ns[0][0] * ns[1][0] + ns[0][1] * ns[1][1])
-        out.append((poly[i][0] + (ns[0][0] + ns[1][0]) * k, poly[i][1] + (ns[0][1] + ns[1][1]) * k))
-    return out
-
-
 def slab(m, hx, hy, z0, z1, c, mk, bevel=0.02):
     """A block whose four upright corners are cut off, and whose every edge is chamfered: no corner of
     it turns through a right angle."""
@@ -343,7 +312,7 @@ def portal2(m, x, depth=0.22):
     P = [(-y, z) for y, z in reversed(r_out[1:])] + r_out     # left foot, over the crown, right foot
     Q = r_in + [(-y, z) for y, z in reversed(r_in[:-1])]      # right foot, under the beam, left foot
     f = 0.055
-    m.prism(P + Q, x - 0.035, x + 0.035, "X", TD)                                         # web
+    m.prism(offset_line(P, 0.02) + offset_line(Q, 0.02), x - 0.035, x + 0.035, "X", TD)   # web, set back inside both flanges
     h, c = depth / 2, 0.022                                   # flange section: its two outer edges chamfered
     flange = [(-h, c), (-h + c, 0.0), (h - c, 0.0), (h, c), (h, f), (-h, f)]
     sweep(m, x, P, flange, ST)
@@ -388,7 +357,8 @@ def arm4(m, d, yb, zb, elbow, wrist):
                 xs[0], xs[1], "X", G)
     joint(m, d, sh[0], sh[1], 0.14, 0.095)
     taper_link(m, d, sh, elbow, 0.12, 0.085, 0.085, LT)
-    taper_link(m, d, sh, elbow, 0.065, 0.045, 0.097, ST)      # a darker spine down the middle of the link
+    ey, ez = elbow[0] - sh[0], elbow[1] - sh[1]               # a darker spine down the middle of the link, short of its ends
+    taper_link(m, d, (sh[0] + ey * 0.04, sh[1] + ez * 0.04), (elbow[0] - ey * 0.04, elbow[1] - ez * 0.04), 0.065, 0.045, 0.097, ST)
     joint(m, d, elbow[0], elbow[1], 0.115, 0.085)
     taper_link(m, d, elbow, wrist, 0.08, 0.055, 0.068, LT)
     joint(m, d, wrist[0], wrist[1], 0.08, 0.068)
@@ -411,11 +381,12 @@ def assembler4(m):
     """Assembler, 3x3, second version: the same lower works, with the upper works built like the mouths.
     Two H-section portals on tapered bases, tied by eight-sided struts, carry a box girder with a hoist;
     the deck has a sloped kerb and seams; two tapered arms on stepped turrets work on the frame clamped
-    to a rimmed turntable, each fed from a flared bin."""
+    to a rimmed turntable, each fed from a flared bin. The finished piece goes down through the hall to
+    the output belt, as in every other machine; nothing carries it outside the body."""
     _asm_lower(m)
     Z = 0.96
     # deck: a kerb with a sloped inner face, running round the edge in one mitred piece; seams across the floor
-    ring(m, 0.53, 1.50, [(0.0, Z - 0.03), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=0.09)
+    ring(m, 0.53, 1.50, [(0.0, Z - 0.02), (0.0, Z + 0.035), (0.025, Z + 0.06), (0.055, Z + 0.06), (0.10, Z - 0.02)], ST, c=0.09)
     for y in (-1.0, -0.5, 0.5, 1.0):
         m.box((0.82, 0.014, 0.006), (0, y, Z + 0.003), ST)
     # portals, tied by struts and carrying the hoist girder
@@ -443,11 +414,6 @@ def assembler4(m):
         arm4(m, d, 0.70, Z, (0.56, Z + 1.04), (0.20, Z + 0.72))
         bin4(m, 0.0, d * 0.99, Z, w=0.25, l=0.22)
         m.box((0.10, 0.09, 0.08), (0.0, d * 0.99, Z + 0.10), "h_copper", bevel=0.018)
-    # chute to the output
-    m.prism([(0.38, Z + 0.07), (0.86, 0.86), (0.86, 0.78), (0.38, Z - 0.01)], -0.17, 0.17, "Y", T)
-    for s in SIDES:
-        a, b = sorted((s * 0.17, s * 0.225))
-        m.prism([(0.38, Z + 0.17), (0.86, 0.96), (0.86, 0.78), (0.38, Z - 0.01)], a, b, "Y", G)
 
 
 from contextlib import contextmanager
@@ -465,44 +431,42 @@ def on_side(m, d, y, zc, xc=0.0):
 
 def smelter3(m):
     """Smelter, 3x1. Concept: ore goes into the fire and comes out as an ingot; the machine is a fire
-    with a pot of melting metal on it. A firebox astride the belt carries a dark deck; on one base on
-    the deck stand a pot, whose belly swells and draws in again to a thick rim with the melt glowing
-    inside, and an uptake either side of it, clear of the pot. Each side wall has one fire mouth, the
-    fire set back behind bars inside a one-piece frame, over a masonry base with its ash pit.
-    The parts are stacked and butted, never sunk into one another: each begins where the last ends."""
+    with a pot of melting metal on it.
+    It is built as one assembled machine, not as things set on one another. One dark chassis grips both
+    rails from one mouth's end frame to the other's; the mouths' folds and the firebox stand on
+    it. The firebox rises into a hood whose sides slope in to a flat crown; the pot is seated on the
+    crown by its own flared foot, and so is the uptake at each side of it; nothing lies on anything as a
+    plate. The pot's belly swells and draws in to a thick rim with the melt glowing inside. Each side
+    wall has one fire mouth, the fire set back behind bars inside a one-piece frame."""
     run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
-    cover(m, BX, 1)
-    cover(m, -BX, -1)
-    hy = 0.40                                                 # the body is narrower than the mouths' collars, not nearly level with them
-    for d in SIDES:                                           # masonry base each side, butting the mouths' sills
-        bprism(m, [(d * 0.36, 0.0), (d * 0.487, 0.0), (d * 0.487, 0.19), (d * 0.452, 0.27), (d * 0.36, 0.27)], -BX, BX, "X", T, bevel=0.018)
-        with on_side(m, d, d * 0.487, 0.105):
-            m.box((0.26, 0.085, 0.006), (0, 0, 0.003), SLIT)
-            m.box((0.22, 0.022, 0.004), (0, -0.022, 0.008), "h_glow")
-            ring(m, 0.16, 0.07, [(0.0, 0.0), (0.008, 0.013), (0.022, 0.013), (0.03, 0.0)], TD, c=0.02)
-    slab(m, BX, hy, 0.27, 0.74, 0.022, G, bevel=0.02)         # firebox, standing on the bases
-    slab(m, BX, hy, 0.74, 0.82, 0.022, TD, bevel=0.02)        # deck, lying on the firebox
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    collar(m, -BX - 0.318, BX + 0.318, mk=T)                  # the chassis, ending just behind each end frame
+    hy = 0.40
+    slab(m, BX, hy, 0.37, 0.70, 0.022, G, bevel=0.02)         # firebox, its foot inside the chassis
+    # the hood: the firebox's own top, sloping in from both side walls to a flat crown
+    bprism(m, [(-hy, 0.70), (-hy, 0.74), (-0.30, 0.90), (0.30, 0.90), (hy, 0.74), (hy, 0.70)], -BX, BX, "X", TD, bevel=0.016)
     for d in SIDES:                                           # fire mouth: glow at the back, bars on it, the frame round them
-        with on_side(m, d, d * hy, 0.50):
-            m.box((0.27, 0.17, 0.006), (0, 0, 0.003), "h_glow")
+        with on_side(m, d, d * hy, 0.543):
+            m.box((0.27, 0.15, 0.008), (0, 0, 0.002), "h_glow")
             for k in range(4):
-                m.box((0.026, 0.17, 0.014), (-0.09 + k * 0.06, 0, 0.013), TD, bevel=0.005)
-            ring(m, 0.185, 0.135, [(0.0, 0.0), (0.012, 0.034), (0.036, 0.034), (0.05, 0.0)], T, c=0.04)
-    Z = 0.82
-    slab(m, 0.455, 0.30, Z, Z + 0.07, 0.10, T, bevel=0.02)    # one base on the deck, under the pot and both uptakes
-    P = Z + 0.07                                              # the pot stands on the base
-    octa(m, 0.21, 0.25, P, P + 0.16, ST)
-    octa(m, 0.25, 0.266, P + 0.16, P + 0.21, LT)
-    octa(m, 0.266, 0.25, P + 0.21, P + 0.26, LT)
-    octa(m, 0.25, 0.20, P + 0.26, P + 0.46, ST)
-    octa(m, 0.20, 0.24, P + 0.46, P + 0.52, TD)
-    oct_ring(m, 0.24, 0.06, P + 0.52, P + 0.58, TD)
-    octa(m, 0.178, 0.178, P + 0.52, P + 0.55, "h_glow")
-    for sx in SIDES:                                          # an uptake each side, standing on the same base, clear of the pot
-        with m.at((sx * 0.375, 0, 0)):
-            octa(m, 0.08, 0.062, P, P + 0.68, ST)
-            octa(m, 0.062, 0.10, P + 0.68, P + 0.77, TD)
-            octa(m, 0.078, 0.078, P + 0.77, P + 0.776, SLIT)
+                m.box((0.026, 0.15, 0.014), (-0.09 + k * 0.06, 0, 0.012), TD, bevel=0.005)
+            ring(m, 0.185, 0.125, [(0.0, -0.004), (0.012, 0.034), (0.036, 0.034), (0.05, -0.004)], T, c=0.04)
+    P = 0.90                                                  # the crown
+    octa(m, 0.24, 0.19, P, P + 0.08, T)                       # the pot's flared foot, seated on the crown
+    octa(m, 0.19, 0.235, P + 0.08, P + 0.24, ST)
+    octa(m, 0.235, 0.25, P + 0.24, P + 0.29, LT)
+    octa(m, 0.25, 0.235, P + 0.29, P + 0.34, LT)
+    octa(m, 0.235, 0.19, P + 0.34, P + 0.52, ST)
+    octa(m, 0.19, 0.23, P + 0.52, P + 0.58, TD)
+    oct_ring(m, 0.23, 0.06, P + 0.58, P + 0.64, TD)
+    octa(m, 0.168, 0.168, P + 0.58, P + 0.61, "h_glow")
+    for sx in SIDES:                                          # an uptake each side, on its own flared foot, clear of the pot
+        with m.at((sx * 0.37, 0, 0)):
+            octa(m, 0.095, 0.072, P, P + 0.08, T)
+            octa(m, 0.072, 0.058, P + 0.08, P + 0.72, ST)
+            octa(m, 0.058, 0.10, P + 0.72, P + 0.81, TD)
+            octa(m, 0.078, 0.078, P + 0.81, P + 0.816, SLIT)
 
 
 smelter3.frame, smelter3.shadow = F31, True

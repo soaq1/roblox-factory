@@ -252,12 +252,14 @@ def show(build, name, out_dir):
     scene.render.resolution_x = scene.render.resolution_y = 1000
     scene.cycles.samples = 64
     os.makedirs(out_dir, exist_ok=True)
+    back = Vector((-iso.x, -iso.y, iso.z))    # the catalog angle from the opposite corner, to see what it hides
     views = (("", iso, up * 0.474, 2.871), ("_side", Vector((0, -1, 0.0001)), Vector((0, 0, 0.6)), 3.2),
-             ("_top", Vector((0, -0.0001, 1)), Vector((0, 0, 0.6)), 3.2), ("_end", Vector((-1, 0.0001, 0.0001)), Vector((0, 0, 0.6)), 1.6))
+             ("_top", Vector((0, -0.0001, 1)), Vector((0, 0, 0.6)), 3.2), ("_end", Vector((-1, 0.0001, 0.0001)), Vector((0, 0, 0.6)), 1.6),
+             ("_back", back, up * 0.474, 2.871))
     big = getattr(build, "frame", None)       # a building larger than 3 x 1 gives its own (scale, centre height)
     if big:
         views = tuple((sfx, v, Vector((0, 0, big[key][1])), big[key][0])
-                      for (sfx, v, _, _), key in zip(views, ("iso", "side", "top", "end")))
+                      for (sfx, v, _, _), key in zip(views, ("iso", "side", "top", "end", "iso")))
     if QUICK:
         views = views[:1]
     for suffix, v, c, scale in views:
@@ -466,6 +468,68 @@ def foot_bin(m):
         m.box((0.36, 0.02, 0.045), (0, d * 0.487, 0.175), SLIT)
 
 
+def bprism(m, pts, lo, hi, axis, mk, bevel=0.015):
+    """Like Model.prism, with every edge chamfered, so an extruded outline has no square edge left. Use
+    it on convex outlines; a thin concave one can fold over itself when bevelled."""
+    bm = bmesh.new()
+    if axis == "X":
+        verts, vec = [bm.verts.new((lo, a, b)) for a, b in pts], (hi - lo, 0, 0)
+    elif axis == "Y":
+        verts, vec = [bm.verts.new((a, lo, b)) for a, b in pts], (0, hi - lo, 0)
+    else:
+        verts, vec = [bm.verts.new((a, b, lo)) for a, b in pts], (0, 0, hi - lo)
+    face = bm.faces.new(verts)
+    ext = bmesh.ops.extrude_face_region(bm, geom=[face])
+    bmesh.ops.translate(bm, verts=[e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)], vec=vec)
+    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
+    m._add(bm, mk)
+
+
+def offset_closed(poly, u):
+    """A counter-clockwise outline moved inward by u, corners mitred."""
+    out, n = [], len(poly)
+    for i in range(n):
+        ns = []
+        for a, b in ((poly[i - 1], poly[i]), (poly[i], poly[(i + 1) % n])):
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            L = math.hypot(dx, dy)
+            ns.append((-dy / L, dx / L))
+        k = u / (1.0 + ns[0][0] * ns[1][0] + ns[0][1] * ns[1][1])
+        out.append((poly[i][0] + (ns[0][0] + ns[1][0]) * k, poly[i][1] + (ns[0][1] + ns[1][1]) * k))
+    return out
+
+
+def loft_x(m, stations, mk):
+    """One piece through a row of outlines: `stations` lists (x, [(y, z), ...]), every outline with the
+    same number of points. Being lofted, it needs no bevel, so it is safe for outlines that turn inward."""
+    bm = bmesh.new()
+    rows = [[bm.verts.new((x, y, z)) for y, z in o] for x, o in stations]
+    k = len(rows[0])
+    for a, c in zip(rows, rows[1:]):
+        for j in range(k):
+            bm.faces.new((a[j], a[(j + 1) % k], c[(j + 1) % k], c[j]))
+    bm.faces.new(rows[0])
+    bm.faces.new(rows[-1])
+    m._add(bm, mk)
+
+
+# The collar a tunnel mouth stands on: the rail's own outline grown by about 0.034, so it reads as a clamp
+# wrapped round the rail rather than a block set down on it. Its toe rests on the rail's foot flange,
+# inside the flange's edge. Counter-clockwise, for the rail at +y.
+COLLAR = [(0.34, 0.03), (0.492, 0.03), (0.492, 0.104), (0.42, 0.284), (0.436, 0.30), (0.436, 0.342), (0.392, 0.385), (0.34, 0.385)]
+
+
+def collar(m, x0, x1, mk=R):
+    """A collar round each rail from x0 to x1, in one piece, both ends chamfered."""
+    c = 0.02
+    st = [(x0, offset_closed(COLLAR, c)), (x0 + c, COLLAR), (x1 - c, COLLAR), (x1, offset_closed(COLLAR, c))]
+    for s in SIDES:
+        loft_x(m, [(x, [(s * y, z) for y, z in o]) for x, o in st], mk)
+
+
+BOLT = (0.032, 0.012)        # a rail bolt's head: radius and height. Low, so it lies close on the rail.
+
+
 def foundation_d(m, top=0.82, foot=None):
     """Foundation D, our own, with the richness of A kept and its shapes changed.
     The rail leans in all the way up to a stout eight-sided cap, and carries a row of pale bolt heads. Each tunnel mouth is a folding cover of our own proportions: four
@@ -479,15 +543,13 @@ def foundation_d(m, top=0.82, foot=None):
     chevrons2(m, -1.5, 1.5)
     for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # a pale bolt head on each rail's sloping wall, three to a cell
         for s in SIDES:
-            m.cyl(0.03, 0.022, (x, s * 0.4374, 0.1685), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
+            m.cyl(BOLT[0], BOLT[1], (x, s * 0.4356, 0.1678), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
     (foot or foot_beams)(m)
     bx(m, (-BX - 0.02, BX + 0.02), (-BY - 0.02, BY + 0.02), (0.262, 0.345), G, bevel=0.03)      # base course
     bx(m, (-BX, BX), (-BY, BY), (0.30, top), G, bevel=0.028)
     for d in SIDES:                                           # a folding cover on a sill at each end
         x0 = d * BX
-        for s in SIDES:                                       # the sill stands on the rails, clear of the belt
-            ys = tuple(sorted((s * 0.34, s * 0.458)))
-            bx(m, tuple(sorted((x0, x0 + d * 0.345))), ys, (0.0, 0.31), R, bevel=0.03)
+        collar(m, *sorted((x0, x0 + d * 0.318)))               # a collar hugs each rail behind the end frame, which stands on the rail itself
         px = x0
         folds = [(0.042, 0.84, 0.77, 0.315, R), (0.026, 0.77, 0.735, 0.335, RD)] * 4
         for th, w, tp, hw, mk in folds + [(0.066, 0.88, 0.79, 0.315, R)]:

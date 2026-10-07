@@ -14,7 +14,7 @@ from mathutils import Matrix
 import factorykit as fk
 from .base import (rad, G, T, TD, W, D, SLIT, R, RD, SIDES, BH, BZ, BX, BY, RAIL_D, gear, side_pipe, side_panel,
                    octa, oct_ring, bx, foundation_d, foot_beams, foot_springs, foot_hearth, foot_anchor, foot_drain,
-                   foot_bin)
+                   foot_bin, bprism, collar, BOLT, offset_closed, loft_x)
 from .kit import arch_pts, machine2
 from .hero import sunk_frame
 from .forms import frustum
@@ -53,7 +53,7 @@ def buttress(m, x):
     """A pale bolt head on the sloping wall of each rail. (It replaced a pointed brace; the name is kept
     for the callers.) The head lies square to the wall's slope."""
     for s in SIDES:
-        m.cyl(0.03, 0.022, (x, s * 0.4374, 0.1685), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
+        m.cyl(BOLT[0], BOLT[1], (x, s * 0.4356, 0.1678), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
 
 
 def run(m, x0, x1, flow=1, braces=()):
@@ -68,10 +68,12 @@ def run(m, x0, x1, flow=1, braces=()):
         buttress(m, x)
 
 
-def cover(m, x0, d):
-    """The folding cover over a tunnel mouth at the body's end x0, opening toward d, on its sill."""
-    for s in SIDES:
-        bx(m, tuple(sorted((x0, x0 + d * 0.345))), tuple(sorted((s * 0.34, s * 0.458))), (0.0, 0.31), R, bevel=0.03)
+def cover(m, x0, d, sole=True):
+    """The folding cover over a tunnel mouth at the body's end x0, opening toward d. A collar hugs each
+    rail behind the end frame, which stands on the rail itself; with sole=False the machine supplies
+    its own."""
+    if sole:
+        collar(m, *sorted((x0, x0 + d * 0.318)))
     px = x0
     for th, w, tp, hw, mk in [(0.042, 0.84, 0.77, 0.315, R), (0.026, 0.77, 0.735, 0.335, RD)] * 4 + [(0.066, 0.88, 0.79, 0.315, R)]:
         a, b = sorted((px, px + d * th))
