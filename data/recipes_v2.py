@@ -20,7 +20,7 @@ CRATE = 50          # 임시: 같은 물건 몇 개가 한 상자가 되는가 (
 # 기계: (키, 이름, 급, 동작)
 MACHINES = [("extractor", "추출기", 1, "광맥 핵에서 원석을 내놓음"), ("logger", "벌목기", 1, "곁의 나무를 통나무로 내놓음"),
             ("harvester", "수확기", 2, "밭에서 다 자란 것을 내놓음"), ("pump", "물 펌프", 2, "물을 끌어올려 내놓음"),
-            ("crusher", "분쇄기", 1, "부숨"), ("washer", "세척기", 2, "씻음"), ("smelter", "용광로", 1, "녹이고 구움"),
+            ("crusher", "분쇄기", 1, "부숨"), ("washer", "세척기", 2, "씻음"), ("smelter", "용광로", 2, "녹이고 구움"),
             ("press", "프레스", 2, "누름"), ("roller", "롤러", 2, "늘임"), ("cutter", "절단기", 1, "자르고 깎음"),
             ("mixer", "혼합기", 3, "섞음"), ("blast", "제철소", 3, "함께 녹여 합금으로"), ("assembler", "조립기", 3, "부품을 합침"),
             ("packer", "포장기", 2, "상자로 뭉침"), ("coreforge", "핵 제련소", 0, "광맥 핵을 만듦 (큰 목표)")]
@@ -117,7 +117,8 @@ BUILD = {
     "logger": (1, {"plate_fe": 8, "rod_fe": 4, "gear": 2}, ""),
     "crusher": (1, {"plate_fe": 8, "gear": 4, "stone_block": 10}, ""),
     "cutter": (1, {"plate_fe": 6, "rod_fe": 4, "gear": 2}, ""),
-    "smelter": (2, {"frame": 4, "brick": 60, "plate_fe": 60, "ingot_au": 10}, "비싸고 얻기 어려운 기계 (설계 문서 8.11절). 금은 허브에서만 나옴"),
+    "smelter": (2, {"frame": 4, "brick": 40, "ingot_steel": 20, "ingot_au": 10, "monster_part": 1},
+                "얻기 힘든 기계 (설계 문서 8.11절). 손으로 만든 강철, 허브의 금, 몬스터의 부품이 모두 듦"),
     "press": (2, {"frame": 2, "plate_r": 6, "gear": 4}, ""),
     "roller": (2, {"frame": 2, "gear": 6, "rod_fe": 12}, ""),
     "washer": (2, {"frame": 1, "plate_cu": 8, "glass": 4}, ""),
