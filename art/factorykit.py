@@ -67,6 +67,9 @@ AXIS = {"Z": Matrix.Identity(4),
         "Y": Matrix.Rotation(-math.pi / 2, 4, "X")}
 
 
+SQUARE_EDGES = False      # a trial: True leaves every edge square (no chamfers), for a blockier look
+
+
 class Model:
     """Accumulates geometry into one mesh, one material slot per palette key."""
 
@@ -105,7 +108,7 @@ class Model:
         for v in bm.verts:
             k = taper if v.co.z > 0 else 1.0
             v.co = Vector((v.co.x * size[0] * k, v.co.y * size[1] * k, v.co.z * size[2]))
-        if bevel:
+        if bevel and not SQUARE_EDGES:
             bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1,
                             affect="EDGES", profile=0.5)
         self._add(bm, mk, loc, rot)

@@ -498,7 +498,8 @@ def bprism(m, pts, lo, hi, axis, mk, bevel=0.015):
     face = bm.faces.new(verts)
     ext = bmesh.ops.extrude_face_region(bm, geom=[face])
     bmesh.ops.translate(bm, verts=[e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)], vec=vec)
-    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
+    if bevel and not fk.SQUARE_EDGES:
+        bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
     m._add(bm, mk)
 
 

@@ -61,6 +61,8 @@ def link(mesh, name):
 
 # ============================ THE FACTORY ============================
 base.set_style("d")
+BLOCKY = "blocky" in args          # a trial: square edges and flat shading on the machines
+fk.SQUARE_EDGES = BLOCKY
 fm = fk.Model("factory")
 hero.HEROES[next((a.split("=", 1)[1] for a in args if a.startswith("layout=")), "factory1")](fm)      # layout=<name> picks another layout
 factory = fk.place(fm.done(), (0, 0, 0))
@@ -68,12 +70,13 @@ for o in bpy.context.selected_objects:
     o.select_set(False)
 bpy.context.view_layer.objects.active = factory
 factory.select_set(True)
-try:
-    bpy.ops.object.shade_smooth_by_angle(angle=rad(34))
-except Exception:
-    pass
-wn = factory.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")      # as base.show() does: flats stay flat
-wn.keep_sharp, wn.weight, wn.mode = True, 100, "FACE_AREA"
+if not BLOCKY:
+    try:
+        bpy.ops.object.shade_smooth_by_angle(angle=rad(34))
+    except Exception:
+        pass
+    wn = factory.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")      # as base.show() does: flats stay flat
+    wn.keep_sharp, wn.weight, wn.mode = True, 100, "FACE_AREA"
 fv = [v.co for v in factory.data.vertices]
 F_LO = Vector((min(v.x for v in fv), min(v.y for v in fv), min(v.z for v in fv)))
 F_HI = Vector((max(v.x for v in fv), max(v.y for v in fv), max(v.z for v in fv)))
