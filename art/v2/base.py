@@ -24,7 +24,9 @@ G, T, TD, W, D, SLIT = "h_grey", "h_taupe", "h_taupe_d", "h_white", "h_dark", "h
 fk.PAL.update({"h_rail": fk.PAL["h_grey"], "h_rail_d": fk.PAL["h_dark"]})
 R, RD = "h_rail", "h_rail_d"
 SIDES = (-1, 1)                       # used both for the two sides of the belt and for the two ends
-BH, BZ = 0.305, 0.305                 # belt half width and belt surface height
+BH, BZ = 0.305, 0.203                 # belt half width and belt surface height (the height was 0.305 until 2026-10-08:
+                                      # the developer asked for the belt a third flatter, so that belts can be stacked
+                                      # one above another with things passing between)
 BX, BY = 0.47, 0.43                   # half length and half width of the body block
 RAIL = [(BH, 0.0), (0.50, 0.0), (0.50, 0.10), (0.385, 0.215), (0.385, 0.305), (0.36, 0.335), (BH, 0.335)]
 
@@ -359,7 +361,7 @@ def foundation_b(m, top=0.82):
         m.prism(arch_pts(0.86, 0.74, hole_top=0.60, hw=0.315, c=0.05, ci=0.025), a, b, "X", D)
         for k in range(5):                                    # strip curtain
             m.box((0.012, 0.112, 0.27), (x1 + d * 0.02, -0.25 + k * 0.125, 0.465), SLIT)
-        m.box((0.02, 0.62, 0.40), (d * (BX + 0.012), 0, 0.50), SLIT)
+        m.box((0.02, 0.62, 0.694 - BZ), (d * (BX + 0.012), 0, (0.706 + BZ) / 2), SLIT)
     return top
 
 
@@ -394,8 +396,13 @@ def foundation_c(m, top=0.82):
 
 
 # Foundation D's rail, from the belt's edge outward and down to the ground.
-RAIL_D = [(BH, 0.352), (0.372, 0.352), (0.402, 0.326), (0.402, 0.292), (0.386, 0.276), (0.474, 0.055),
-          (0.50, 0.055), (0.50, 0.0)]
+RAIL_D = [(BH, 0.235), (0.372, 0.235), (0.402, 0.209), (0.402, 0.182), (0.386, 0.168), (0.474, 0.05),
+          (0.50, 0.05), (0.50, 0.0)]
+# Where a bolt head sits on the rail's sloping outer wall: across, up, and how far the wall leans (from RAIL_D).
+_s0, _s1 = RAIL_D[4], RAIL_D[5]
+_sl = math.hypot(_s1[0] - _s0[0], _s1[1] - _s0[1])
+BOLT_LEAN = math.atan2(_s1[0] - _s0[0], _s0[1] - _s1[1])
+BOLT_AT = ((_s0[0] + _s1[0]) / 2 + 0.006 * (_s0[1] - _s1[1]) / _sl, (_s0[1] + _s1[1]) / 2 + 0.006 * (_s1[0] - _s0[0]) / _sl)
 
 
 def chevrons2(m, x0, x1, step=0.375):
@@ -547,7 +554,7 @@ def foundation_d(m, top=0.82, foot=None):
     chevrons2(m, -1.5, 1.5)
     for x in (-4 / 3, -1.0, 1.0, 4 / 3):                      # a pale bolt head on each rail's sloping wall, three to a cell
         for s in SIDES:
-            m.cyl(BOLT[0], BOLT[1], (x, s * 0.4356, 0.1678), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
+            m.cyl(BOLT[0], BOLT[1], (x, s * BOLT_AT[0], BOLT_AT[1]), "h_lite", seg=6, axis="Y", rot=(s * BOLT_LEAN, 0, 0))
     (foot or foot_beams)(m)
     bx(m, (-BX - 0.02, BX + 0.02), (-BY - 0.02, BY + 0.02), (0.262, 0.345), G, bevel=0.03)      # base course
     bx(m, (-BX, BX), (-BY, BY), (0.30, top), G, bevel=0.028)

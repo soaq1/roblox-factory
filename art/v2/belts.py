@@ -15,7 +15,7 @@ import bmesh
 from mathutils import Matrix
 from .d import *          # noqa: F401,F403
 from .d import run, chev, SECTION, BED, K
-from .base import BOLT
+from .base import BOLT, BOLT_AT, BOLT_LEAN
 
 ST = "h_steel"
 
@@ -40,7 +40,7 @@ def loft(m, rings, mk):
 def bolt(m):
     """One pale bolt head on the slope of the rail on the left of the way the belt runs, built in a
     frame whose x runs along the belt."""
-    m.cyl(BOLT[0], BOLT[1], (0, 0.4356, 0.1678), "h_lite", seg=6, axis="Y", rot=(rad(21.7), 0, 0))
+    m.cyl(BOLT[0], BOLT[1], (0, BOLT_AT[0], BOLT_AT[1]), "h_lite", seg=6, axis="Y", rot=(BOLT_LEAN, 0, 0))
 
 
 def straight(m):

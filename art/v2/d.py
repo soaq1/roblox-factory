@@ -14,7 +14,7 @@ from mathutils import Matrix
 import factorykit as fk
 from .base import (rad, G, T, TD, W, D, SLIT, R, RD, SIDES, BH, BZ, BX, BY, RAIL_D, gear, side_pipe, side_panel,
                    octa, oct_ring, bx, foundation_d, foot_beams, foot_springs, foot_hearth, foot_anchor, foot_drain,
-                   foot_bin, bprism, collar, BOLT, offset_closed, loft_x)
+                   foot_bin, bprism, collar, BOLT, BOLT_AT, BOLT_LEAN, offset_closed, loft_x)
 from .kit import arch_pts, machine2
 from .hero import sunk_frame
 from .forms import frustum
@@ -53,7 +53,7 @@ def buttress(m, x):
     """A pale bolt head on the sloping wall of each rail. (It replaced a pointed brace; the name is kept
     for the callers.) The head lies square to the wall's slope."""
     for s in SIDES:
-        m.cyl(BOLT[0], BOLT[1], (x, s * 0.4356, 0.1678), "h_lite", seg=6, axis="Y", rot=(s * rad(21.7), 0, 0))
+        m.cyl(BOLT[0], BOLT[1], (x, s * BOLT_AT[0], BOLT_AT[1]), "h_lite", seg=6, axis="Y", rot=(s * BOLT_LEAN, 0, 0))
 
 
 def run(m, x0, x1, flow=1, braces=()):
@@ -79,7 +79,7 @@ def cover(m, x0, d, sole=True):
         a, b = sorted((px, px + d * th))
         m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
         px += d * th
-    m.box((0.02, 0.62, 0.40), (x0 + d * 0.012, 0, 0.50), SLIT)
+    m.box((0.02, 0.62, 0.694 - BZ), (x0 + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)        # the dark of the tunnel, from the belt up
 
 
 def block(m, top=0.82):

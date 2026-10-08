@@ -1243,7 +1243,7 @@ def former2(m):
             m.prism(arch_pts(0.90, 0.84, hole_top=0.705, hw=0.315, c=0.11, ci=0.05), a, b, "X", T)
             a2, b2 = sorted((sx * (X + 0.15), sx * (X + 0.185)))
             m.prism(arch_pts(0.78, 0.775, hole_top=0.705, hw=0.315, c=0.085, ci=0.05), a2, b2, "X", LT)
-            m.box((0.02, 0.62, 0.40), (sx * (X + 0.02), 0, 0.50), SLIT)
+            m.box((0.02, 0.62, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
             m.prism([(sx * x, z) for x, z in ((X - 0.03, 0.83), (X - 0.03, 0.985), (X + 0.03, 0.985), (X + 0.14, 0.87), (X + 0.14, 0.83))],
                     -0.34, 0.34, "Y", ST)                     # the hood
         with on_end(m, sx, sx * X, -0.20, 0.66):
@@ -1548,7 +1548,7 @@ def blast5(m):
             m.prism(arch_pts(0.92, 0.86, hole_top=0.705, hw=0.315, c=0.11, ci=0.05), a_, b_, "X", G)
             a_, b_ = sorted((sx * (X + 0.15), sx * (X + 0.185)))
             m.prism(arch_pts(0.80, 0.79, hole_top=0.705, hw=0.315, c=0.085, ci=0.05), a_, b_, "X", LT)
-            m.box((0.02, 0.62, 0.40), (sx * (X + 0.02), 0, 0.50), SLIT)
+            m.box((0.02, 0.62, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
             m.prism([(sx * x, z) for x, z in ((X - 0.03, 0.85), (X - 0.03, 1.02), (X + 0.03, 1.02), (X + 0.14, 0.895), (X + 0.14, 0.85))],
                     -0.36, 0.36, "Y", ST)
 
@@ -1677,6 +1677,20 @@ def belts_demo(m):
 
 belts_demo.frame, belts_demo.shadow = {"iso": (12.6, 0.9), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
 _hero.HEROES["belts_demo"] = belts_demo
+def belts_stack(m):
+    """Not a machine: three belts one cell above another, things riding each under the one above, to
+    judge the room between them. Nothing holds the upper belts up here: what carries a stacked belt
+    is not designed yet."""
+    for k in range(3):
+        for x in (-1, 0, 1):
+            with m.at((x, 0, k)):
+                _belts.straight(m)
+        for x, mk in ((-1.1 + 0.35 * k, "h_ore"), (0.1 + 0.2 * k, "h_copper")):
+            m.box((0.30, 0.28, 0.22), (x, 0, k + BZ + 0.116), mk, bevel=0.05)
+
+
+belts_stack.frame, belts_stack.shadow = {"iso": (4.6, 1.3), "side": (3.6, 1.3), "top": (3.4, 0.6), "end": (2.2, 1.3)}, True
+_hero.HEROES["belts_stack"] = belts_stack
 F11 = {"iso": (1.9, 0.25), "side": (1.6, 0.4), "top": (1.5, 0.3), "end": (1.6, 0.4)}
 F21R = {"iso": (3.3, 0.7), "side": (2.8, 0.8), "top": (2.6, 0.5), "end": (2.2, 0.8)}
 for _n, _f, _fr in (("belt_straight", _belts.straight, F11), ("belt_right", _belts.corner_right, F11), ("belt_left", _belts.corner_left, F11),
