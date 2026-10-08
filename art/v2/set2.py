@@ -2871,7 +2871,8 @@ def grid(m, hw, hh, nx, ny):
 
 
 def mill6(m, paint="h_p1"):
-    """Steel mill, 3x3 (hitbox 3x3x3): iron and coal come in at the two mouths in the west, steel leaves
+    """REJECTED (2026-10-08): still too much after three rounds of trimming; the developer said to forget it.
+    Steel mill, 3x3 (hitbox 3x3x3): iron and coal come in at the two mouths in the west, steel leaves
     by the mouth in the east. After two rejected attempts the developer said to go as the former went:
     follow the build of Islands' steel mill in our own parts, under the rules settled on former5.
     Two masses on one footing. In the west the machine room, low and long: a grey cabinet with a painted
@@ -3022,6 +3023,165 @@ def mill6(m, paint="h_p1"):
 
 mill6.frame, mill6.shadow, mill6.res = {"iso": (5.4, 1.45), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
 _hero.HEROES["mill6"] = mill6
+
+
+def mill7(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3), begun again from nothing: the developer found mill6 still too much
+    and said to forget it, not to cling to symmetry, and to ask of every grey plate, door and window
+    what it is there to do. So this one is put together from what a steel furnace does, and every part
+    has a job (the machine sheet's one line: iron and coal are carried up to the top of a high furnace,
+    melt together in a hot blast, and run out as steel):
+    - the receiving hall, low, along the west, where the two belts come in: one bolted cover between the
+      mouths (to get at the conveyor inside) and one door in its south end (to walk in);
+    - the charging incline, a cleated belt between two stringers, from a loading box on the hall's roof up
+      to a hood on the furnace's top, on the north side;
+    - the furnace, a tall eight-sided shaft on a wider hearth, hooped, inside two painted frames on rod
+      bundles; its stack stands off-centre on the cap, and beside it one grate of red neon behind bars
+      where the heat comes out;
+    - the blower, on the hall's roof at the south end, its one louvre the air intake; from it the blast
+      main runs east past a valve with a big handwheel and a pressure dial, over a pier, round a box
+      elbow and into the ring main that goes round the furnace above the hearth, from which four
+      nozzles blow into the shaft;
+    - the tap house on the hearth's east side, where the steel leaves by the outlet belt."""
+    g = 2 * (BH - 0.305)
+
+    def portal(xa, d, y):                                     # two painted arches with a dark seam between; each rail rises into its leg
+        with m.at((0, y, 0)):
+            px = xa
+            for th, w, tp, mk in ((0.08, 0.84 + g, 0.82, paint), (0.022, 0.79 + g, 0.795, SLIT), (0.08, 0.84 + g, 0.82, paint)):
+                a_, b_ = sorted((px, px + d * th))
+                m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
+                px += d * th
+            m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (xa + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)
+            xo = xa + d * 0.182
+            for sy_ in SIDES:
+                pts = [(xo - d * 0.006, 0.03), (xo + d * 0.13, 0.03), (xo + d * 0.13, 0.24), (xo + d * 0.10, 0.262), (xo - d * 0.006, 0.44)]
+                bprism(m, pts if d > 0 else pts[::-1], *sorted((sy_ * 0.358, sy_ * 0.494)), "Y", R, bevel=0.008)
+
+    # ---- the receiving hall
+    xh0, xh1, yh = -1.05, -0.36, 1.42
+    xh, hxh = (xh0 + xh1) / 2, (xh1 - xh0) / 2
+    Zh, Zd = 0.90, 0.96                                       # the wall's top, the deck
+    for sy in SIDES:
+        with m.at((0, sy * 1.0, 0)):
+            belt_stub(m, -1.5, xh0 + 0.02, -1.39, -1.455)
+        portal(xh0, -1, sy * 1.0)
+    with m.at((xh, 0, 0)):
+        slab(m, hxh + 0.015, yh + 0.02, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, hxh, yh, 0.12, Zh, 0.035, G, bevel=0.02)
+        slab(m, hxh + 0.025, yh + 0.025, Zh - 0.015, Zd, 0.045, TD, bevel=0.014)
+    with on_end(m, -1, xh0, 0.0, 0.50):                       # the cover over the conveyor inside, between the mouths
+        bolted(m, 0.70, 0.46, LT, r=0.03)
+    with on_side(m, -1, -yh, 0.47, xc=xh):                    # the door, in the south end
+        framed(m, 0.34, 0.60, LT)
+        m.box((0.024, 0.13, 0.022), (0.105, 0, 0.02), TD)
+    # ---- the furnace
+    xf = 0.45
+    fa, fb = (1.26, 1.41), (2.38, 2.53)                       # the two frames
+    RX = 0.70
+    with m.at((xf, 0, 0)):
+        slab(m, 0.80, 0.80, 0.0, 0.14, 0.04, T, bevel=0.014)  # the footing
+        octa(m, 0.58, 0.58, 0.12, 0.74, G)                    # hearth
+        octa(m, 0.61, 0.61, 0.72, 0.80, TD)
+        octa(m, 0.58, 0.52, 0.79, 1.00, G)                    # bosh
+        octa(m, 0.52, 0.44, 0.99, 1.98, G)                    # shaft
+        octa(m, 0.479, 0.473, 1.66, 1.74, TD)                 # a hoop
+        octa(m, 0.47, 0.47, 1.97, 2.05, TD)                   # cap
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.15, 0.14, 0.03), (sx * (RX - 0.0375), sy * (RX - 0.034), 0.15), G, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):
+                    m.box((0.044, 0.044, fb[0] + 0.02 - 0.16), (sx * (RX + dx), sy * (RX + dy), (fb[0] + 0.02 + 0.16) / 2), LT, bevel=0.008)
+        for z0, z1 in (fa, fb):
+            frame_ring(m, 0.77, 0.77, z0, z1, 0.17, paint)
+            frame_ring(m, 0.763, 0.763, z0 - 0.03, z0 + 0.004, 0.15, TD)
+    fat_stack(m, xf + 0.14, -0.10, 2.05, 2.95, 0.15, foot=0.06)   # the stack, off-centre on the cap
+    with m.at((xf + 0.08, 0.25, 2.05)):                       # where the heat comes out: red neon behind bars
+        m.box((0.26, 0.12, 0.014), (0, 0, 0.004), "h_neon")
+        for k in range(4):
+            x = -0.105 + k * 0.07
+            m.prism([(x - 0.013, 0.009), (x + 0.013, 0.009), (x + 0.007, 0.03), (x - 0.007, 0.03)], -0.065, 0.065, "Y", LT)
+        ring(m, 0.16, 0.09, [(0.0, -0.004), (0.01, 0.034), (0.03, 0.034), (0.04, -0.004)], TD, c=0.026)
+    # the tap house, and the outlet
+    with m.at((0.885, 0, 0)):
+        slab(m, 0.165, 0.50, 0.12, 0.92, 0.035, G, bevel=0.02)
+        slab(m, 0.18, 0.515, 0.90, 0.96, 0.045, TD, bevel=0.014)
+    belt_stub(m, 1.03, 1.5, 1.39, 1.455)
+    portal(1.05, 1, 0.0)
+    # ---- the blast: blower, main, valve, ring main, nozzles
+    zr, rd = 1.10, 0.105
+    xb, yb_, case = -0.70, -1.05, (0.26, 0.30, 0.045)
+    with m.at((xb, yb_, 0)):
+        slab(m, case[0], case[1], Zd - 0.01, Zd + 0.46, case[2], paint, bevel=0.022)
+        slab(m, case[0] + 0.015, case[1] + 0.015, Zd + 0.44, Zd + 0.51, cut_to(case[0] + 0.015, case[1] + 0.015, case, 0.015), TD, bevel=0.014)
+    with on_end(m, -1, xb - case[0], yb_, Zd + 0.22):         # the air intake: the machine's one louvre
+        vent(m, 0.22, 0.15)
+    xe = xf                                                   # the elbow stands south of the furnace's middle
+    xm0, xm1 = xb + case[0], xe - 0.14
+    m.cyl(rd * K, xm1 - xm0 + 0.03, ((xm0 + xm1) / 2, yb_, zr), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    xv = -0.02                                                # the valve
+    with m.at((xv, yb_, 0)):
+        slab(m, 0.13, 0.13, zr - 0.14, zr + 0.14, 0.03, G, bevel=0.02)
+        octa(m, 0.022, 0.022, zr + 0.13, zr + 0.25, ST)       # the dial's stem
+    with on_side(m, -1, yb_ - 0.13, zr, xc=xv):
+        handwheel(m, 0.13)
+    m.cyl(0.075, 0.06, (xv, yb_, zr + 0.31), G, seg=12, axis="Y")                                        # the pressure dial, facing south
+    with on_side(m, -1, yb_ - 0.03, zr + 0.31, xc=xv):
+        ring_round(m, 0.075, 0.058, 0.0, 0.026, TD, seg=12)
+        m.cyl(0.059, 0.008, (0, 0, 0.006), "h_white", seg=12)
+        m.box((0.011, 0.044, 0.005), (-0.02 * math.sin(-0.8), 0.02 * math.cos(-0.8), 0.0125), "h_red", rot=-0.8)
+        m.cyl(0.013, 0.009, (0, 0, 0.0155), TD, seg=6)
+    for x in ((xm0 + xv - 0.13) / 2, (xv + 0.13 + xm1) / 2):  # a collar each side of the valve
+        m.cyl((rd + 0.022) * K, 0.06, (x, yb_, zr), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    xp = (xv + 0.13 + xm1) / 2                                # a pier under the main, below the second collar
+    with m.at((xp, yb_, 0)):
+        slab(m, 0.10, 0.13, 0.0, 0.07, 0.03, T, bevel=0.012)
+        slab(m, 0.05, 0.075, 0.05, zr - 0.13, 0.015, ST, bevel=0.01)
+        slab(m, 0.085, 0.115, zr - 0.15, zr - 0.09, 0.02, G, bevel=0.012)
+    with m.at((xe, yb_, 0)):
+        slab(m, 0.14, 0.14, zr - 0.14, zr + 0.14, 0.03, G, bevel=0.02)
+    Rr, rr = 0.66, 0.07                                       # the ring main: how far out it runs, how fat it is
+    m.cyl(rd * K, -Rr - (yb_ + 0.14) + 0.06, (xe, (yb_ + 0.14 - Rr) / 2, zr), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    for k in range(8):
+        with m.at((xf, 0, 0), rz=rad(45 * k)):
+            m.cyl(rr * K, 2 * Rr * math.tan(rad(22.5)) + 0.02, (0, -Rr, zr), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+        with m.at((xf, 0, 0), rz=rad(45 * k + 22.5)):
+            m.box((0.17, 0.17, 0.18), (0, -Rr / math.cos(rad(22.5)), zr), G, bevel=0.022)
+    for k in (1, 3, 5, 7):                                    # four nozzles from the ring into the shaft
+        with m.at((xf, 0, 0), rz=rad(45 * k)):
+            m.cyl(0.045 * K, 0.15, (0, -0.555, zr), ST, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    # ---- the charging incline, on the north side: a loading box on the hall's roof, a cleated belt between two stringers, a hood on the cap
+    yi = 0.30
+    p0, p1 = (-0.84, 1.00), (xf - 0.33, 2.09)
+    L = math.hypot(p1[0] - p0[0], p1[1] - p0[1])
+    u = ((p1[0] - p0[0]) / L, (p1[1] - p0[1]) / L)
+    n_ = (-u[1], u[0])
+
+    def P(s_, h):
+        return (p0[0] + u[0] * s_ + n_[0] * h, p0[1] + u[1] * s_ + n_[1] * h)
+
+    m.prism([P(0, -0.035), P(L, -0.035), P(L, 0.02), P(0, 0.02)], yi - 0.10, yi + 0.10, "Y", "h_belt")
+    for sy in SIDES:
+        m.prism([P(-0.02, -0.07), P(L + 0.02, -0.07), P(L + 0.02, 0.06), P(-0.02, 0.06)], *sorted((yi + sy * 0.10, yi + sy * 0.145)), "Y", LT)
+    for k in range(1, 9):
+        s_ = k * L / 9
+        m.prism([P(s_ - 0.014, 0.02), P(s_ + 0.014, 0.02), P(s_ + 0.008, 0.046), P(s_ - 0.008, 0.046)], yi - 0.09, yi + 0.09, "Y", LT)
+    with m.at((-0.80, yi, 0)):                                # the loading box
+        slab(m, 0.16, 0.19, Zd - 0.01, Zd + 0.22, 0.035, G, bevel=0.02)
+        slab(m, 0.175, 0.205, Zd + 0.20, Zd + 0.26, 0.045, TD, bevel=0.014)
+    with m.at((xf - 0.25, yi, 0)):                            # the hood over the furnace's mouth
+        slab(m, 0.12, 0.17, 2.04, 2.27, 0.035, G, bevel=0.02)
+        slab(m, 0.135, 0.185, 2.25, 2.31, 0.045, TD, bevel=0.014)
+    xs_ = -0.46                                               # a trestle under the incline, on the hall's roof
+    st = (xs_ - p0[0] - n_[0] * -0.07) / u[0]
+    zt = P(st, -0.07)[1]
+    for sy in SIDES:
+        m.box((0.045, 0.04, zt + 0.02 - Zd), (xs_, yi + sy * 0.1225, (zt + 0.02 + Zd) / 2), ST, bevel=0.008)
+    m.box((0.11, 0.33, 0.03), (xs_, yi, Zd + 0.008), G, bevel=0.01)
+
+
+mill7.frame, mill7.shadow, mill7.res = {"iso": (5.6, 1.45), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
+_hero.HEROES["mill7"] = mill7
 
 
 def former5_paints(m):
