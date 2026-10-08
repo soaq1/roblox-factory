@@ -5,9 +5,11 @@
 #   straight   1x1   west to east
 #   corner     1x1   west to south (right) or west to north (left): the whole section swept round the
 #                    cell's inner corner, so rails, bed and belt turn as one
-#   ramp       2x1   west, low, to east, one cell higher, carried on two portal piers. An end that meets
-#                    a flat belt is level there and eases into the slope; an end that meets another
-#                    ramp keeps its slope, so a run of ramps is one straight climb (four variants).
+#   ramp       2x1   west, low, to east, one cell higher, on two slim trestles. An end that meets a flat
+#                    belt is level there and eases into the slope; an end that meets another ramp
+#                    keeps its slope, so a run of ramps is one straight climb (four variants, and one
+#                    without trestles for stacking).
+#   ramp down  2x1   the same going the other way: west, high, to east, one cell lower.
 #
 # There is no open, rail-less belt: the developer dropped it (2026-10-07).
 import math
@@ -109,12 +111,17 @@ def ramp_profile(low, high):
     return lift, pitch
 
 
-def ramp(m, low=True, high=True, flow=1, legs=True):
-    """Ramp, 2x1: from the west, low, to the east, one cell higher. Which ends are level depends on
-    what it meets (see ramp_profile): level against a flat belt, sloping on against another ramp.
+def ramp(m, low=True, high=True, flow=1, legs=True, down=False):
+    """Ramp, 2x1. Going up it runs from the west, low, to the east, one cell higher; with down=True it
+    runs from the west, high, to the east, one cell lower (the same shape turned end for end, its
+    arrows still pointing east). `low` and `high` say whether the low end and the high end are level
+    (see ramp_profile): level against a flat belt, sloping on against another ramp.
     It stands on two slim trestles (with legs=False, on nothing: for ramps stacked one above another,
     where trestles would stand on the belt below)."""
-    lift_at, pitch_at = ramp_profile(low, high)
+    up_lift, up_pitch = ramp_profile(low, high)
+    g = -1 if down else 1                                     # which way the high end lies
+    lift_at = lambda x: up_lift(g * x)
+    pitch_at = lambda x: g * up_pitch(g * x)
     n = 24
     xs = [-1.0 + 2.0 * i / n for i in range(n + 1)]
     loft(m, [[(x, y, z + lift_at(x)) for y, z in SECTION] for x in xs], R)
@@ -144,16 +151,16 @@ def ramp(m, low=True, high=True, flow=1, legs=True):
         m.stack.pop()
     if not legs:
         return
-    for xc in (0.10, 0.80):                                   # trestles: a slim post under each rail on a small foot, a tie
+    for xc in (g * 0.10, g * 0.80):                           # trestles: a slim post under each rail on a small foot, a tie
         for s in SIDES:                                       # between the two, and a knee brace from each post up to the rail
             ya, yb = sorted((s * 0.385, s * 0.435))
             m.prism([(xc - 0.028, 0.02), (xc + 0.028, 0.02), (xc + 0.028, lift_at(xc + 0.028) + 0.02), (xc - 0.028, lift_at(xc - 0.028) + 0.02)],
                     ya, yb, "Y", ST)
             ya, yb = sorted((s * 0.34, s * 0.48))
             m.prism([(xc - 0.09, 0.0), (xc + 0.09, 0.0), (xc + 0.07, 0.035), (xc - 0.07, 0.035)], ya, yb, "Y", T)
-            xk, zk = xc - 0.24, lift_at(xc) * 0.42            # the brace: from part way up the post to the rail further down the slope
+            xk, zk = xc - g * 0.24, lift_at(xc) * 0.42        # the brace: from part way up the post to the rail further down the slope
             ya, yb = sorted((s * 0.395, s * 0.425))
-            m.prism([(xc - 0.02, zk - 0.03), (xc - 0.02, zk + 0.03), (xk, lift_at(xk) + 0.02), (xk - 0.06, lift_at(xk - 0.06) + 0.02)], ya, yb, "Y", ST)
+            m.prism([(xc - g * 0.02, zk - 0.03), (xc - g * 0.02, zk + 0.03), (xk, lift_at(xk) + 0.02), (xk - g * 0.06, lift_at(xk - g * 0.06) + 0.02)], ya, yb, "Y", ST)
         zt = lift_at(xc) * 0.62
         m.prism([(xc - 0.022, zt - 0.022), (xc + 0.022, zt - 0.022), (xc + 0.022, zt + 0.022), (xc - 0.022, zt + 0.022)], -0.40, 0.40, "Y", ST)   # tie
 
@@ -176,3 +183,28 @@ def ramp_end(m):
 def ramp_bare(m):
     """A ramp without trestles, level at both ends."""
     ramp(m, True, True, legs=False)
+
+
+def ramp_down(m):
+    """A ramp going down, on its own: level at both ends."""
+    ramp(m, True, True, down=True)
+
+
+def ramp_down_start(m):
+    """The first of a run of ramps going down: level where it leaves the flat belt at the top."""
+    ramp(m, False, True, down=True)
+
+
+def ramp_down_mid(m):
+    """A ramp going down between two others: one straight slope."""
+    ramp(m, False, False, down=True)
+
+
+def ramp_down_end(m):
+    """The last of a run going down: level where it meets the flat belt at the bottom."""
+    ramp(m, True, False, down=True)
+
+
+def ramp_down_bare(m):
+    """A ramp going down without trestles, level at both ends."""
+    ramp(m, True, True, legs=False, down=True)
