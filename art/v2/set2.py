@@ -3474,7 +3474,8 @@ _hero.HEROES["mill9"] = mill9
 
 
 def mill10(m, paint="h_p1"):
-    """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. mill9 was a box
+    """REJECTED (2026-10-09): "많이 구림. 폐기".
+    Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. mill9 was a box
     with fittings on it ("그냥 사각형 위에 꾸며두는 느낌"); what makes former5 work is that its form is a
     skeleton with a mass hung inside it, not a box. So here the form is changed, not the trim: this is
     a steel converter, built of former5's parts.
@@ -3609,6 +3610,159 @@ def mill10(m, paint="h_p1"):
 
 mill10.frame, mill10.shadow, mill10.res = {"iso": (5.6, 1.45), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
 _hero.HEROES["mill10"] = mill10
+
+
+def mouth3(m, xa, d, paint):
+    """The grade 3 mouth, to be built with the belt's middle at y = 0: two painted arches with a dark
+    seam between them standing proud of the wall at xa (opening toward d), the tunnel's dark, and each
+    rail rising in its own colour into the arch's leg. The developer's rule: every conveyor mouth of
+    one grade looks the same (grade 1 machines such as the smelter share the ribbed folding cover,
+    d.cover; grade 2 and grade 3 each have their own), so every grade 3 machine calls this."""
+    g = 2 * (BH - 0.305)
+    px = xa
+    for th, w, tp, mk in ((0.08, 0.84 + g, 0.82, paint), (0.022, 0.79 + g, 0.795, SLIT), (0.08, 0.84 + g, 0.82, paint)):
+        a_, b_ = sorted((px, px + d * th))
+        m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
+        px += d * th
+    m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (xa + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)
+    xo = xa + d * 0.182
+    for sy_ in SIDES:
+        pts = [(xo - d * 0.006, 0.03), (xo + d * 0.13, 0.03), (xo + d * 0.13, 0.24), (xo + d * 0.10, 0.262), (xo - d * 0.006, 0.44)]
+        bprism(m, pts if d > 0 else pts[::-1], *sorted((sy_ * 0.358, sy_ * 0.494)), "Y", R, bevel=0.008)
+
+
+def mill11(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. The developer
+    dropped the converter (mill10) and with it the idea of acting out the process: iron and coal go
+    into a machine and steel comes out, and what happens inside is not shown. His words for this one:
+    in the former's manner, but closed where the former's press is open; a big rectangular body, very
+    complicated to look at, with pipes, louvres and round pipework all on it.
+    So the body is the former's house grown large (a grey cabinet under a painted body), the belt
+    through it from mouth to mouth (mouth3), and the complication is three systems of pipe standing
+    off it rather than plates laid on it:
+    - at the south-west corner a banded drum on the ground; from it a fat main runs along the south
+      side on piers, past a valve with a big handwheel, to two tees; from each tee a riser climbs the
+      wall (the first through a second valve), turns over the eave in a box elbow and runs into the
+      side of a plenum on the roof, out of which three fat stacks rise, each taller than the last;
+    - on the roof's west end a round separator, banded, coned, with a small stack of its own, and a
+      short pipe from it into the plenum's end;
+    - along the roof's north edge a return duct on saddles between two box elbows that turn down into
+      the roof.
+    Behind the pipes the walls carry little: a louvre and a door a side, a row of panels and a badge,
+    one dial panel."""
+    belt_stub(m, -1.5, -1.03, -1.39, -1.455)
+    belt_stub(m, 1.03, 1.5, 1.39, 1.455)
+    X, hy = 1.05, 0.72
+    Zc, Zr = 0.84, 1.30                                       # the cabinet's top, the roof
+    body = (X - 0.08, hy - 0.08, 0.045)
+    mouth3(m, -X, -1, paint)
+    mouth3(m, X, 1, paint)
+    slab(m, X - 0.01, hy + 0.015, 0.0, 0.16, 0.03, T, bevel=0.012)
+    slab(m, X, hy, 0.12, Zc, 0.035, G, bevel=0.02)
+    slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
+    zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
+    # ---- the walls, kept quiet behind the pipes
+    with on_side(m, -1, -hy, zc_, xc=-0.30):                  # south: a louvre and a door below; panels and a badge above
+        vent(m, 0.31, 0.21)
+    with on_side(m, -1, -hy, zc_, xc=0.82):
+        framed(m, 0.34, 0.46, LT)
+        m.box((0.022, 0.11, 0.022), (-0.10, 0, 0.02), TD)
+    for x, w in ((-0.72, 0.36), (-0.38, 0.22)):
+        with on_side(m, -1, -body[1], zb_, xc=x):
+            framed(m, w, 0.30)
+    with on_side(m, -1, -body[1], zb_, xc=0.86):
+        m.cyl(0.09, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.048, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    with on_side(m, 1, hy, zc_, xc=0.45):                     # north: a louvre and a door below; the dial panel between two panels above
+        vent(m, 0.31, 0.21)
+    with on_side(m, 1, hy, zc_, xc=-0.50):
+        framed(m, 0.34, 0.46, LT)
+        m.box((0.022, 0.11, 0.022), (0.10, 0, 0.02), TD)
+    with on_side(m, 1, body[1], zb_, xc=0.0):
+        gauges(m, 0.24, 0.11, turns=(0.75, -1.15, 0.2))
+    for x in (-0.62, 0.62):
+        with on_side(m, 1, body[1], zb_, xc=x):
+            framed(m, 0.36, 0.30)
+    for d in SIDES:
+        for x in (-X + 0.068, X - 0.068):
+            for z in (0.21, Zc - 0.09):
+                with on_side(m, d, d * hy, z, xc=x):
+                    m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+    for sx in SIDES:                                          # the body's ends, above the mouths: a bolted plate
+        with on_end(m, sx, sx * body[0], 0, zb_):
+            bolted(m, 0.70, 0.26, G, r=0.02)
+    # ---- on the roof: the plenum and its three stacks
+    rd = 0.105
+    xa0, xa1, ya, pa = -0.05, 0.85, -0.20, 0.22               # the plenum: its ends, its middle line, its half width
+    pz = Zr + 0.36
+    with m.at(((xa0 + xa1) / 2, ya, 0)):
+        slab(m, (xa1 - xa0) / 2, pa, Zr - 0.01, pz, 0.04, G, bevel=0.02)
+        slab(m, (xa1 - xa0) / 2 + 0.012, pa + 0.012, pz - 0.05, pz + 0.012, cut_to((xa1 - xa0) / 2 + 0.012, pa + 0.012, ((xa1 - xa0) / 2, pa, 0.04), 0.012), LT, bevel=0.012)
+    for x, top in ((0.115, 2.15), (0.40, 2.50), (0.685, 2.85)):
+        fat_stack(m, x, ya, pz, top, 0.10, foot=0.035)
+    # ---- system one: drum, main, valve, tees, risers, elbows, into the plenum's side
+    ym, zm, zq = -1.0, 0.42, Zr + 0.18                        # the main's line and height; the height the risers turn over at
+    xd = -0.85                                                # the drum
+    with m.at((xd, ym, 0)):
+        octa(m, 0.23, 0.21, 0.0, 0.08, T)
+        octa(m, 0.20, 0.20, 0.07, 1.05, G)
+        for z in (0.26, 0.82):
+            octa(m, 0.213, 0.213, z, z + 0.06, TD)
+        octa(m, 0.20, 0.10, 1.04, 1.18, G)
+        octa(m, 0.055, 0.055, 1.17, 1.27, ST)
+        octa(m, 0.075, 0.075, 1.26, 1.30, TD)
+    xt1, xt2, xv = 0.15, 0.60, -0.32                          # the two tees, the valve
+    for x0, x1 in ((xd + 0.20, xt1 - 0.14), (xt1 + 0.14, xt2 - 0.14)):
+        m.cyl(rd * K, x1 - x0 + 0.03, ((x0 + x1) / 2, ym, zm), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    for x in ((xd + 0.20 + xv - 0.13) / 2, (xv + 0.13 + xt1 - 0.14) / 2, (xt1 + xt2) / 2):
+        m.cyl((rd + 0.022) * K, 0.06, (x, ym, zm), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    for x in (xv, xt1, xt2):                                  # the valve and the tees are boxes on piers
+        with m.at((x, ym, 0)):
+            slab(m, 0.14 if x != xv else 0.13, 0.14 if x != xv else 0.13, zm - 0.14, zm + 0.14, 0.03, G, bevel=0.02)
+            slab(m, 0.10, 0.13, 0.0, 0.07, 0.03, T, bevel=0.012)
+            slab(m, 0.05, 0.075, 0.05, zm - 0.13, 0.015, ST, bevel=0.01)
+    with on_side(m, -1, ym - 0.13, zm, xc=xv):
+        handwheel(m, 0.14)
+    zv = 0.95                                                 # the valve in the first riser
+    for x in (xt1, xt2):
+        with m.at((x, ym, 0)):
+            octa(m, rd, rd, zm + 0.13, zq - 0.13, LT)
+            slab(m, 0.14, 0.14, zq - 0.14, zq + 0.14, 0.03, G, bevel=0.02)
+            if x == xt1:
+                slab(m, 0.13, 0.13, zv - 0.13, zv + 0.13, 0.03, G, bevel=0.02)
+            else:
+                octa(m, rd + 0.022, rd + 0.022, zv - 0.03, zv + 0.03, G)
+        y0, y1 = ym + 0.14, ya - pa
+        m.cyl(rd * K, y1 - y0 + 0.04, (x, (y0 + y1) / 2, zq), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+        m.cyl((rd + 0.022) * K, 0.06, (x, (y0 + y1) / 2 - 0.03, zq), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    with on_side(m, -1, ym - 0.13, zv, xc=xt1):
+        handwheel(m, 0.14)
+    # ---- system two: the separator on the roof's west end, and its pipe into the plenum's end
+    xs_, ys_ = -0.55, -0.12
+    with m.at((xs_, ys_, 0)):
+        octa(m, 0.29, 0.27, Zr - 0.01, Zr + 0.07, G)
+        octa(m, 0.26, 0.26, Zr + 0.06, Zr + 0.62, LT)
+        for z in (Zr + 0.16, Zr + 0.46):
+            octa(m, 0.273, 0.273, z, z + 0.06, G)
+        octa(m, 0.26, 0.11, Zr + 0.61, Zr + 0.83, G)
+    fat_stack(m, xs_, ys_, Zr + 0.82, 2.52, 0.085, foot=0.03)
+    x0, x1 = xs_ + 0.26, xa0
+    m.cyl(0.08 * K, x1 - x0 + 0.04, ((x0 + x1) / 2, -0.14, zq), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl(0.10 * K, 0.05, ((x0 + x1) / 2, -0.14, zq), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    # ---- system three: the return duct along the roof's north edge
+    yr, zr2 = 0.42, Zr + 0.19
+    for sx in SIDES:
+        with m.at((sx * 0.75, yr, 0)):
+            octa(m, rd + 0.05, rd + 0.02, Zr - 0.01, Zr + 0.06, G)
+            slab(m, 0.14, 0.14, Zr + 0.05, Zr + 0.33, 0.03, G, bevel=0.02)
+        with m.at((sx * 0.30, yr, 0)):
+            slab(m, 0.06, 0.13, Zr - 0.01, Zr + 0.10, 0.02, G, bevel=0.012)                              # a saddle
+        m.cyl((rd + 0.022) * K, 0.06, (sx * 0.30, yr, zr2), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl(rd * K, 1.22 + 0.03, (0, yr, zr2), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+
+
+mill11.frame, mill11.shadow, mill11.res = {"iso": (5.6, 1.4), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
+_hero.HEROES["mill11"] = mill11
 
 
 def former5_paints(m):
