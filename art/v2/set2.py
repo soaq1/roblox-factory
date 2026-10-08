@@ -2111,7 +2111,8 @@ def former5(m, paint=None):
     through a box, crosses to the works' house, turns through another box and drops into its roof.
     The house is a grey cabinet with framed doors, big louvres, heavy corner bolts and a sloped hood
     at its end, under a painted body with a row of framed panels and a badge; on the body's roof stand
-    three fat stacks of different heights and a row of three small ones. Beside it a low platform
+    a plenum that the duct runs into, and out of the plenum three fat stacks in a
+    row, each taller than the last, clamped together by a rail. Beside it a low platform
     carries the mould rack and a pump with its pipe into the press's chassis."""
     paint = paint or PY
     yb = 0.5
@@ -2153,13 +2154,13 @@ def former5(m, paint=None):
                     with on_end(m, sx, sx * 0.545, y, (z0 + z1) / 2):
                         m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
     # the fat duct: up out of the head, through a box, across, through a box, down into the house's roof
-    rd, zd, yd = 0.105, 2.80, -0.42
+    rd, zd, yd = 0.105, 2.80, -0.62
     with m.at((0, yb, 0)):
         octa(m, rd + 0.035, rd + 0.01, 2.385, 2.47, G)
         octa(m, rd, rd, 2.46, zd - 0.12, LT)
         slab(m, 0.14, 0.14, zd - 0.14, zd + 0.14, 0.03, G, bevel=0.02)
     m.cyl(rd * K, yb - yd - 0.26, (0, (yb + yd) / 2, zd), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
-    for y in (0.20, -0.12):
+    for y in (0.20, -0.06, -0.32):
         m.cyl((rd + 0.022) * K, 0.07, (0, y, zd), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
     with m.at((0, yd, 0)):
         slab(m, 0.14, 0.14, zd - 0.14, zd + 0.14, 0.03, G, bevel=0.02)
@@ -2215,19 +2216,43 @@ def former5(m, paint=None):
         for z in (0.72, 1.04):
             with on_side(m, -1, yp, z, xc=x):
                 m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
-    Zr = 1.10                                                 # on the body's roof: the duct coming down, three fat stacks, three small ones
-    with m.at((0, yd, 0)):
-        octa(m, rd + 0.05, rd + 0.02, Zr - 0.01, Zr + 0.09, G)
-        n = 8
+    # On the body's roof, one system instead of things planted side by side: the duct comes down into a box
+    # elbow and runs into the end of a plenum; out of the plenum rise three fat stacks in a row, each taller
+    # than the last, clamped together by a rail; a handwheel and a hatch on the plenum, a hatch in the roof.
+    Zr, yl = 1.10, yd                                         # the roof, and the line everything stands on
+    with m.at((0, yl, 0)):
+        slab(m, 0.14, 0.14, Zr - 0.01, Zr + 0.27, 0.03, G, bevel=0.02)                                   # the lower box elbow, on the roof
+        n = 7
+        h = (zd - 0.14 - Zr - 0.26) / n
         for k in range(n):
-            za = Zr + 0.08 + k * (zd - 0.14 - Zr - 0.08) / n
+            za = Zr + 0.26 + k * h
             wide = k % 2 == 0
-            octa(m, rd if wide else rd * 0.84, rd if wide else rd * 0.84, za, za + (zd - 0.14 - Zr - 0.08) / n + 0.004, LT if wide else G)
-    fat_stack(m, 0.42, -0.62, Zr, 2.30)
-    fat_stack(m, 0.76, -0.36, Zr, 2.66)
-    fat_stack(m, 1.08, -0.64, Zr, 2.02)
-    for k, top in enumerate((1.56, 1.46, 1.62)):
-        fat_stack(m, 0.98 + k * 0.125, -0.19, Zr, top, 0.042)
+            octa(m, rd if wide else rd * 0.84, rd if wide else rd * 0.84, za, za + h + 0.004, LT if wide else G)
+    px0, px1, ph, pz = 0.30, 1.28, 0.19, Zr + 0.25            # the plenum: its ends, half width, top
+    m.cyl(rd * K, px0 - 0.13 + 0.02, ((px0 + 0.13) / 2, yl, Zr + 0.13), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl((rd + 0.024) * K, 0.04, (px0 - 0.02, yl, Zr + 0.13), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with m.at(((px0 + px1) / 2, yl, 0)):
+        slab(m, (px1 - px0) / 2, ph, Zr - 0.01, pz, 0.04, G, bevel=0.02)
+        slab(m, (px1 - px0) / 2 + 0.012, ph + 0.012, pz - 0.05, pz + 0.012, cut_to((px1 - px0) / 2 + 0.012, ph + 0.012, ((px1 - px0) / 2, ph, 0.04), 0.012), LT, bevel=0.012)
+    tops = (2.02, 2.32, 2.62)
+    xs_ = (0.46, 0.79, 1.12)
+    for x, top in zip(xs_, tops):
+        fat_stack(m, x, yl, pz, top, 0.105)
+        with m.at((x, yl, 0)):
+            octa(m, 0.135, 0.135, 1.80, 1.86, G)                                                         # the clamp round each stack
+    for sy in SIDES:                                          # the rail the clamps hang on
+        m.box((xs_[-1] - xs_[0] + 0.10, 0.035, 0.045), ((xs_[0] + xs_[-1]) / 2, yl + sy * 0.118, 1.83), LT, bevel=0.008)
+    with on_side(m, -1, yl - ph, Zr + 0.125, xc=0.62):       # on the plenum's near face: a hatch and a handwheel
+        bolted(m, 0.30, 0.15, LT, r=0.014)
+    with on_side(m, -1, yl - ph, Zr + 0.125, xc=1.02):
+        m.cyl(0.026, 0.07, (0, 0, 0.03), ST, seg=8)
+        ring_round(m, 0.085, 0.06, 0.05, 0.078, paint, seg=14)
+        for k in range(2):
+            m.box((0.14, 0.022, 0.018), (0, 0, 0.064), ST, rot=k * math.pi / 2)
+    m.box((0.46, 0.20, 0.03), (0.74, -0.26, Zr + 0.01), LT, bevel=0.012)                                 # a hatch in the roof behind
+    for sx in SIDES:
+        for sy in SIDES:
+            m.cyl(0.02, 0.012, (0.74 + sx * 0.19, -0.26 + sy * 0.065, Zr + 0.03), TD, seg=6)
 
 
 former5.frame, former5.shadow = {"iso": (4.7, 1.45), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
