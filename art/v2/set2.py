@@ -3,6 +3,7 @@
 # up by buttresses, bands, staves and windows, the same conveyor and folding-cover mouths, and rendered
 # with soft shadows.
 import math
+import factorykit as fk
 from . import hero as _hero
 from . import pairs as _pairs
 from .base import foot_hearth, foot_drain
@@ -1737,10 +1738,11 @@ belts_all.res = 3200                      # wide, and the joints must be seen cl
 _hero.HEROES["belts_all"] = belts_all
 
 
-def factory1(m):
+def _factory(m, formers):
     """Not a machine: a small factory, to see the machines and belts as one thing. Two lines run side
     by side, each ore -> smelter -> former; the far line runs straight into one of the assembler's
-    inputs, the near line turns left and right to reach the other; the assembler's output runs on."""
+    inputs, the near line turns left and right to reach the other; the assembler's output runs on.
+    `formers` gives the former for the far line and for the near line."""
     OX, OY = 2.0, 1.5
     R90 = rad(90)
 
@@ -1757,12 +1759,12 @@ def factory1(m):
             else:
                 m.box((0.30, 0.26, 0.04), (0, 0, 0.02), "h_lite", bevel=0.012)
 
-    for y in (1, -3):                                         # the two lines
+    for y, former in zip((1, -3), formers):                   # the two lines
         for x in (-10, -9):
             put(_belts.straight, x, y)
         put(smelter9, -6.5, y - 0.5)
         put(_belts.straight, -4, y)
-        put(former2, -2, y - 0.5)
+        put(former, -2, y - 0.5)
         put(_belts.straight, 0, y)
         thing(-10.1, y, "ore")
         thing(-9.2, y, "ore")
@@ -1778,9 +1780,161 @@ def factory1(m):
         put(_belts.straight, x, 0)
 
 
+def factory1(m):
+    """The small factory with the former made after Satisfactory in both lines."""
+    _factory(m, (former2, former2))
+
+
+def factory2(m):
+    """The same factory with the former made after Islands (former3) in the near line, for comparison."""
+    _factory(m, (former2, former3))
+
+
 factory1.frame, factory1.shadow = {"iso": (20.0, 1.2), "side": (18.0, 1.6), "top": (18.5, 0.6), "end": (9.0, 1.6)}, True
 factory1.res = 3200
 _hero.HEROES["factory1"] = factory1
+factory2.frame, factory2.shadow, factory2.res = factory1.frame, True, 3200
+_hero.HEROES["factory2"] = factory2
+
+
+fk.PAL.update({"h_py": "#d3a62b"})          # a painted frame: the works' own colour on a grey machine
+PY = "h_py"
+
+
+def hex_stack(m, x, y, z0, z1, r=0.085):
+    """A fat eight-sided stack built in lengths, a collar at each joint, on a flared foot, its top a rim
+    round a real hollow."""
+    with m.at((x, y, 0)):
+        octa(m, r + 0.045, r + 0.02, z0 - 0.01, z0 + 0.07, G)
+        octa(m, r, r, z0 + 0.06, z1 - 0.05, LT)
+        n = max(1, round((z1 - z0 - 0.2) / 0.24))
+        for k in range(1, n + 1):
+            zc = z0 + 0.06 + k * (z1 - z0 - 0.17) / (n + 1)
+            octa(m, r + 0.018, r + 0.018, zc - 0.03, zc + 0.03, G)
+        octa(m, r + 0.01, r + 0.03, z1 - 0.06, z1 - 0.01, G)
+        oct_ring(m, r + 0.03, 0.035, z1 - 0.012, z1 + 0.03, G)
+        octa(m, r - 0.004, r - 0.004, z1 - 0.03, z1 + 0.012, SLIT)
+
+
+def frame_ring(m, hx, hy, z0, z1, w, mk):
+    """A square frame of beams, open in the middle, every edge chamfered, in one mitred piece."""
+    c = 0.014
+    ring(m, hx, hy, [(0.0, z0 + c), (0.0, z1 - c), (c, z1), (w - c, z1), (w, z1 - c), (w, z0 + c), (w - c, z0), (c, z0)], mk)
+
+
+def former3(m):
+    """Former, 3x2 (hitbox 3x2x3), in the manner of the original game's factory machines rather than
+    Satisfactory's: the developer found ours had become a laboratory ("너무 연구소 느낌") beside
+    Islands' "오리지널한 공장 느낌". Side by side the differences were a painted frame, a skeleton left
+    open to view, fat stacks and pipes, and big plain masses; this takes all four, following the build
+    of Islands' steel press mass for mass, in our own parts.
+    The belt runs along the far row, open to the sky. Over it stands the press: four pairs of slim
+    posts on a dark chassis, two painted square frames round them (one half way up, one at the top),
+    and between the frames the painted head, hung from two cross beams, its ram and die over the work
+    on the belt. In the near row stands the works' house: a grey cabinet with doors and vents, a
+    painted body on it, and on the body's roof three fat stacks, a row of three small ones, and the
+    fat pipe that comes over from the head. Beside the house a low platform carries the mould rack."""
+    yb = 0.5
+    with m.at((0, yb, 0)):
+        run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+        collar(m, -0.56, 0.56, mk=T)                          # the chassis the press stands on
+        Zc = 0.385
+        for sx in SIDES:                                      # posts: a pair at each corner, on a shoe
+            for sy in SIDES:
+                m.box((0.17, 0.07, 0.05), (sx * 0.435, sy * 0.414, Zc + 0.02), G, bevel=0.012)
+                for x in (0.40, 0.47):
+                    m.box((0.038, 0.038, 2.42 - Zc), (sx * x, sy * 0.414, (2.42 + Zc) / 2), LT, bevel=0.008)
+        frame_ring(m, 0.53, 0.49, 1.22, 1.35, 0.13, PY)       # the frame half way up
+        frame_ring(m, 0.525, 0.485, 1.196, 1.224, 0.12, TD)   # and the dark line under it
+        frame_ring(m, 0.53, 0.49, 2.40, 2.53, 0.13, PY)       # the frame at the top
+        frame_ring(m, 0.525, 0.485, 2.376, 2.404, 0.12, TD)
+        for y in (-0.2, 0.2):                                 # cross beams under the top frame; the head hangs from them
+            m.prism([(y - 0.05, 2.30), (y + 0.05, 2.30), (y + 0.035, 2.385), (y - 0.035, 2.385)], -0.50, 0.50, "X", G)
+        slab(m, 0.33, 0.30, 1.50, 2.31, 0.05, PY, bevel=0.025)                                           # the head
+        octa(m, 0.21, 0.21, 0.86, 1.52, ST)                                                              # the ram
+        slab(m, 0.27, 0.25, 0.70, 0.87, 0.035, TD, bevel=0.016)                                          # the die
+        m.box((0.32, 0.26, 0.022), (0, 0, BZ + 0.017), LT, bevel=0.006)                                  # the work, on the belt
+        with on_end(m, -1, -0.33, 0, 2.02):                   # the head's end: a slatted panel over two dials
+            vent(m, 0.20, 0.13)
+        for y in (-0.11, 0.11):
+            with on_end(m, -1, -0.33, y, 1.68):
+                m.cyl(0.075, 0.03, (0, 0, 0.012), G, seg=6)
+                m.cyl(0.05, 0.012, (0, 0, 0.03), "h_white", seg=6)
+                m.box((0.012, 0.05, 0.008), (0.012, 0.012, 0.038), "h_red", rot=0.6)
+    # the near row: a low platform with the mould rack, and the works' house
+    with m.at((-0.86, -0.5, 0)):
+        slab(m, 0.56, 0.47, 0.0, 0.14, 0.04, T, bevel=0.014)
+        shell(m, [(0.33, 0.20, 0.03, 0.13), (0.34, 0.21, 0.035, 0.23), (0.325, 0.195, 0.03, 0.245),
+                  (0.30, 0.17, 0.02, 0.245), (0.29, 0.16, 0.018, 0.17)], ST)
+        tower(m, [(0.295, 0.165, 0.02, 0.135), (0.295, 0.165, 0.02, 0.175)], SLIT)
+        for k in range(4):
+            with m.at((-0.215 + k * 0.143, 0, 0)):
+                mould(m, 0.17)
+    hx0, hx1 = -0.30, 1.42
+    xc, hx = (hx0 + hx1) / 2, (hx1 - hx0) / 2
+    with m.at((xc, -0.5, 0)):
+        slab(m, hx - 0.01, 0.46, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, hx, 0.47, 0.12, 0.645, 0.035, G, bevel=0.02)                                             # cabinet
+        body = (hx - 0.08, 0.39, 0.045)
+        slab(m, body[0], body[1], 0.635, 1.04, body[2], PY, bevel=0.022)                                 # the painted body
+    yf, ye = -0.97, hx1
+    for x, w, h in ((0.02, 0.36, 0.38), (0.48, 0.30, 0.38)):                                             # cabinet front: two doors and a vent
+        with on_side(m, -1, yf, 0.39, xc=x):
+            bolted(m, w, h, LT, r=0.016)
+    with on_side(m, -1, yf, 0.39, xc=1.02):
+        vent(m, 0.24, 0.16)
+    for y in (-0.72, -0.28):                                  # cabinet end: two vents
+        with on_end(m, 1, ye, y, 0.39):
+            vent(m, 0.17, 0.16)
+    for x in (hx0 + 0.07, hx1 - 0.07):                        # a bolt at each front corner, top and bottom
+        for z in (0.21, 0.57):
+            with on_side(m, -1, yf, z, xc=x):
+                m.cyl(0.024, 0.016, (0, 0, 0.006), LT, seg=6)
+    yp = -0.5 - 0.39                                          # the painted body's front: let-in grey panels and a badge
+    for x, w in ((0.0, 0.20), (0.33, 0.30), (0.66, 0.16), (0.88, 0.16)):
+        with on_side(m, -1, yp, 0.84, xc=x):
+            m.box((w, 0.24, 0.02), (0, 0, 0.006), G, bevel=0.008)
+            m.box((w - 0.07, 0.17, 0.008), (0, 0, 0.018), LT)
+    with on_side(m, -1, yp, 0.84, xc=1.14):
+        m.cyl(0.075, 0.02, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.01, (0, 0, 0.022), "h_white", seg=6)
+    Zr = 1.04                                                 # on the body's roof
+    hex_stack(m, 0.16, -0.56, Zr, 2.12, 0.095)
+    hex_stack(m, 0.58, -0.36, Zr, 1.80, 0.095)
+    hex_stack(m, 0.92, -0.62, Zr, 2.34, 0.095)
+    for k, top in enumerate((1.50, 1.42, 1.56)):
+        hex_stack(m, 1.22, -0.26 - k * 0.19, Zr, top, 0.05)
+    # the fat pipe from the head over to the body: square out of the head through a flange, one turn in the open, down through a flange
+    xp, zp, rp = -0.06, 1.98, 0.075
+    m.pipe([(xp, yb - 0.31, zp), (xp, -0.21, zp), (xp, -0.30, zp - 0.09), (xp, -0.30, Zr + 0.04)], rp, LT, seg=8)
+    m.cyl(rp + 0.022, 0.03, (xp, yb - 0.315, zp), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    for y in (0.0, -0.13):
+        m.cyl(rp + 0.016, 0.05, (xp, y, zp), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    for z in (1.62, 1.34):
+        with m.at((xp, -0.30, 0)):
+            octa(m, rp + 0.014, rp + 0.014, z - 0.025, z + 0.025, G)
+    with m.at((xp, -0.30, 0)):
+        octa(m, rp + 0.05, rp + 0.03, Zr - 0.01, Zr + 0.06, G)
+
+
+former3.frame, former3.shadow = {"iso": (4.6, 1.3), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
+_hero.HEROES["former3"] = former3
+
+
+def formers_cmp(m):
+    """Not a machine: the two formers side by side on a short line each, to compare a machine after
+    Satisfactory (far) with one after Islands (near)."""
+    for y, fn in ((1.5, former2), (-1.5, former3)):
+        for x in (-3, -2, 2, 3):
+            with m.at((x, y + 0.5, 0)):
+                _belts.straight(m)
+        with m.at((0, y, 0)):
+            fn(m)
+
+
+formers_cmp.frame, formers_cmp.shadow = {"iso": (8.2, 1.3), "side": (7.4, 1.5), "top": (7.0, 0.6), "end": (5.6, 1.5)}, True
+formers_cmp.res = 2000
+_hero.HEROES["formers_cmp"] = formers_cmp
 
 
 def belts_stack(m):
