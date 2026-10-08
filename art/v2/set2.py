@@ -2505,6 +2505,110 @@ smelter12.frame, smelter12.shadow, smelter12.res = {"iso": (3.6, 0.98), "side": 
 _hero.HEROES["smelter12"] = smelter12
 
 
+def cog(m, r, teeth=8, mk=G):
+    """A gear wheel lying on a panel, to be built inside on_side or on_end."""
+    m.cyl(r * 0.82, 0.014, (0, 0, 0.011), mk, seg=12)
+    for k in range(teeth):
+        a_ = 2 * math.pi * k / teeth
+        m.box((r * 0.36, r * 0.30, 0.012), (r * 0.88 * math.cos(a_), r * 0.88 * math.sin(a_), 0.0095), mk, rot=a_)
+    m.cyl(r * 0.30, 0.008, (0, 0, 0.021), TD, seg=6)
+
+
+def smelter13(m):
+    """Smelter, 3x1 (hitbox 3x1x2). A new start: the developer dropped every earlier smelter ("시안이
+    있으니까 자꾸 빙빙 도는 것 같음") and said to take the Islands smelter's design and work it over in
+    our way, as the former was. So this follows that machine's build, in our own parts and under our
+    rules (fat parts, a real fire, nothing touching its neighbour, the same seat on the belt as the
+    former): a body astride the belt between two tunnel mouths; on it a dark deck that overhangs; on
+    the deck, toward the far end, the big hearth box, a dark rim round its open top and the fire under
+    a row of bars, a louvre in its end and a tap port in its front; at the near end two fat pipes that
+    rise out of the deck, turn through box elbows and go into the hearth's end wall, and between them
+    two leaning struts that brace the box; along the deck's edges, before and behind the box, rows of
+    capped stubs. In the body's front a fire mouth, and two fat pipes that come out of the wall and
+    drop into a dark sump on the seat; in its back a fire mouth and a let-in panel with two gears."""
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    Zs = seat(m, BX + 0.312, nose=0.012, inner=0.358)
+    hy, hc, xp, top = 0.40, 0.355, 0.30, 0.90
+    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, top, "Z", G, bevel=0.012)
+    for sx in SIDES:
+        x0, x1 = sorted((sx * xp, sx * BX))
+        bprism(m, [(x0, -hy), (x1, -hy), (x1, hy), (x0, hy)], 0.37, top, "Z", G, bevel=0.012)
+        for d in SIDES:                                       # two heavy bolts in each pier's face
+            for z in (0.50, 0.78):
+                with on_side(m, d, d * hy, z, xc=sx * 0.385):
+                    m.cyl(0.022, 0.018, (0, 0, 0.006), LT, seg=6)
+    Zd = 0.965                                                # the deck's top
+    slab(m, 0.50, 0.47, 0.885, Zd, 0.05, TD, bevel=0.016)
+    # the body's front: a fire mouth, and two fat pipes out of the wall, down into a sump on the seat
+    with on_side(m, -1, -hc, 0.655, xc=-0.16):
+        fire_window(m, bars=3, hx=0.105, hy=0.17)
+    xs_, yd, rp = (0.06, 0.18), -0.43, 0.042
+    for x in xs_:
+        m.pipe([(x, -hc + 0.015, 0.80), (x, yd + 0.045, 0.80), (x, yd, 0.755), (x, yd, 0.50)], rp, LT)
+        m.cyl(0.058, 0.022, (x, -hc - 0.011, 0.80), TD, seg=8, axis="Y")
+        m.cyl(0.056, 0.022, (x, yd, 0.531), TD, seg=8)
+    with m.at(((xs_[0] + xs_[1]) / 2, yd, 0)):
+        slab(m, 0.125, 0.063, Zs - 0.01, 0.52, 0.02, T, bevel=0.01)
+    m.cyl(0.022, 0.02, ((xs_[0] + xs_[1]) / 2 + 0.133, yd, 0.455), LT, seg=6, axis="X")   # the sump's drain plug
+    # the body's back: a fire mouth, and a let-in panel with two gears
+    with on_side(m, 1, hc, 0.655, xc=0.14):
+        fire_window(m, bars=3, hx=0.115, hy=0.17)
+    with on_side(m, 1, hc, 0.655, xc=-0.14):
+        framed(m, 0.24, 0.26)
+        with m.at((-0.035, -0.03, 0)):
+            cog(m, 0.062)
+        with m.at((0.052, 0.045, 0), rz=rad(22.5)):
+            cog(m, 0.046, teeth=6)
+    # the hearth box, on the deck toward the far end
+    xt, bh = 0.13, (0.30, 0.28)
+    Hb = Zd + 0.64
+    with m.at((xt, 0, 0)):
+        tower(m, [(bh[0] + 0.025, bh[1] + 0.025, 0.045, Zd - 0.01), (bh[0], bh[1], 0.04, Zd + 0.05)], T)
+        slab(m, bh[0], bh[1], Zd + 0.04, Hb, 0.04, G, bevel=0.022)
+        shell(m, [(bh[0] + 0.025, bh[1] + 0.025, 0.05, Hb - 0.02), (bh[0] + 0.025, bh[1] + 0.025, 0.05, Hb + 0.045), (bh[0] + 0.01, bh[1] + 0.01, 0.045, Hb + 0.06),
+                  (bh[0] - 0.035, bh[1] - 0.035, 0.03, Hb + 0.06), (bh[0] - 0.045, bh[1] - 0.045, 0.026, Hb - 0.02)], TD)
+        tower(m, [(bh[0] - 0.038, bh[1] - 0.038, 0.026, Hb - 0.006), (bh[0] - 0.038, bh[1] - 0.038, 0.026, Hb + 0.016)], "h_glow")
+        for k in range(6):                                    # bars across the fire, their ends set into the rim
+            x = -0.20 + k * 0.08
+            m.prism([(x - 0.02, Hb + 0.011), (x + 0.02, Hb + 0.011), (x + 0.011, Hb + 0.042), (x - 0.011, Hb + 0.042)], -(bh[1] - 0.04), bh[1] - 0.04, "Y", TD)
+    zm = Zd + 0.34                                            # the middle height of the box's walls
+    with on_end(m, 1, xt + bh[0], 0, zm):                     # a louvre in the far end
+        vent(m, 0.17, 0.15)
+    with on_side(m, -1, -bh[1], zm, xc=xt - 0.13):            # front: a bolted plate, and the tap port
+        bolted(m, 0.22, 0.28, LT, r=0.016)
+    with on_side(m, -1, -bh[1], zm, xc=xt + 0.13):
+        octa(m, 0.05, 0.05, -0.006, 0.01, "h_glow")
+        oct_ring(m, 0.078, 0.03, -0.01, 0.024, T)
+    with on_side(m, 1, bh[1], zm, xc=xt):                     # back: a framed panel
+        framed(m, 0.38, 0.30, LT)
+    # at the near end: two fat pipes out of the deck, through box elbows, into the hearth's end wall
+    xr, rr = -0.36, 0.055
+    for sy in SIDES:
+        with m.at((xr, sy * 0.18, 0)):
+            octa(m, rr + 0.03, rr + 0.012, Zd - 0.01, Zd + 0.05, G)
+            octa(m, rr, rr, Zd + 0.045, Zd + 0.16, LT)
+            octa(m, rr * 0.86, rr * 0.86, Zd + 0.155, zm - 0.07, G)
+            slab(m, 0.07, 0.07, zm - 0.075, zm + 0.075, 0.018, G, bevel=0.012)
+        m.cyl(rr * K, xt - bh[0] - xr - 0.07 + 0.03, ((xt - bh[0] + xr + 0.07) / 2, sy * 0.18, zm), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    for sy in SIDES:                                          # and between them two leaning struts that brace the box
+        ya, yb2 = sorted((sy * 0.028, sy * 0.073))
+        m.prism([(-0.455, Zd - 0.005), (-0.375, Zd - 0.005), (xt - bh[0] + 0.01, Zd + 0.47), (xt - bh[0] + 0.01, Zd + 0.56)], ya, yb2, "Y", ST)
+    m.box((0.12, 0.19, 0.03), (-0.415, 0, Zd + 0.008), G, bevel=0.01)        # the struts' shoe
+    # capped stubs along the deck's edges, before and behind the box
+    for sy in SIDES:
+        for x in (0.0, 0.13, 0.26):
+            with m.at((x, sy * 0.385, 0)):
+                m.cyl(0.046, 0.022, (0, 0, Zd + 0.008), G, seg=6)
+                m.cyl(0.034, 0.07, (0, 0, Zd + 0.05), LT, seg=6)
+                m.cyl(0.043, 0.028, (0, 0, Zd + 0.096), G, seg=6)
+
+
+smelter13.frame, smelter13.shadow, smelter13.res = {"iso": (3.5, 0.9), "side": (3.4, 1.0), "top": (3.2, 0.6), "end": (2.6, 1.0)}, True, 1600
+_hero.HEROES["smelter13"] = smelter13
+
+
 def smelter_heights(m):
     """Not a machine: the smelter at three heights in a row, with a figure as tall as a character (1.67
     cells) beside each, to choose a height. From the far side: as it was (1.36), taller (1.70), and
