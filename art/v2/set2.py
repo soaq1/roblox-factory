@@ -2845,6 +2845,146 @@ PAINTS = {"h_p1": "#cf5134", "h_p2": "#2f8f8a", "h_p3": "#3f6f9f", "h_p4": "#d98
 fk.PAL.update(PAINTS)
 
 
+def handwheel(m, r=0.07, mk="h_red"):
+    """A valve handwheel standing off a wall, to be built inside on_side or on_end."""
+    m.cyl(r * 0.34, 0.06, (0, 0, 0.026), ST, seg=8)
+    ring_round(m, r, r * 0.68, 0.04, 0.062, mk, seg=12)
+    for k in range(2):
+        m.box((r * 1.6, r * 0.26, 0.014), (0, 0, 0.051), ST, rot=k * math.pi / 2)
+
+
+def mill6(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3): iron and coal come in at the two mouths in the west, steel leaves
+    by the mouth in the east. After two rejected attempts the developer said to go as the former went:
+    follow the build of Islands' steel mill in our own parts, under the rules settled on former5.
+    Two masses on one footing. In the west the machine room, low and long: a grey cabinet with a painted
+    body on it, the two inlet mouths in its wall, each in a painted portal with a dark seam. In the east
+    the furnace, tall: a grey block with a smaller upper block and a dark cap, and round it, on four
+    bundles of rods, two painted frames, one at the furnace's waist and one above its top, the upper one
+    crossed by two beams that leave a square open over the fat stack rising from the cap (a frame is
+    left open above whatever smokes). The outlet mouth is in the furnace's east wall, in a portal like
+    the inlets'. Two fat ducts leave the furnace's upper block, cross over the lower frame and turn
+    down through box elbows into the machine room's roof; between the elbows stands a short fat stack.
+    No fire windows: the only fire is the glow in the big stack's mouth."""
+    g = 2 * (BH - 0.305)
+
+    def portal(xa, d, y):                                     # two painted arches with a dark seam between, and the tunnel's dark
+        with m.at((0, y, 0)):
+            px = xa
+            for th, w, tp, mk in ((0.08, 0.84 + g, 0.82, paint), (0.022, 0.79 + g, 0.795, SLIT), (0.08, 0.84 + g, 0.82, paint)):
+                a_, b_ = sorted((px, px + d * th))
+                m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
+                px += d * th
+            m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (xa + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)
+            with m.at((xa + d * 0.091, 0, 0)):
+                seat(m, 0.10, nose=0.012, inner=0.358)
+
+    # ---- the machine room, in the west
+    xr0, xr1, yr = -1.05, -0.22, 1.42
+    xr, hxr = (xr0 + xr1) / 2, (xr1 - xr0) / 2
+    Zc, Zr = 0.90, 1.20                                       # the cabinet's top, the roof
+    zc, zb = (0.12 + Zc) / 2, (Zc + Zr) / 2
+    bodyr = (hxr - 0.05, yr - 0.06, 0.045)
+    for sy in SIDES:
+        with m.at((0, sy * 1.0, 0)):
+            belt_stub(m, -1.5, xr0 + 0.02, -1.385, -1.385)
+        portal(xr0, -1, sy * 1.0)
+    with m.at((xr, 0, 0)):
+        slab(m, hxr + 0.015, yr + 0.02, 0.0, 0.16, 0.04, T, bevel=0.012)
+        slab(m, hxr, yr, 0.12, Zc, 0.04, G, bevel=0.02)
+        slab(m, bodyr[0], bodyr[1], Zc - 0.01, Zr, bodyr[2], paint, bevel=0.022)
+    with on_end(m, -1, xr0, -0.27, zc):                       # the cabinet's west wall, between the mouths: a louvre and two handwheels
+        vent(m, 0.16, 0.20)
+    for y in (0.10, 0.32):
+        with on_end(m, -1, xr0, y, zc + 0.04):
+            handwheel(m)
+    for y in (-1.05, -0.75, -0.45, -0.15, 0.15, 0.45, 0.75, 1.05):   # the painted body's west wall: a row of framed panels
+        with on_end(m, -1, xr - bodyr[0], y, zb):
+            framed(m, 0.20, 0.20)
+    for y in (-1.27, 1.27):
+        for z in (Zc + 0.06, Zr - 0.06):
+            with on_end(m, -1, xr - bodyr[0], y, z):
+                m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
+    for d in SIDES:                                           # the room's two end walls: a door and a louvre; a dial panel and a badge above
+        with on_side(m, d, d * yr, zc, xc=xr - 0.17):
+            framed(m, 0.30, 0.46, LT)
+            m.box((0.022, 0.11, 0.022), (0.09 * -d, 0, 0.02), TD)
+        with on_side(m, d, d * yr, zc, xc=xr + 0.185):
+            vent(m, 0.12, 0.19)
+        with on_side(m, d, d * bodyr[1], zb, xc=xr - 0.105):
+            gauges(m, 0.17, 0.10)
+        with on_side(m, d, d * bodyr[1], zb, xc=xr + 0.215):
+            m.cyl(0.07, 0.022, (0, 0, 0.008), "h_red", seg=6)
+            m.cyl(0.038, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    # ---- the furnace, in the east
+    xf, fx, fy = 0.55, 0.50, 0.90                             # its middle, its half sizes
+    Zl, Zu, Zk = 1.14, 1.72, 1.80                             # the lower block's top, the upper block's top, the cap's top
+    with m.at((xf, 0, 0)):
+        slab(m, 0.78, 1.14, 0.0, 0.14, 0.05, T, bevel=0.012)                                             # the footing the furnace and its rods stand on
+        slab(m, fx, fy, 0.10, Zl, 0.045, G, bevel=0.022)
+        slab(m, fx - 0.03, fy - 0.03, Zl - 0.01, Zu, 0.04, G, bevel=0.02)
+        slab(m, fx, fy, Zu - 0.02, Zk, 0.05, TD, bevel=0.02)
+        fa, fb = (1.19, 1.34), (2.22, 2.37)                   # the two frames
+        RX, RY = 0.65, 1.03
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.15, 0.14, 0.03), (sx * (RX - 0.0375), sy * (RY - 0.034), 0.15), G, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):
+                    m.box((0.044, 0.044, fb[0] + 0.02 - 0.16), (sx * (RX + dx), sy * (RY + dy), (fb[0] + 0.02 + 0.16) / 2), LT, bevel=0.008)
+        for z0, z1 in (fa, fb):
+            frame_ring(m, 0.72, 1.10, z0, z1, 0.17, paint)
+            frame_ring(m, 0.713, 1.093, z0 - 0.03, z0 + 0.004, 0.15, TD)
+        for sy in SIDES:                                      # two beams across the upper frame, leaving a square open over the stack
+            m.box((1.14, 0.15, fb[1] - fb[0] - 0.04), (0, sy * 0.44, (fb[0] + fb[1]) / 2), paint, bevel=0.014)
+    fat_stack(m, xf, 0, Zk, 2.95, 0.19, foot=0.09)
+    with m.at((xf, 0, 0)):
+        octa(m, 0.16, 0.16, 2.93, 2.957, "h_glow")           # the fire, seen in the stack's mouth
+        for sy in SIDES:                                      # a bolted hatch in the cap each side of the stack
+            m.box((0.50, 0.26, 0.03), (0, sy * 0.60, Zk + 0.01), LT, bevel=0.012)
+            for a_ in SIDES:
+                for b_ in SIDES:
+                    m.cyl(0.02, 0.012, (a_ * 0.20, sy * 0.60 + b_ * 0.085, Zk + 0.03), TD, seg=6)
+    for d in SIDES:                                           # the furnace's long walls: a door, a dial panel over a louvre; a bolted plate above the frame
+        with on_side(m, d, d * fy, 0.63, xc=xf - 0.24 * -d):
+            framed(m, 0.30, 0.50, LT)
+            m.box((0.022, 0.11, 0.022), (0.09, 0, 0.02), TD)
+        with on_side(m, d, d * fy, 0.82, xc=xf + 0.20 * -d):
+            gauges(m, 0.20, 0.10)
+        with on_side(m, d, d * fy, 0.44, xc=xf + 0.20 * -d):
+            vent(m, 0.19, 0.13)
+        with on_side(m, d, d * (fy - 0.03), (fa[1] + Zu - 0.02) / 2, xc=xf):
+            bolted(m, 0.62, 0.22, LT, r=0.016)
+    # the outlet, in the furnace's east wall
+    belt_stub(m, xf + fx - 0.02, 1.5, 1.385, 1.385)
+    portal(xf + fx, 1, 0.0)
+    for y in (-0.67, 0.67):
+        with on_end(m, 1, xf + fx, y, 0.60):
+            vent(m, 0.13, 0.20)
+    with on_end(m, 1, xf + fx - 0.03, 0, (fa[1] + Zu - 0.02) / 2):
+        bolted(m, 1.00, 0.22, LT, r=0.016)
+    # ---- the two fat ducts: out of the furnace's upper block, over the lower frame, through box elbows, down into the room's roof
+    rd, zq, xe = 0.10, 1.53, -0.62
+    xw = xf - fx + 0.03                                       # the upper block's west wall
+    for sy in SIDES:
+        y = sy * 0.50
+        m.cyl(rd * K, xw - (xe + 0.13) + 0.04, ((xw + xe + 0.13) / 2, y, zq), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+        m.cyl((rd + 0.022) * K, 0.07, ((xw + xe + 0.13) / 2 - 0.06, y, zq), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+        with m.at((xe, y, 0)):
+            slab(m, 0.13, 0.13, zq - 0.13, zq + 0.13, 0.03, G, bevel=0.02)
+            octa(m, rd + 0.05, rd + 0.02, Zr - 0.01, Zr + 0.08, G)
+            octa(m, rd, rd, Zr + 0.07, zq - 0.12, LT)
+    fat_stack(m, xe - 0.02, 0, Zr, 2.02, 0.10)                # a short fat stack between the elbows
+    for sy in SIDES:                                          # a bolted hatch in the roof at each end
+        m.box((0.40, 0.26, 0.03), (xr, sy * 1.0, Zr + 0.01), LT, bevel=0.012)
+        for a_ in SIDES:
+            for b_ in SIDES:
+                m.cyl(0.02, 0.012, (xr + a_ * 0.15, sy * 1.0 + b_ * 0.085, Zr + 0.03), TD, seg=6)
+
+
+mill6.frame, mill6.shadow, mill6.res = {"iso": (5.4, 1.45), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
+_hero.HEROES["mill6"] = mill6
+
+
 def former5_paints(m):
     """Not a machine: former5 four times, each in a different trial paint, to choose a colour of our own."""
     for (x, y), key in zip(((-2.3, 1.9), (2.3, 1.9), (-2.3, -1.9), (2.3, -1.9)), PAINTS):
