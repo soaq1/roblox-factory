@@ -1785,6 +1785,11 @@ def factory1(m):
     _factory(m, (former2, former2))
 
 
+def factory3(m):
+    """The same factory with our own rough, busy former (former4) in the near line."""
+    _factory(m, (former2, former4))
+
+
 def factory2(m):
     """The same factory with the former made after Islands (former3) in the near line, for comparison."""
     _factory(m, (former2, former3))
@@ -1795,6 +1800,8 @@ factory1.res = 3200
 _hero.HEROES["factory1"] = factory1
 factory2.frame, factory2.shadow, factory2.res = factory1.frame, True, 3200
 _hero.HEROES["factory2"] = factory2
+factory3.frame, factory3.shadow, factory3.res = factory1.frame, True, 3200
+_hero.HEROES["factory3"] = factory3
 
 
 fk.PAL.update({"h_py": "#d3a62b"})          # a painted frame: the works' own colour on a grey machine
@@ -1919,6 +1926,157 @@ def former3(m):
 
 former3.frame, former3.shadow = {"iso": (4.6, 1.3), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
 _hero.HEROES["former3"] = former3
+
+
+fk.PAL.update({"h_pr": "#a9543f"})          # oxide red: the paint on former4's crown and guards
+PR = "h_pr"
+
+
+def hull2(c0, r0, c1, r1, n=10):
+    """The outline that wraps two circles in a plane (a belt round two pulleys): points, counter-clockwise."""
+    pts = [(c[0] + r * math.cos(2 * math.pi * k / (2 * n)), c[1] + r * math.sin(2 * math.pi * k / (2 * n)))
+           for c, r in ((c0, r0), (c1, r1)) for k in range(2 * n)]
+    pts = sorted(set(pts))
+    def half(seq):
+        out = []
+        for q in seq:
+            while len(out) >= 2 and (out[-1][0] - out[-2][0]) * (q[1] - out[-2][1]) - (out[-1][1] - out[-2][1]) * (q[0] - out[-2][0]) <= 0:
+                out.pop()
+            out.append(q)
+        return out
+    lo, hi = half(pts), half(reversed(pts))
+    return lo[:-1] + hi[:-1]
+
+
+def bolt_row(m, n, span, y, r=0.02):
+    """A row of n bolt heads across a face, to be built inside on_side or on_end."""
+    for k in range(n):
+        m.cyl(r, 0.014, (-span / 2 + k * span / (n - 1), y, 0.005), LT, seg=6)
+
+
+def former4(m):
+    """Former, 3x2 (hitbox 3x2x3). The developer on former3: less futuristic and rougher, but too like
+    Islands and "너무 단순하게 생겨서 공장 맛이 안 난다": it wants roughness AND complexity. So this is
+    our own machine, a mechanical press with its works on show: heavy iron, and many parts each doing
+    a job.
+    The belt runs along the far row, open. Over it stands the press: four tapered iron columns on
+    bolted feet, tied by rails and braced with a cross on the far side, carrying a deep painted crown
+    riveted along its edges. Out of the crown's near face comes the crankshaft with a big spoked
+    flywheel; a finned motor on the crown's top drives it through a guarded belt. Under the crown the
+    slide runs between gibs on the columns, the ram and die below it over the work on the belt.
+    The near row stands on one platform: the mould rack; an oil drum lying on two saddles, banded,
+    with a manhole and two pipes that climb to the crown; and the control stand with its sloped desk,
+    two levers and a handwheel."""
+    yb = 0.5
+    with m.at((0, yb, 0)):
+        run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+        collar(m, -0.78, 0.78, mk=T)
+    Zc, zk0, zk1 = 0.385, 1.76, 2.22                          # the chassis' top, the crown's underside and top
+    cx, cy = 0.52, 0.42
+    for sx in SIDES:
+        for sy in SIDES:
+            with m.at((sx * cx, yb + sy * cy, 0)):
+                slab(m, 0.135, 0.072, Zc - 0.005, Zc + 0.045, 0.02, G, bevel=0.012)                      # bolted foot
+                for u in (-0.095, 0.095):
+                    m.cyl(0.02, 0.014, (u, 0, Zc + 0.05), LT, seg=6)
+                tower(m, [(0.10, 0.068, 0.02, Zc + 0.04), (0.082, 0.06, 0.018, 1.0), (0.072, 0.056, 0.016, zk0 + 0.012)], T)   # column
+            xa, xb = sorted((sx * (cx - 0.07), sx * (cx - 0.26)))                                        # gusset under the crown
+            m.prism([(sx * (cx - 0.06), zk0 + 0.01), (sx * (cx - 0.06), zk0 - 0.24), (sx * (cx - 0.27), zk0 + 0.01)],
+                    *sorted((yb + sy * (cy - 0.03), yb + sy * (cy + 0.03))), "Y", G)
+            m.box((0.03, 0.05, 0.86), (sx * (cx - 0.105), yb + sy * 0.31, 1.33), LT, bevel=0.008)        # gib the slide runs on
+    for sy in SIDES:                                          # a rail tying each pair of columns
+        m.box((2 * cx, 0.055, 0.09), (0, yb + sy * cy, 1.02), G, bevel=0.012)
+    for k, (a_, b_) in enumerate((((-cx, 1.07), (cx, zk0)), ((-cx, zk0), (cx, 1.07)))):                 # the cross brace, on the far side
+        dx, dz = b_[0] - a_[0], b_[1] - a_[1]
+        L = math.hypot(dx, dz)
+        nx, nz = -dz / L * 0.025, dx / L * 0.025
+        m.prism([(a_[0] + nx, a_[1] + nz), (b_[0] + nx, b_[1] + nz), (b_[0] - nx, b_[1] - nz), (a_[0] - nx, a_[1] - nz)],
+                yb + cy + 0.03 - k * 0.012, yb + cy + 0.055 - k * 0.012, "Y", ST)       # one bar lies a little behind the other where they cross
+    crown = (0.66, 0.47, 0.05)
+    with m.at((0, yb, 0)):
+        slab(m, crown[0], crown[1], zk0, zk1, crown[2], PR, bevel=0.03)                                  # the crown
+        slab(m, 0.62, 0.43, zk1 - 0.012, zk1 + 0.05, cut_to(0.62, 0.43, crown, -0.04), TD, bevel=0.016)
+        slab(m, 0.30, 0.29, 1.22, zk0 + 0.012, 0.04, G, bevel=0.02)                                      # the slide
+        octa(m, 0.15, 0.15, 0.94, 1.235, ST)                                                             # the ram
+        slab(m, 0.27, 0.25, 0.78, 0.95, 0.035, TD, bevel=0.016)                                          # the die
+        m.box((0.32, 0.26, 0.022), (0, 0, BZ + 0.017), LT, bevel=0.006)                                  # the work, on the belt
+    for sx in SIDES:                                          # rivets along the crown's ends, and along its far face
+        with on_end(m, sx, sx * crown[0], yb, (zk0 + zk1) / 2):
+            bolt_row(m, 6, 0.66, 0.16)
+            bolt_row(m, 6, 0.66, -0.16)
+    with on_side(m, 1, yb + crown[1], (zk0 + zk1) / 2):
+        bolt_row(m, 8, 1.02, 0.16)
+        bolt_row(m, 8, 1.02, -0.16)
+    # the drive: crankshaft and flywheel out of the crown's near face, a finned motor on top, a guarded belt between
+    zs, yw = 1.99, yb - crown[1]
+    with on_side(m, -1, yw, zs):
+        m.cyl(0.13, 0.05, (0, 0, 0.018), T, seg=8)            # bearing
+        m.cyl(0.06, 0.24, (0, 0, 0.11), ST, seg=10)           # crankshaft
+        ring_round(m, 0.40, 0.325, 0.05, 0.135, TD, seg=24)   # flywheel rim
+        for k in range(3):
+            m.box((0.70, 0.065, 0.04), (0, 0, 0.0925), LT, rot=k * math.pi / 3)
+        m.cyl(0.115, 0.10, (0, 0, 0.0925), T, seg=8)          # hub
+    xm, zm = 0.36, zk1 + 0.20                                 # the motor
+    with m.at((xm, yb + 0.06, 0)):
+        slab(m, 0.16, 0.20, zk1 + 0.04, zk1 + 0.085, 0.03, T, bevel=0.012)
+        m.cyl(0.13, 0.42, (0, 0, zm), ST, seg=12, axis="Y")
+        for k in range(5):
+            m.cyl(0.146, 0.035, (0, -0.15 + k * 0.075, zm), TD, seg=12, axis="Y")
+        m.cyl(0.085, 0.05, (0, 0.235, zm), T, seg=10, axis="Y")
+    yg0, yg1 = yw - 0.215, yw - 0.155                         # the belt guard, outside the flywheel
+    m.cyl(0.032, yb + 0.06 - 0.21 - yg1 + 0.02, (xm, (yb + 0.06 - 0.21 + yg1) / 2, zm), ST, seg=8, axis="Y")   # motor shaft
+    m.prism(hull2((0.0, zs), 0.17, (xm, zm), 0.10), yg0, yg1, "Y", PR)
+    for (x, z) in ((0.0, zs), (xm, zm)):
+        m.cyl(0.05, 0.016, (x, yg0 - 0.008, z), LT, seg=6, axis="Y")
+    # the near row, on one platform
+    with m.at((0, -0.5, 0)):
+        slab(m, 1.42, 0.47, 0.0, 0.12, 0.04, T, bevel=0.014)
+    Zp = 0.12
+    with m.at((-0.98, -0.5, 0)):                              # the mould rack
+        shell(m, [(0.33, 0.20, 0.03, Zp - 0.01), (0.34, 0.21, 0.035, Zp + 0.09), (0.325, 0.195, 0.03, Zp + 0.105),
+                  (0.30, 0.17, 0.02, Zp + 0.105), (0.29, 0.16, 0.018, Zp + 0.03)], ST)
+        tower(m, [(0.295, 0.165, 0.02, Zp - 0.005), (0.295, 0.165, 0.02, Zp + 0.035)], SLIT)
+        for k in range(4):
+            with m.at((-0.215 + k * 0.143, 0, 0)):
+                mould(m, Zp + 0.03)
+    xt, yt, rt, zt = 0.10, -0.58, 0.26, Zp + 0.09 + 0.26       # the oil drum, lying on two saddles
+    m.cyl(rt, 0.92, (xt, yt, zt), G, seg=14, axis="X")
+    for sx in SIDES:
+        m.cyl(rt, 0.07, (xt + sx * 0.495, yt, zt), G, seg=14, axis="X", r2=rt * 0.72) if sx > 0 else \
+            m.cyl(rt * 0.72, 0.07, (xt + sx * 0.495, yt, zt), G, seg=14, axis="X", r2=rt)
+        m.prism([(yt - 0.24, Zp - 0.005), (yt + 0.24, Zp - 0.005), (yt + 0.19, zt - 0.06), (yt - 0.19, zt - 0.06)],
+                *sorted((xt + sx * 0.30 - 0.05, xt + sx * 0.30 + 0.05)), "X", T)
+    for x in (-0.36, 0.0, 0.36):
+        m.cyl(rt + 0.012, 0.045, (xt + x, yt, zt), TD, seg=14, axis="X")
+    with m.at((xt - 0.20, yt, 0)):                            # manhole
+        octa(m, 0.105, 0.105, zt + rt - 0.03, zt + rt + 0.04, T)
+        octa(m, 0.075, 0.06, zt + rt + 0.04, zt + rt + 0.075, ST)
+    zpip, rp = 1.93, 0.045                                    # two pipes from the drum up to the crown
+    for x in (0.47, 0.585):
+        m.pipe([(x, yt, zt + rt - 0.03), (x, yt, zpip - 0.10), (x, yt + 0.10, zpip), (x, yw + 0.02, zpip)], rp, ST, seg=8)
+        with m.at((x, yt, 0)):
+            octa(m, rp + 0.03, rp + 0.018, zt + rt - 0.035, zt + rt + 0.03, T)
+            octa(m, rp + 0.014, rp + 0.014, 1.20, 1.245, TD)
+        m.cyl(rp + 0.016, 0.026, (x, yw - 0.012, zpip), TD, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    xs = 1.10                                                 # the control stand
+    stand = (0.24, 0.34, 0.035)
+    with m.at((xs, -0.5, 0)):
+        slab(m, stand[0], stand[1], Zp - 0.005, 0.74, stand[2], G, bevel=0.018)
+        m.prism([(-0.36, 0.73), (0.36, 0.73), (0.36, 0.80), (-0.36, 0.90)], -0.26, 0.26, "X", TD)       # sloped desk, toward the near side
+        for x in (-0.11, 0.09):                               # two levers in the desk
+            m.box((0.022, 0.022, 0.20), (x, 0.12, 0.95), ST)
+            m.ico(0.035, (x, 0.12, 1.06), PR) if hasattr(m, "ico") else None
+    with on_side(m, -1, -0.5 - stand[1], 0.46, xc=xs):        # handwheel on its front
+        m.cyl(0.03, 0.09, (0, 0, 0.04), ST, seg=8)
+        ring_round(m, 0.14, 0.105, 0.065, 0.10, PR, seg=16)
+        for k in range(2):
+            m.box((0.24, 0.03, 0.022), (0, 0, 0.082), ST, rot=k * math.pi / 2)
+    with on_end(m, 1, xs + stand[0], -0.5, 0.44):
+        vent(m, 0.22, 0.17)
+
+
+former4.frame, former4.shadow = {"iso": (4.6, 1.4), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
+_hero.HEROES["former4"] = former4
 
 
 def formers_cmp(m):
