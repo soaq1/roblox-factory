@@ -2102,7 +2102,7 @@ def framed(m, w, h, inner="h_dark"):
     ring(m, w / 2, h / 2, [(0.0, -0.004), (0.008, 0.024), (0.028, 0.024), (0.036, -0.004)], G, c=0.012)
 
 
-def former5(m):
+def former5(m, paint=None):
     """Former, 3x2 (hitbox 3x2x3). The developer put former3 beside Islands' steel press and said ours is
     simply too simple: make it much more complicated and impressive, but rough. So this is former3's
     kind of machine with its masses fattened and its surfaces filled: the open press has three painted
@@ -2113,6 +2113,7 @@ def former5(m):
     at its end, under a painted body with a row of framed panels and a badge; on the body's roof stand
     three fat stacks of different heights and a row of three small ones. Beside it a low platform
     carries the mould rack and a pump with its pipe into the press's chassis."""
+    paint = paint or PY
     yb = 0.5
     with m.at((0, yb, 0)):
         run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
@@ -2125,11 +2126,11 @@ def former5(m):
                 for dx, dy in ((0.0, 0.0), (-0.085, 0.0), (0.0, -0.075)):                                # three rods to a corner
                     m.box((0.044, 0.044, fz[2][0] + 0.02 - Zc), (sx * (0.475 + dx), sy * (0.425 + dy), (fz[2][0] + 0.02 + Zc) / 2), LT, bevel=0.008)
         for z0, z1 in fz:
-            frame_ring(m, 0.545, 0.49, z0, z1, 0.15, PY)
+            frame_ring(m, 0.545, 0.49, z0, z1, 0.15, paint)
             frame_ring(m, 0.538, 0.483, z0 - 0.03, z0 + 0.004, 0.13, TD)
         for y in (-0.2, 0.2):                                 # cross beams under the top frame; the head hangs from them
             m.prism([(y - 0.055, 2.385), (y + 0.055, 2.385), (y + 0.04, 2.465), (y - 0.04, 2.465)], -0.50, 0.50, "X", G)
-        slab(m, 0.37, 0.335, 1.76, 2.395, 0.05, PY, bevel=0.025)                                         # the head
+        slab(m, 0.37, 0.335, 1.76, 2.395, 0.05, paint, bevel=0.025)                                         # the head
         slab(m, 0.30, 0.28, 1.28, 1.59, 0.04, G, bevel=0.02)                                             # the guide under the middle frame
         octa(m, 0.18, 0.18, 1.01, 1.29, ST)                                                              # the ram
         slab(m, 0.27, 0.25, 0.85, 1.02, 0.035, TD, bevel=0.016)                                          # the die, inside the lowest frame
@@ -2138,20 +2139,19 @@ def former5(m):
             vent(m, 0.25, 0.12)
         with on_end(m, -1, -0.37, 0, 2.045):
             m.box((0.56, 0.06, 0.012), (0, 0, 0.004), SLIT)
-        with on_end(m, -1, -0.37, 0, 1.89):
-            bolted(m, 0.52, 0.17, G, r=0.016)
+        with on_end(m, -1, -0.37, 0, 1.885):                  # a plate under the band, carrying the two dials
+            m.box((0.52, 0.19, 0.03), (0, 0, 0.01), G, bevel=0.012)
+            for y in (-0.13, 0.13):
+                m.cyl(0.07, 0.022, (y, 0, 0.03), LT, seg=6)
+                m.cyl(0.048, 0.012, (y, 0, 0.044), "h_white", seg=6)
+                m.box((0.012, 0.046, 0.008), (y + 0.01, 0.008, 0.052), "h_red", rot=0.6)
         with on_side(m, -1, -0.335, 2.08):                    # and its near face
             bolted(m, 0.46, 0.42, G)
-        for sx in SIDES:                                      # bolts in the frames' corners, and two dials on the middle one
+        for sx in SIDES:                                      # bolts in the frames' corners
             for z0, z1 in fz:
                 for y in (-0.42, 0.42):
                     with on_end(m, sx, sx * 0.545, y, (z0 + z1) / 2):
                         m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
-        for y in (-0.15, 0.15):
-            with on_end(m, -1, -0.545, y, 1.655):
-                m.cyl(0.07, 0.03, (0, 0, 0.012), G, seg=6)
-                m.cyl(0.046, 0.012, (0, 0, 0.03), "h_white", seg=6)
-                m.box((0.012, 0.046, 0.008), (0.01, 0.01, 0.038), "h_red", rot=0.6)
     # the fat duct: up out of the head, through a box, across, through a box, down into the house's roof
     rd, zd, yd = 0.105, 2.80, -0.42
     with m.at((0, yb, 0)):
@@ -2188,7 +2188,7 @@ def former5(m):
     with m.at((xc, -0.5, 0)):
         slab(m, hx - 0.01, 0.46, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, hx, 0.47, 0.12, 0.665, 0.035, G, bevel=0.02)                                             # cabinet
-        slab(m, body[0], body[1], 0.655, 1.10, body[2], PY, bevel=0.022)                                 # the painted body
+        slab(m, body[0], body[1], 0.655, 1.10, body[2], paint, bevel=0.022)                                 # the painted body
     yf, ye = -0.97, hx1
     for x in (0.0, 0.42):                                     # cabinet front: two framed doors with handles, a big louvre
         with on_side(m, -1, yf, 0.40, xc=x):
@@ -2232,6 +2232,21 @@ def former5(m):
 
 former5.frame, former5.shadow = {"iso": (4.7, 1.45), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
 _hero.HEROES["former5"] = former5
+
+
+PAINTS = {"h_p1": "#cf5134", "h_p2": "#2f8f8a", "h_p3": "#3f6f9f", "h_p4": "#d9822b"}       # trial paints: vermilion, teal, steel blue, orange
+fk.PAL.update(PAINTS)
+
+
+def former5_paints(m):
+    """Not a machine: former5 four times, each in a different trial paint, to choose a colour of our own."""
+    for (x, y), key in zip(((-2.3, 1.9), (2.3, 1.9), (-2.3, -1.9), (2.3, -1.9)), PAINTS):
+        with m.at((x, y, 0)):
+            former5(m, key)
+
+
+former5_paints.frame, former5_paints.shadow, former5_paints.res = {"iso": (10.6, 1.4), "side": (9.0, 1.5), "top": (9.0, 0.6), "end": (8.0, 1.5)}, True, 2600
+_hero.HEROES["former5_paints"] = former5_paints
 
 
 def formers_cmp(m):
