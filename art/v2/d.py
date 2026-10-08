@@ -79,6 +79,7 @@ def cover(m, x0, d, sole=True):
     """The folding cover over a tunnel mouth at the body's end x0, opening toward d. A collar hugs each
     rail behind the end frame, which stands on the rail itself; with sole=False the machine supplies
     its own."""
+    x0 += d * 0.004                                           # a hair clear of the belt's own end, so no two faces share a plane there
     if sole:
         collar(m, *sorted((x0, x0 + d * 0.318)))
     px = x0

@@ -1737,6 +1737,52 @@ belts_all.res = 3200                      # wide, and the joints must be seen cl
 _hero.HEROES["belts_all"] = belts_all
 
 
+def factory1(m):
+    """Not a machine: a small factory, to see the machines and belts as one thing. Two lines run side
+    by side, each ore -> smelter -> former; the far line runs straight into one of the assembler's
+    inputs, the near line turns left and right to reach the other; the assembler's output runs on."""
+    OX, OY = 2.0, 1.5
+    R90 = rad(90)
+
+    def put(fn, x, y, rz=0.0, z=0.0):
+        with m.at((x + OX, y + OY, z), rz):
+            fn(m)
+
+    def thing(x, y, kind):                                    # something riding the belt
+        with m.at((x + OX, y + OY, BZ + 0.006)):       # just clear of the arrows painted on the belt
+            if kind == "ore":
+                m.box((0.26, 0.24, 0.18), (0, 0, 0.09), "h_ore", bevel=0.05)
+            elif kind == "ingot":
+                m.box((0.30, 0.16, 0.10), (0, 0, 0.05), "h_steel", bevel=0.03, taper=0.8)
+            else:
+                m.box((0.30, 0.26, 0.04), (0, 0, 0.02), "h_lite", bevel=0.012)
+
+    for y in (1, -3):                                         # the two lines
+        for x in (-10, -9):
+            put(_belts.straight, x, y)
+        put(smelter9, -6.5, y - 0.5)
+        put(_belts.straight, -4, y)
+        put(former2, -2, y - 0.5)
+        put(_belts.straight, 0, y)
+        thing(-10.1, y, "ore")
+        thing(-9.2, y, "ore")
+        thing(-4.0, y, "ingot")
+        thing(0.0, y, "plate")
+    put(_belts.straight, 1, 1)                                # the far line: straight in
+    put(_belts.corner_left, 1, -3)                            # the near line: up two cells, then in
+    put(_belts.straight, 1, -2, R90)
+    put(_belts.corner_right, 1, -1, R90)
+    thing(1.0, -2.0, "plate")
+    put(assembler4, 3, 0)
+    for x in (5, 6):
+        put(_belts.straight, x, 0)
+
+
+factory1.frame, factory1.shadow = {"iso": (20.0, 1.2), "side": (18.0, 1.6), "top": (18.5, 0.6), "end": (9.0, 1.6)}, True
+factory1.res = 3200
+_hero.HEROES["factory1"] = factory1
+
+
 def belts_stack(m):
     """Not a machine: three lines of conveyor one cell above another, each two straights, a ramp without
     trestles and a straight one cell higher, with things riding them, to judge the room between stacked

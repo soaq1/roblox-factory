@@ -21,7 +21,7 @@ from .base import BOLT, BOLT_AT, BOLT_LEAN, WEB
 
 ST = "h_steel"
 
-ARC = 8                   # facets in a quarter turn
+ARC = 12                  # facets in a quarter turn
 BELT = [(-BH, BED), (BH, BED), (BH, BZ), (-BH, BZ)]           # the belt itself, lying on the bed
 
 
@@ -50,14 +50,28 @@ def straight(m):
     run(m, -0.5, 0.5, braces=(-1 / 3, 0.0, 1 / 3))
 
 
-def corner(m, turn=-1):
+SQUARE = 3.2             # how square a corner's outer rail turns: 2 is a quarter circle, larger is squarer
+
+
+def corner(m, turn=-1, square=None):
     """Corner belt, 1x1: in from the west; out to the south (turn = -1, a right turn) or to the north
-    (turn = +1). The section is swept round the cell's inner corner, so the outer rail is one curve and
-    the inner rail closes into a round post."""
+    (turn = +1). The section is swept round the cell's inner corner, so rails, bed and belt turn as one
+    and the inner rail closes into a post. The sweep is not a quarter circle but a little squarer (a
+    superellipse): the developer asked for the outer rail to be cut back less, so that the corner
+    keeps some of its angle. Both ends are still the plain section, square to the cell's edge."""
+    n = SQUARE if square is None else square
+
     def at(th, across, z):                                    # a point of the section, th degrees round from the entry
         a = rad(90 - th)
-        r = 0.5 + across
+        c, s_ = abs(math.cos(a)), abs(math.sin(a))
+        r = (0.5 + across) * (c ** n + s_ ** n) ** (-1.0 / n)
         return (-0.5 + r * math.cos(a), -turn * (-0.5 + r * math.sin(a)), z)
+
+    def frame_at(th, across):                                 # where that point is, and which way the belt runs there
+        x, y, _ = at(th, across, 0.0)
+        x0, y0, _ = at(th - 0.5, across, 0.0)
+        x1, y1, _ = at(th + 0.5, across, 0.0)
+        return x, y, math.atan2(y1 - y0, x1 - x0)
 
     steps = [90.0 * i / ARC for i in range(ARC + 1)]
     loft(m, [[at(th, y, z) for y, z in SECTION] for th in steps], R)
@@ -65,13 +79,13 @@ def corner(m, turn=-1):
     loft(m, [[at(th, -y, z) for y, z in WEB] for th in steps], RD)                      # and in the inner rail's
     loft(m, [[at(th, y, z) for y, z in BELT] for th in steps], "h_belt")
     for th in (22.5, 67.5):                                   # arrows, turning with the belt
-        x, y, _ = at(th, 0.0, 0.0)
-        with m.at((x, y, 0), rad(turn * th)):
+        x, y, head = frame_at(th, 0.0)
+        with m.at((x, y, 0), head):
             chev(m, 0.0)
-    for th in (22.5, 45.0, 67.5):                             # bolts on the outer rail
-        x, y, _ = at(th, 0.0, 0.0)
-        with m.at((x, y, 0), rad(turn * th) + (0.0 if turn < 0 else math.pi)):
-            bolt(m)
+    for th in (20.0, 45.0, 70.0):                             # bolts in the outer rail's web, each square to it
+        x, y, head = frame_at(th, BOLT_AT[0])
+        with m.at((x, y, 0), head + (0.0 if turn < 0 else math.pi)):
+            m.cyl(BOLT[0], BOLT[1], (0, 0, BOLT_AT[1]), "h_lite", seg=6, axis="Y")
 
 
 def corner_right(m):
