@@ -4,6 +4,7 @@
 # with soft shadows.
 import math
 import factorykit as fk
+from .base import loft_x
 from . import hero as _hero
 from . import pairs as _pairs
 from .base import foot_hearth, foot_drain
@@ -2118,17 +2119,26 @@ def former5(m, paint=None):
     yb = 0.5
     with m.at((0, yb, 0)):
         run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
-        collar(m, -0.62, 0.62, mk=T)
+        # The press's seat on the belt, in two courses, each wide enough to carry what stands on it and each
+        # sloping down at its ends: a dark sill over each rail, and on it a grey bed whose flat top the rods
+        # stand on (they used to stand on small shoes that hung over the edge of a belt collar).
         Zc = 0.385
+        low = [(0.356, 0.04), (0.494, 0.04), (0.494, 0.245), (0.468, 0.29), (0.356, 0.29)]
+        low_end = [(0.356, 0.04), (0.494, 0.04), (0.494, 0.215), (0.468, 0.245), (0.356, 0.245)]
+        up = [(0.348, 0.27), (0.49, 0.27), (0.49, 0.357), (0.466, Zc), (0.348, Zc)]
+        up_end = [(0.348, 0.27), (0.49, 0.27), (0.49, 0.295), (0.466, 0.30), (0.348, 0.30)]
+        for sy in SIDES:
+            loft_x(m, [(x, [(sy * y, z) for y, z in o]) for x, o in ((-0.70, low_end), (-0.66, low), (0.66, low), (0.70, low_end))], T)
+            loft_x(m, [(x, [(sy * y, z) for y, z in o]) for x, o in ((-0.64, up_end), (-0.585, up), (0.585, up), (0.64, up_end))], G)
         fz = ((0.92, 1.07), (1.58, 1.73), (2.46, 2.61))       # the three frames
+        RX, RY = 0.475, 0.44                                  # the corner rod; the two others stand in from it, one each way
         for sx in SIDES:
             for sy in SIDES:
-                m.box((0.20, 0.10, 0.055), (sx * 0.44, sy * 0.405, Zc + 0.022), G, bevel=0.012)          # shoe
-                for dx, dy in ((0.0, 0.0), (-0.085, 0.0), (0.0, -0.075)):                                # three rods to a corner
-                    m.box((0.044, 0.044, fz[2][0] + 0.02 - Zc), (sx * (0.475 + dx), sy * (0.425 + dy), (fz[2][0] + 0.02 + Zc) / 2), LT, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):                                # three rods to a corner, all inside the frames' beams
+                    m.box((0.044, 0.044, fz[2][0] + 0.02 - Zc), (sx * (RX + dx), sy * (RY + dy), (fz[2][0] + 0.02 + Zc) / 2), LT, bevel=0.008)
         for z0, z1 in fz:
-            frame_ring(m, 0.545, 0.49, z0, z1, 0.15, paint)
-            frame_ring(m, 0.538, 0.483, z0 - 0.03, z0 + 0.004, 0.13, TD)
+            frame_ring(m, 0.545, 0.49, z0, z1, 0.17, paint)
+            frame_ring(m, 0.538, 0.483, z0 - 0.03, z0 + 0.004, 0.15, TD)
         for y in (-0.2, 0.2):                                 # cross beams under the top frame; the head hangs from them
             m.prism([(y - 0.055, 2.385), (y + 0.055, 2.385), (y + 0.04, 2.465), (y - 0.04, 2.465)], -0.50, 0.50, "X", G)
         slab(m, 0.37, 0.335, 1.76, 2.395, 0.05, paint, bevel=0.025)                                         # the head
@@ -2148,15 +2158,17 @@ def former5(m, paint=None):
                 m.box((0.012, 0.046, 0.008), (y + 0.01, 0.008, 0.052), "h_red", rot=0.6)
         with on_side(m, -1, -0.335, 2.08):                    # and its near face
             bolted(m, 0.46, 0.42, G)
-        for sx in SIDES:                                      # bolts in the frames' corners
-            for z0, z1 in fz:
-                for y in (-0.42, 0.42):
-                    with on_end(m, sx, sx * 0.545, y, (z0 + z1) / 2):
+        for z0, z1 in fz:                                     # every corner of every frame is bolted through to its rod from both faces
+            for sx in SIDES:
+                for sy in SIDES:
+                    with on_end(m, sx, sx * 0.545, sy * RY, (z0 + z1) / 2):
+                        m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
+                    with on_side(m, sy, sy * 0.49, (z0 + z1) / 2, xc=sx * RX):
                         m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
     # the fat duct: up out of the head, through a box, across, through a box, down into the house's roof
     rd, zd, yd = 0.105, 2.80, -0.62
     with m.at((0, yb, 0)):
-        octa(m, rd + 0.035, rd + 0.01, 2.385, 2.47, G)
+        octa(m, rd + 0.02, rd + 0.005, 2.385, 2.47, G)                                                   # clear of the cross beams either side
         octa(m, rd, rd, 2.46, zd - 0.12, LT)
         slab(m, 0.14, 0.14, zd - 0.14, zd + 0.14, 0.03, G, bevel=0.02)
     m.cyl(rd * K, yb - yd - 0.26, (0, (yb + yd) / 2, zd), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
@@ -2174,15 +2186,16 @@ def former5(m, paint=None):
         for k in range(4):
             with m.at((-0.215 + k * 0.143, 0, 0)):
                 mould(m, 0.17)
-    pump = (0.20, 0.15, 0.03)
-    with m.at((-0.74, -0.24, 0)):
+    pump = (0.17, 0.15, 0.03)
+    xq = -0.56                                                # beside the press's sill, so that its pipe goes into the sill
+    with m.at((xq, -0.24, 0)):
         slab(m, pump[0], pump[1], 0.13, 0.50, pump[2], G, bevel=0.016)
         slab(m, pump[0] + 0.02, pump[1] + 0.02, 0.48, 0.55, cut_to(pump[0] + 0.02, pump[1] + 0.02, pump, 0.02), TD, bevel=0.014)
         octa(m, 0.07, 0.07, 0.54, 0.62, ST)
-    with on_side(m, -1, -0.24 - pump[1], 0.31, xc=-0.74):
-        bolted(m, 0.26, 0.20, LT, r=0.014)
-    m.cyl(0.05, 0.12, (-0.74, -0.04, 0.30), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
-    m.cyl(0.066, 0.03, (-0.74, -0.08, 0.30), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    with on_side(m, -1, -0.24 - pump[1], 0.31, xc=xq):
+        bolted(m, 0.22, 0.20, LT, r=0.014)
+    m.cyl(0.045, 0.14, (xq, -0.03, 0.19), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    m.cyl(0.06, 0.03, (xq, -0.035, 0.19), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
     hx0, hx1 = -0.30, 1.42
     xc, hx = (hx0 + hx1) / 2, (hx1 - hx0) / 2
     body = (hx - 0.08, 0.39, 0.045)
@@ -2191,28 +2204,29 @@ def former5(m, paint=None):
         slab(m, hx, 0.47, 0.12, 0.665, 0.035, G, bevel=0.02)                                             # cabinet
         slab(m, body[0], body[1], 0.655, 1.10, body[2], paint, bevel=0.022)                                 # the painted body
     yf, ye = -0.97, hx1
-    for x in (0.0, 0.42):                                     # cabinet front: two framed doors with handles, a big louvre
+    # Nothing on a wall touches or overlaps its neighbour: bolts, doors, louvres and panels each keep at least
+    # 0.05 of bare wall between them (the developer: bolts and joints must not run into other trim).
+    for x in (0.03, 0.43):                                    # cabinet front: two framed doors with handles, a big louvre
         with on_side(m, -1, yf, 0.40, xc=x):
-            framed(m, 0.36, 0.42, LT)
-            m.box((0.022, 0.11, 0.022), (0.11, 0, 0.02), TD)
-    with on_side(m, -1, yf, 0.40, xc=1.0):
-        vent(m, 0.31, 0.21)
-    for y in (-0.72, -0.28):                                  # cabinet end: two louvres under a sloped hood
-        with on_end(m, 1, ye, y, 0.36):
-            vent(m, 0.19, 0.19)
-    m.prism([(ye - 0.01, 0.585), (ye - 0.01, 0.665), (ye + 0.07, 0.585)], -0.93, -0.07, "Y", ST)
-    for x in (hx0 + 0.07, hx1 - 0.07):                        # heavy bolts at the cabinet's corners
+            framed(m, 0.34, 0.42, LT)
+            m.box((0.022, 0.11, 0.022), (0.10, 0, 0.02), TD)
+    with on_side(m, -1, yf, 0.40, xc=0.98):
+        vent(m, 0.29, 0.21)
+    for y in (-0.71, -0.29):                                  # cabinet end: two louvres (a sloped hood stood over them; the
+        with on_end(m, 1, ye, y, 0.39):                       # developer asked what it was for, and it is gone)
+            vent(m, 0.18, 0.19)
+    for x in (hx0 + 0.068, hx1 - 0.068):                      # heavy bolts at the cabinet's corners
         for z in (0.21, 0.59):
             with on_side(m, -1, yf, z, xc=x):
-                m.cyl(0.034, 0.02, (0, 0, 0.008), LT, seg=6)
+                m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
     yp = -0.5 - body[1]                                       # the painted body's front: a row of framed panels, a badge
-    for x, w in ((-0.06, 0.20), (0.22, 0.28), (0.52, 0.14), (0.72, 0.14), (0.92, 0.14)):
+    for x, w in ((0.02, 0.18), (0.30, 0.26), (0.555, 0.13), (0.745, 0.13), (0.935, 0.13)):
         with on_side(m, -1, yp, 0.88, xc=x):
-            framed(m, w, 0.28)
-    with on_side(m, -1, yp, 0.88, xc=1.17):
-        m.cyl(0.085, 0.022, (0, 0, 0.008), "h_red", seg=6)
-        m.cyl(0.045, 0.012, (0, 0, 0.024), "h_white", seg=6)
-    for x in (hx0 + 0.15, hx1 - 0.15):
+            framed(m, w, 0.26)
+    with on_side(m, -1, yp, 0.88, xc=1.14):
+        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    for x in (hx0 + 0.155, hx1 - 0.155):                      # in the wall's own corners, clear of the panels and the badge
         for z in (0.72, 1.04):
             with on_side(m, -1, yp, z, xc=x):
                 m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
@@ -2228,30 +2242,31 @@ def former5(m, paint=None):
             za = Zr + 0.26 + k * h
             wide = k % 2 == 0
             octa(m, rd if wide else rd * 0.84, rd if wide else rd * 0.84, za, za + h + 0.004, LT if wide else G)
-    px0, px1, ph, pz = 0.30, 1.28, 0.19, Zr + 0.25            # the plenum: its ends, half width, top
-    m.cyl(rd * K, px0 - 0.13 + 0.02, ((px0 + 0.13) / 2, yl, Zr + 0.13), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
-    m.cyl((rd + 0.024) * K, 0.04, (px0 - 0.02, yl, Zr + 0.13), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    px0, px1, ph, pz = 0.40, 1.305, 0.19, Zr + 0.25           # the plenum: its ends, half width, top. It starts well clear of the
+    xj = (0.14 + px0) / 2                                     # elbow, and the pipe's one collar sits half way, touching neither
+    m.cyl(rd * K, px0 - 0.13 + 0.02, ((px0 + 0.13) / 2 + 0.005, yl, Zr + 0.13), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl((rd + 0.022) * K, 0.06, (xj, yl, Zr + 0.13), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
     with m.at(((px0 + px1) / 2, yl, 0)):
         slab(m, (px1 - px0) / 2, ph, Zr - 0.01, pz, 0.04, G, bevel=0.02)
         slab(m, (px1 - px0) / 2 + 0.012, ph + 0.012, pz - 0.05, pz + 0.012, cut_to((px1 - px0) / 2 + 0.012, ph + 0.012, ((px1 - px0) / 2, ph, 0.04), 0.012), LT, bevel=0.012)
     tops = (2.02, 2.32, 2.62)
-    xs_ = (0.46, 0.79, 1.12)
+    xs_ = (0.56, 0.855, 1.15)                                 # their feet stand side by side on the plenum, inside its ends
     for x, top in zip(xs_, tops):                             # (a rail clamped the three together; the developer asked for it gone)
-        fat_stack(m, x, yl, pz, top, 0.105)
-    with on_side(m, -1, yl - ph, Zr + 0.125, xc=0.62):       # on the plenum's near face: a hatch and a handwheel
-        bolted(m, 0.30, 0.15, LT, r=0.014)
-    with on_side(m, -1, yl - ph, Zr + 0.125, xc=1.02):
-        m.cyl(0.026, 0.07, (0, 0, 0.03), ST, seg=8)
-        ring_round(m, 0.085, 0.06, 0.05, 0.078, paint, seg=14)
+        fat_stack(m, x, yl, pz, top, 0.095)
+    with on_side(m, -1, yl - ph, Zr + 0.10, xc=0.69):        # on the plenum's near face, below its rim: a hatch and a handwheel
+        bolted(m, 0.28, 0.13, LT, r=0.014)
+    with on_side(m, -1, yl - ph, Zr + 0.10, xc=1.08):
+        m.cyl(0.024, 0.07, (0, 0, 0.03), ST, seg=8)
+        ring_round(m, 0.068, 0.046, 0.05, 0.078, paint, seg=14)
         for k in range(2):
-            m.box((0.14, 0.022, 0.018), (0, 0, 0.064), ST, rot=k * math.pi / 2)
+            m.box((0.11, 0.02, 0.018), (0, 0, 0.064), ST, rot=k * math.pi / 2)
     m.box((0.46, 0.20, 0.03), (0.74, -0.26, Zr + 0.01), LT, bevel=0.012)                                 # a hatch in the roof behind
     for sx in SIDES:
         for sy in SIDES:
             m.cyl(0.02, 0.012, (0.74 + sx * 0.19, -0.26 + sy * 0.065, Zr + 0.03), TD, seg=6)
 
 
-former5.frame, former5.shadow = {"iso": (4.7, 1.45), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
+former5.frame, former5.shadow, former5.res = {"iso": (4.7, 1.45), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True, 1600
 _hero.HEROES["former5"] = former5
 
 
