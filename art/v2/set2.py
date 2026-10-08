@@ -2288,7 +2288,10 @@ def gauges(m, hw, hh, turns=(0.75, -1.15)):
 
 
 def smelter10(m, paint=None):
-    """Smelter, 4x2 (hitbox 4x2x3), in the look the developer confirmed with former5: fat masses, crowded
+    """REJECTED (2026-10-08): the developer found it bad, and said why: former5's look (a frame on rod
+    bundles, a plenum under stacks, long ducts) is for big machines, and the smelter may be smaller and
+    needs a look of its own, to be talked through before anything is built.
+    Smelter, 4x2 (hitbox 4x2x3), in the look the developer confirmed with former5: fat masses, crowded
     surfaces, grey with one paint colour, the added parts joined into one system, nothing touching its
     neighbour. What the machine is has not changed since smelter8, which the developer approved: ore
     goes through a firebox with fire mouths in its walls, under an open hearth with the fire under a
