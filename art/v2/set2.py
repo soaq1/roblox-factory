@@ -2358,6 +2358,153 @@ smelter11.frame, smelter11.shadow, smelter11.res = {"iso": (3.5, 0.95), "side": 
 _hero.HEROES["smelter11"] = smelter11
 
 
+def seat(m, half, mk_low=T, mk_up=G, nose=0.055, inner=0.348):
+    """A machine's seat on the belt, as former5 has it: over each rail a dark sill and on it a grey bed
+    with a flat top, both sloping down at their ends. `half` is how far the bed's flat top reaches each
+    way. (The belt collar it replaces has a stepped, leaning face and a narrow top, which whatever
+    stands on it overhangs: the developer marked that joint on the former and again on the smelter.)
+    With a short `nose` the bed ends in a plain chamfer instead of a slope, for a machine whose tunnel
+    mouth stands at the bed's end: a slope would stick out in front of the mouth."""
+    Zc = 0.385
+    low = [(0.356, 0.04), (0.494, 0.04), (0.494, 0.245), (0.468, 0.29), (0.356, 0.29)]
+    low_end = [(0.356, 0.04), (0.494, 0.04), (0.494, 0.215), (0.468, 0.245), (0.356, 0.245)]
+    up = [(inner, 0.27), (0.49, 0.27), (0.49, 0.357), (0.466, Zc), (inner, Zc)]       # `inner`: how near the belt the bed's top comes
+    up_end = [(inner, 0.27), (0.49, 0.27), (0.49, 0.295), (0.466, 0.30), (inner, 0.30)]
+    short = nose < 0.03
+    if short:
+        up_end = [(inner + nose, 0.27), (0.49 - nose, 0.27), (0.49 - nose, 0.357 - nose), (0.466 - nose, Zc - nose), (inner + nose, Zc - nose)]
+    a, b = half + (0.045 if short else 0.075), half
+    for sy in SIDES:
+        loft_x(m, [(x, [(sy * y, z) for y, z in o]) for x, o in ((-a - 0.04, low_end), (-a, low), (a, low), (a + 0.04, low_end))], mk_low)
+        loft_x(m, [(x, [(sy * y, z) for y, z in o]) for x, o in ((-b - nose, up_end), (-b, up), (b, up), (b + nose, up_end))], mk_up)
+    return Zc
+
+
+def smelter12(m):
+    """Smelter, 3x1 (hitbox 3x1x2). smelter8 is the one the developer liked best; he asked for it taller
+    so that it is not dull, then for it rougher, busier and more complicated, with more pipes (his
+    friend's word), and marked the joint between body and belt.
+    So: the same body astride the belt, on a designed seat instead of a belt collar; a taller firebox
+    with taller fire mouths; on the hood a waist with a fire slit each side, and on the waist the wide
+    hearth, banded and bolted, open to the fire. The blower stands at the far end's front corner as it
+    did, taller, with a dial let into its face. The pipes are one system: a ring main leaves the blower
+    two ways and runs round the hearth, front and back, sending two branches into each long wall, and
+    drops at the near end into a boot on each pier, the front drop through a valve with a handwheel;
+    two lower pipes leave the blower and drop into boots on the far piers. Every pier has its boot.
+    Nothing is taken from the big machines' look (no frame, no plenum, no stacks)."""
+    e, w, hh = 0.20, 0.34, 0.10
+    run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+    cover(m, BX, 1, sole=False)
+    cover(m, -BX, -1, sole=False)
+    seat(m, BX + 0.312, nose=0.012, inner=0.358)              # the bed ends under the mouths' end frames, and stays behind their jambs
+    hy, hc, xp, he, top = 0.40, 0.355, 0.30, 0.408, 0.712 + e
+    bprism(m, [(-xp, -hc), (xp, -hc), (xp, hc), (-xp, hc)], 0.37, top, "Z", G, bevel=0.012)
+    for sx in SIDES:
+        x0, x1 = sorted((sx * xp, sx * BX))
+        bprism(m, [(x0, -hy), (x1, -hy), (x1, hy), (x0, hy)], 0.37, top, "Z", G, bevel=0.012)
+    bprism(m, [(-he, 0.70 + e), (-he, 0.74 + e), (-0.30, 0.90 + e), (0.30, 0.90 + e), (he, 0.74 + e), (he, 0.70 + e)], -BX, BX, "X", TD, bevel=0.016)
+    for d in SIDES:                                           # the fire mouths
+        with on_side(m, d, d * hc, 0.535 + e / 2):
+            m.box((0.27, 0.15 + e, 0.008), (0, 0, 0.002), "h_glow")
+            for k in range(4):
+                x = -0.09 + k * 0.06
+                m.prism([(x - 0.016, 0.004), (x + 0.016, 0.004), (x + 0.008, 0.019), (x - 0.008, 0.019)], -0.10 - e / 2, 0.10 + e / 2, "Y", TD)
+            ring(m, 0.185, 0.125 + e / 2, [(0.0, -0.004), (0.012, 0.03), (0.036, 0.03), (0.05, -0.004)], T, c=0.04)
+    P = 0.90 + e
+    Ph = P + w
+    H = 0.40 + hh
+    xt, yt = -0.07, 0.03
+    with m.at((xt, yt, 0)):                                   # the waist, and on it the hearth
+        tower(m, [(0.315, 0.215, 0.05, P), (0.25, 0.16, 0.04, P + 0.06)], T)
+        tower(m, [(0.25, 0.16, 0.04, P + 0.06), (0.25, 0.16, 0.04, Ph - 0.045)], G)
+        tower(m, [(0.25, 0.16, 0.04, Ph - 0.045), (0.325, 0.225, 0.05, Ph)], TD)
+        tower(m, [(0.325, 0.225, 0.05, Ph), (0.30, 0.20, 0.045, Ph + 0.05)], T)
+        tower(m, [(0.30, 0.20, 0.045, Ph + 0.05), (0.34, 0.24, 0.05, Ph + H), (0.34, 0.24, 0.05, Ph + H + 0.012)], G)
+        t1, t2 = 0.62, 0.76                                   # a heavy band round the walls, following their lean
+        tower(m, [(0.314 + 0.04 * t1, 0.214 + 0.04 * t1, 0.055, Ph + 0.05 + (H - 0.05) * t1),
+                  (0.314 + 0.04 * t2, 0.214 + 0.04 * t2, 0.055, Ph + 0.05 + (H - 0.05) * t2)], TD)
+        shell(m, [(0.355, 0.255, 0.055, Ph + H), (0.355, 0.255, 0.055, Ph + H + 0.045), (0.34, 0.24, 0.05, Ph + H + 0.06),
+                  (0.295, 0.195, 0.035, Ph + H + 0.06), (0.285, 0.185, 0.03, Ph + H)], TD)
+        tower(m, [(0.292, 0.192, 0.03, Ph + H - 0.005), (0.292, 0.192, 0.03, Ph + H + 0.015)], "h_glow")
+        for k in range(7):
+            x = -0.24 + k * 0.08
+            m.prism([(x - 0.02, Ph + H + 0.01), (x + 0.02, Ph + H + 0.01), (x + 0.011, Ph + H + 0.04), (x - 0.011, Ph + H + 0.04)], -0.20, 0.20, "Y", TD)
+    zband = Ph + 0.05 + (H - 0.05) * (t1 + t2) / 2
+    for d in SIDES:
+        with on_side(m, d, yt + d * 0.16, (P + 0.06 + Ph - 0.045) / 2, xc=xt):   # the waist's fire slits
+            fire_window(m, bars=5, hx=0.16, hy=(w - 0.105) / 2 - 0.03)
+        for dx in (-0.21, -0.07, 0.07, 0.21):                 # bolts in the band
+            with on_side(m, d, yt + d * 0.24, zband, xc=xt + dx):
+                m.cyl(0.015, 0.016, (0, 0, 0.004), LT, seg=6)
+    with on_end(m, -1, xt - 0.318, yt, Ph + 0.20):            # tap port in the hearth's near end, below the band
+        octa(m, 0.05, 0.05, -0.006, 0.006, "h_glow")
+        oct_ring(m, 0.078, 0.03, -0.022, 0.022, T)
+    # the blower
+    xw, yw = 0.385, -0.19
+    case = (0.08, 0.10, 0.025)
+    zc = Ph + 0.25 + hh / 2
+    with m.at((xw, yw, 0)):
+        tower(m, [(0.085, 0.11, 0.03, P), (case[0], case[1], case[2], P + 0.04)], T)
+        slab(m, case[0], case[1], P + 0.04, zc, case[2], ST, bevel=0.01)
+        cc = cut_to(0.088, 0.108, case, 0.008)
+        shell(m, [(0.088, 0.108, cc, zc - 0.01), (0.088, 0.108, cc, zc + 0.025), (0.078, 0.098, cc, zc + 0.04),
+                  (0.06, 0.08, 0.016, zc + 0.04), (0.054, 0.074, 0.014, zc - 0.01)], TD)
+        tower(m, [(0.058, 0.078, 0.015, zc - 0.015), (0.058, 0.078, 0.015, zc + 0.008)], SLIT)
+        for y in (-0.028, 0.028):
+            m.prism([(y - 0.012, zc + 0.005), (y + 0.012, zc + 0.005), (y + 0.007, zc + 0.028), (y - 0.007, zc + 0.028)], -0.064, 0.064, "X", ST)
+    with on_side(m, -1, yw - case[1], zc - 0.12, xc=xw):      # a dial let into the casing's face: a raised rim, the face inside it
+        ring_round(m, 0.05, 0.037, -0.004, 0.022, TD, seg=12)
+        m.cyl(0.038, 0.008, (0, 0, 0.006), "h_white", seg=12)
+        m.box((0.008, 0.028, 0.005), (-0.013 * math.sin(-0.9), 0.013 * math.cos(-0.9), 0.0125), "h_red", rot=-0.9)
+        m.cyl(0.0115, 0.009, (0, 0, 0.0155), TD, seg=6)
+    # The pipes: one system out of the blower. No bend lies inside a flange, no pipe meets a wall at a slant,
+    # and each drop ends straight down in a boot on a pier.
+    zp, zq = Ph + 0.10, P + 0.10                              # the ring main's height, the lower pipes' height
+    ra, rf, yo, zt, xb = 0.034, 0.046, 0.452, 0.58 + e, 0.385 # pipe and flange radius, where the drops stand, a boot's top, the piers' middle
+    ya, yb_ = yt - 0.275, yt + 0.275                          # the ring main's two runs, the same distance off the hearth's walls
+
+    def boot(x, d):
+        bprism(m, [(d * 0.39, zt - 0.15), (d * 0.39, zt), (d * 0.494, zt), (d * 0.494, zt - 0.06), (d * 0.44, zt - 0.15)],
+               x - 0.046, x + 0.046, "X", T, bevel=0.008)
+        m.cyl(rf, 0.022, (x, d * yo, zt + 0.011), TD, seg=8)
+        with on_side(m, d, d * hy, 0.50, xc=x):               # a heavy bolt in the pier under each boot
+            m.cyl(0.022, 0.018, (0, 0, 0.006), LT, seg=6)
+
+    # ring main, front run: out of the casing's near face, along the hearth, round the corner, over the eave, down
+    m.pipe([(xw - 0.05, ya, zp), (-xb + 0.045, ya, zp), (-xb, ya - 0.045, zp), (-xb, -yo + 0.045, zp), (-xb, -yo, zp - 0.045),
+            (-xb, -yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw - case[0] - 0.012, ya, zp), TD, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    # ring main, back run: out of the casing's back, round the far end, along the hearth's back, over the eave, down
+    m.pipe([(xw, yw + case[1] - 0.03, zp), (xw, yb_ - 0.045, zp), (xw - 0.045, yb_, zp), (-xb + 0.045, yb_, zp), (-xb, yb_ + 0.045, zp),
+            (-xb, yo - 0.045, zp), (-xb, yo, zp - 0.045), (-xb, yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw, yw + case[1] + 0.012, zp), TD, seg=8, axis="Y")
+    for x in (-0.20, 0.02):                                   # two branches from each run, square into the hearth's wall, each through a collar
+        for d, yr in ((-1, ya), (1, yb_)):
+            m.pipe([(x, yr, zp), (x, yt + d * 0.17, zp)], 0.024, ST)
+            m.cyl(0.034, 0.018, (x, yt + d * 0.215, zp), TD, seg=8, axis="Y")
+    # the lower pipes: out of the casing's front and back, over the eaves, down into the far piers
+    m.pipe([(xw, yw - case[1] + 0.03, zq), (xw, -yo + 0.045, zq), (xw, -yo, zq - 0.045), (xw, -yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw, yw - case[1] - 0.012, zq), TD, seg=8, axis="Y")
+    m.pipe([(xw, yw + case[1] - 0.03, zq), (xw, yo - 0.045, zq), (xw, yo, zq - 0.045), (xw, yo, zt - 0.02)], ra, ST)
+    m.cyl(rf, 0.024, (xw, yw + case[1] + 0.012, zq), TD, seg=8, axis="Y")
+    for x in (-xb, xb):
+        for d in SIDES:
+            boot(x, d)
+    # a valve in the front drop at the near end, its handwheel turned to the end
+    zv = (zp + zt) / 2
+    with m.at((-xb, -yo, 0)):
+        slab(m, 0.046, 0.044, zv - 0.06, zv + 0.06, 0.014, TD, bevel=0.008)
+    with on_end(m, -1, -xb - 0.046, -yo, zv):
+        m.cyl(0.014, 0.05, (0, 0, 0.02), ST, seg=8)
+        ring_round(m, 0.045, 0.03, 0.034, 0.052, "h_red", seg=12)
+        for k in range(2):
+            m.box((0.07, 0.012, 0.01), (0, 0, 0.043), ST, rot=k * math.pi / 2)
+
+
+smelter12.frame, smelter12.shadow, smelter12.res = {"iso": (3.6, 0.98), "side": (3.4, 1.1), "top": (3.2, 0.6), "end": (2.6, 1.1)}, True, 1600
+_hero.HEROES["smelter12"] = smelter12
+
+
 def smelter_heights(m):
     """Not a machine: the smelter at three heights in a row, with a figure as tall as a character (1.67
     cells) beside each, to choose a height. From the far side: as it was (1.36), taller (1.70), and
