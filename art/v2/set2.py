@@ -2112,7 +2112,7 @@ def former5(m, paint=None):
     The house is a grey cabinet with framed doors, big louvres, heavy corner bolts and a sloped hood
     at its end, under a painted body with a row of framed panels and a badge; on the body's roof stand
     a plenum that the duct runs into, and out of the plenum three fat stacks in a
-    row, each taller than the last, clamped together by a rail. Beside it a low platform
+    row, each taller than the last. Beside it a low platform
     carries the mould rack and a pump with its pipe into the press's chassis."""
     paint = paint or PY
     yb = 0.5
@@ -2218,7 +2218,7 @@ def former5(m, paint=None):
                 m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
     # On the body's roof, one system instead of things planted side by side: the duct comes down into a box
     # elbow and runs into the end of a plenum; out of the plenum rise three fat stacks in a row, each taller
-    # than the last, clamped together by a rail; a handwheel and a hatch on the plenum, a hatch in the roof.
+    # than the last; a handwheel and a hatch on the plenum, a hatch in the roof.
     Zr, yl = 1.10, yd                                         # the roof, and the line everything stands on
     with m.at((0, yl, 0)):
         slab(m, 0.14, 0.14, Zr - 0.01, Zr + 0.27, 0.03, G, bevel=0.02)                                   # the lower box elbow, on the roof
@@ -2236,12 +2236,8 @@ def former5(m, paint=None):
         slab(m, (px1 - px0) / 2 + 0.012, ph + 0.012, pz - 0.05, pz + 0.012, cut_to((px1 - px0) / 2 + 0.012, ph + 0.012, ((px1 - px0) / 2, ph, 0.04), 0.012), LT, bevel=0.012)
     tops = (2.02, 2.32, 2.62)
     xs_ = (0.46, 0.79, 1.12)
-    for x, top in zip(xs_, tops):
+    for x, top in zip(xs_, tops):                             # (a rail clamped the three together; the developer asked for it gone)
         fat_stack(m, x, yl, pz, top, 0.105)
-        with m.at((x, yl, 0)):
-            octa(m, 0.135, 0.135, 1.80, 1.86, G)                                                         # the clamp round each stack
-    for sy in SIDES:                                          # the rail the clamps hang on
-        m.box((xs_[-1] - xs_[0] + 0.10, 0.035, 0.045), ((xs_[0] + xs_[-1]) / 2, yl + sy * 0.118, 1.83), LT, bevel=0.008)
     with on_side(m, -1, yl - ph, Zr + 0.125, xc=0.62):       # on the plenum's near face: a hatch and a handwheel
         bolted(m, 0.30, 0.15, LT, r=0.014)
     with on_side(m, -1, yl - ph, Zr + 0.125, xc=1.02):
