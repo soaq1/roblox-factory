@@ -2779,6 +2779,68 @@ smelter10.frame, smelter10.shadow, smelter10.res = {"iso": (5.4, 1.2), "side": (
 _hero.HEROES["smelter10"] = smelter10
 
 
+def factory_mail(m):
+    """Not a machine: a small factory to show what the game looks like, for the developer's letter to
+    the makers of Islands. Two lines run side by side, each ore -> smelter (smelter8, the one he liked
+    best) -> former: the far line through former5, the near line through former2. The far line runs
+    straight into the assembler (assembler4), the near line turns left and right to reach its other
+    input. The assembler's output climbs a ramp, crosses over another belt on a raised piece, and
+    comes down a ramp again."""
+    OX, OY = -0.5, 1.0
+    R90 = rad(90)
+
+    def put(fn, x, y, rz=0.0, z=0.0):
+        with m.at((x + OX, y + OY, z), rz):
+            fn(m)
+
+    def thing(x, y, kind, z=0.0):                             # something riding the belt
+        with m.at((x + OX, y + OY, z + BZ + 0.006)):
+            if kind == "ore":
+                m.box((0.26, 0.24, 0.18), (0, 0, 0.09), "h_ore", bevel=0.05)
+            elif kind == "ingot":
+                m.box((0.30, 0.16, 0.10), (0, 0, 0.05), "h_steel", bevel=0.03, taper=0.8)
+            elif kind == "plate":
+                m.box((0.30, 0.26, 0.04), (0, 0, 0.02), "h_lite", bevel=0.012)
+            else:                                             # an assembled part: a plate with a boss on it
+                m.box((0.30, 0.26, 0.05), (0, 0, 0.025), "h_lite", bevel=0.012)
+                m.cyl(0.08, 0.07, (0, 0, 0.085), "h_steel", seg=6)
+
+    for y, former in ((1, former5), (-3, former2)):           # the two lines
+        for x in (-10, -9, -8):
+            put(_belts.straight, x, y)
+        put(smelter8, -6, y)
+        put(_belts.straight, -4, y)
+        put(former, -2, y - 0.5)
+        put(_belts.straight, 0, y)
+        thing(-10.1, y, "ore")
+        thing(-9.2, y, "ore")
+        thing(-8.3, y, "ore")
+        thing(-4.0, y, "ingot")
+        thing(0.0, y, "plate")
+    put(_belts.straight, 1, 1)                                # the far line: straight in
+    put(_belts.corner_left, 1, -3)                            # the near line: up two cells, then in
+    put(_belts.straight, 1, -2, R90)
+    put(_belts.corner_right, 1, -1, R90)
+    thing(1.0, -2.0, "plate")
+    put(assembler4, 3, 0)
+    put(_belts.straight, 5, 0)                                # the output: up a ramp, over a crossing belt, down again
+    put(lambda mm: _belts.ramp(mm, True, True), 6.5, 0)
+    put(_belts.straight, 8, 0, 0.0, 1.0)
+    put(lambda mm: _belts.ramp(mm, True, True, down=True), 9.5, 0)
+    put(_belts.straight, 11, 0)
+    thing(5.0, 0, "part")
+    thing(8.0, 0, "part", 1.0)
+    thing(11.0, 0, "part")
+    for y in (-3, -2, -1, 0, 1, 2):                           # the belt that passes under the raised piece
+        put(_belts.straight, 8, y, R90)
+    for y in (-2.6, -1.4, 1.5):
+        thing(8.0, y, "ore")
+
+
+factory_mail.frame, factory_mail.shadow, factory_mail.res = {"iso": (23.0, 1.2), "side": (22.0, 1.6), "top": (23.0, 0.6), "end": (9.0, 1.6)}, True, 3200
+_hero.HEROES["factory_mail"] = factory_mail
+
+
 PAINTS = {"h_p1": "#cf5134", "h_p2": "#2f8f8a", "h_p3": "#3f6f9f", "h_p4": "#d9822b"}       # trial paints: vermilion, teal, steel blue, orange
 fk.PAL.update(PAINTS)
 
