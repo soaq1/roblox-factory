@@ -2080,11 +2080,11 @@ former4.frame, former4.shadow = {"iso": (4.6, 1.4), "side": (4.4, 1.5), "top": (
 _hero.HEROES["former4"] = former4
 
 
-def fat_stack(m, x, y, z0, z1, r=0.115):
+def fat_stack(m, x, y, z0, z1, r=0.115, foot=0.05):
     """A fat eight-sided stack built of short lengths, alternately wide and narrow and alternately pale and
     grey, on a flared foot, under a flared head with a real hollow in it."""
     with m.at((x, y, 0)):
-        octa(m, r + 0.05, r + 0.02, z0 - 0.01, z0 + 0.09, G)
+        octa(m, r + foot, r + 0.02, z0 - 0.01, z0 + 0.09, G)
         n = max(2, round((z1 - z0 - 0.22) / 0.17))
         h = (z1 - z0 - 0.22) / n
         for k in range(n):
@@ -2146,16 +2146,17 @@ def former5(m, paint=None):
         octa(m, 0.18, 0.18, 1.01, 1.29, ST)                                                              # the ram
         slab(m, 0.27, 0.25, 0.85, 1.02, 0.035, TD, bevel=0.016)                                          # the die, inside the lowest frame
         m.box((0.32, 0.26, 0.022), (0, 0, BZ + 0.017), LT, bevel=0.006)                                  # the work, on the belt
-        with on_end(m, -1, -0.37, 0, 2.23):                   # the head's end: slats, a dark band, a bolted plate
-            vent(m, 0.25, 0.12)
-        with on_end(m, -1, -0.37, 0, 2.045):
-            m.box((0.56, 0.06, 0.012), (0, 0, 0.004), SLIT)
-        with on_end(m, -1, -0.37, 0, 1.885):                  # a plate under the band, carrying the two dials
-            m.box((0.52, 0.19, 0.03), (0, 0, 0.01), G, bevel=0.012)
-            for y in (-0.13, 0.13):
-                m.cyl(0.07, 0.022, (y, 0, 0.03), LT, seg=6)
-                m.cyl(0.048, 0.012, (y, 0, 0.044), "h_white", seg=6)
-                m.box((0.012, 0.046, 0.008), (y + 0.01, 0.008, 0.052), "h_red", rot=0.6)
+        with on_end(m, -1, -0.37, 0, 2.225):                  # the head's end: a louvre, and under it the instrument panel
+            vent(m, 0.25, 0.115)
+        with on_end(m, -1, -0.37, 0, 1.925):                  # the panel: a raised outline round a dark field, and let into the
+            m.box((0.46, 0.15, 0.008), (0, 0, 0.004), TD)     # field two dials, each a raised rim round a white face
+            ring(m, 0.26, 0.105, [(0.0, -0.004), (0.008, 0.03), (0.03, 0.03), (0.038, -0.004)], G, c=0.012)
+            for y in (-0.125, 0.125):
+                with m.at((y, 0, 0)):
+                    ring_round(m, 0.056, 0.042, 0.006, 0.026, LT, seg=12)
+                    m.cyl(0.043, 0.008, (0, 0, 0.012), "h_white", seg=12)
+                    m.box((0.009, 0.05, 0.005), (0.006, 0.008, 0.0185), "h_red", rot=0.6)
+                    m.cyl(0.011, 0.009, (0, 0, 0.0215), TD, seg=8)
         with on_side(m, -1, -0.335, 2.08):                    # and its near face
             bolted(m, 0.46, 0.42, G)
         for z0, z1 in fz:                                     # every corner of every frame is bolted through to its rod from both faces
@@ -2198,7 +2199,7 @@ def former5(m, paint=None):
     m.cyl(0.06, 0.03, (xq, -0.035, 0.19), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
     hx0, hx1 = -0.30, 1.42
     xc, hx = (hx0 + hx1) / 2, (hx1 - hx0) / 2
-    body = (hx - 0.08, 0.39, 0.045)
+    body = (hx - 0.05, 0.39, 0.045)
     with m.at((xc, -0.5, 0)):
         slab(m, hx - 0.01, 0.46, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, hx, 0.47, 0.12, 0.665, 0.035, G, bevel=0.02)                                             # cabinet
@@ -2226,7 +2227,7 @@ def former5(m, paint=None):
     with on_side(m, -1, yp, 0.88, xc=1.14):
         m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
         m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
-    for x in (hx0 + 0.155, hx1 - 0.155):                      # in the wall's own corners, clear of the panels and the badge
+    for x in (hx0 + 0.13, hx1 - 0.13):                      # in the wall's own corners, clear of the panels and the badge
         for z in (0.72, 1.04):
             with on_side(m, -1, yp, z, xc=x):
                 m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
@@ -2234,32 +2235,37 @@ def former5(m, paint=None):
     # elbow and runs into the end of a plenum; out of the plenum rise three fat stacks in a row, each taller
     # than the last; a handwheel and a hatch on the plenum, a hatch in the roof.
     Zr, yl = 1.10, yd                                         # the roof, and the line everything stands on
+    zq = Zr + 0.145                                           # the height of the pipe that runs along the roof
     with m.at((0, yl, 0)):
-        slab(m, 0.14, 0.14, Zr - 0.01, Zr + 0.27, 0.03, G, bevel=0.02)                                   # the lower box elbow, on the roof
+        slab(m, 0.14, 0.14, Zr - 0.01, Zr + 0.29, 0.03, G, bevel=0.02)                                   # the lower box elbow, on the roof
         n = 7
-        h = (zd - 0.14 - Zr - 0.26) / n
+        h = (zd - 0.14 - Zr - 0.28) / n
         for k in range(n):
-            za = Zr + 0.26 + k * h
+            za = Zr + 0.28 + k * h
             wide = k % 2 == 0
             octa(m, rd if wide else rd * 0.84, rd if wide else rd * 0.84, za, za + h + 0.004, LT if wide else G)
-    px0, px1, ph, pz = 0.40, 1.305, 0.19, Zr + 0.25           # the plenum: its ends, half width, top. It starts well clear of the
-    xj = (0.14 + px0) / 2                                     # elbow, and the pipe's one collar sits half way, touching neither
-    m.cyl(rd * K, px0 - 0.13 + 0.02, ((px0 + 0.13) / 2 + 0.005, yl, Zr + 0.13), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
-    m.cyl((rd + 0.022) * K, 0.06, (xj, yl, Zr + 0.13), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    # The plenum stands taller than the pipe, so the pipe goes into its plain end wall, under the rim, with
+    # wall showing all round it (it used to cut into the rim, right under the first stack's foot). The one
+    # collar sits half way along the pipe, touching neither the elbow nor the plenum, and the stacks' feet
+    # stand in from the plenum's ends.
+    px0, px1, ph, pz = 0.385, 1.335, 0.19, Zr + 0.36          # the plenum: its ends, half width, top
+    xj = (0.14 + px0) / 2
+    m.cyl(rd * K, px0 - 0.13 + 0.02, ((px0 + 0.13) / 2 + 0.005, yl, zq), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl((rd + 0.022) * K, 0.06, (xj, yl, zq), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
     with m.at(((px0 + px1) / 2, yl, 0)):
         slab(m, (px1 - px0) / 2, ph, Zr - 0.01, pz, 0.04, G, bevel=0.02)
         slab(m, (px1 - px0) / 2 + 0.012, ph + 0.012, pz - 0.05, pz + 0.012, cut_to((px1 - px0) / 2 + 0.012, ph + 0.012, ((px1 - px0) / 2, ph, 0.04), 0.012), LT, bevel=0.012)
-    tops = (2.02, 2.32, 2.62)
-    xs_ = (0.56, 0.855, 1.15)                                 # their feet stand side by side on the plenum, inside its ends
+    tops = (2.10, 2.40, 2.70)
+    xs_ = (0.58, 0.86, 1.14)                                  # their feet stand side by side on the plenum, 0.06 in from its ends
     for x, top in zip(xs_, tops):                             # (a rail clamped the three together; the developer asked for it gone)
-        fat_stack(m, x, yl, pz, top, 0.095)
-    with on_side(m, -1, yl - ph, Zr + 0.10, xc=0.69):        # on the plenum's near face, below its rim: a hatch and a handwheel
-        bolted(m, 0.28, 0.13, LT, r=0.014)
-    with on_side(m, -1, yl - ph, Zr + 0.10, xc=1.08):
+        fat_stack(m, x, yl, pz, top, 0.10, foot=0.035)
+    with on_side(m, -1, yl - ph, Zr + 0.155, xc=0.70):       # on the plenum's near face, below its rim: a hatch and a handwheel
+        bolted(m, 0.28, 0.15, LT, r=0.014)
+    with on_side(m, -1, yl - ph, Zr + 0.155, xc=1.10):
         m.cyl(0.024, 0.07, (0, 0, 0.03), ST, seg=8)
-        ring_round(m, 0.068, 0.046, 0.05, 0.078, paint, seg=14)
+        ring_round(m, 0.075, 0.052, 0.05, 0.078, paint, seg=14)
         for k in range(2):
-            m.box((0.11, 0.02, 0.018), (0, 0, 0.064), ST, rot=k * math.pi / 2)
+            m.box((0.125, 0.02, 0.018), (0, 0, 0.064), ST, rot=k * math.pi / 2)
     m.box((0.46, 0.20, 0.03), (0.74, -0.26, Zr + 0.01), LT, bevel=0.012)                                 # a hatch in the roof behind
     for sx in SIDES:
         for sy in SIDES:
