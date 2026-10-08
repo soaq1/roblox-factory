@@ -3184,6 +3184,153 @@ mill7.frame, mill7.shadow, mill7.res = {"iso": (5.6, 1.45), "side": (5.0, 1.5), 
 _hero.HEROES["mill7"] = mill7
 
 
+def hexbolt(m, r=0.04):
+    """A heavy six-sided bolt head on a washer, to be built inside on_side or on_end."""
+    m.cyl(r * 1.25, 0.012, (0, 0, 0.004), "h_dark", seg=12)
+    m.cyl(r, 0.03, (0, 0, 0.02), LT, seg=6)
+
+
+def sunk(m, w, h):
+    """A big let-in panel in steps, to be built inside on_side or on_end: a thick raised frame, a field
+    set back inside it, and a raised panel standing in the field. A wall's own relief, not a fitting."""
+    m.box((w - 0.10, h - 0.10, 0.008), (0, 0, 0.004), "h_dark")
+    ring(m, w / 2, h / 2, [(0.0, -0.004), (0.012, 0.032), (0.05, 0.032), (0.062, -0.004)], G, c=0.04)
+    m.box((w - 0.26, h - 0.24, 0.02), (0, 0, 0.016), G, bevel=0.008)
+
+
+def mill8(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3), a through machine: one belt runs along the near row, carrying
+    iron and coal together, and the steel leaves on it. The developer set the real Islands steel mill
+    beside mill7 and found the difference plain; the cause under two failed layouts was the belts (two
+    inlets on one side would not take that machine's build), so he changed the machine to one belt
+    through, as the former has, and this follows the Islands mill mass for mass with its proportions
+    read off the picture, in our own parts.
+    The near block is as big in section as a tunnel mouth, the belt running through it end to end; at
+    each end two painted bands with a dark seam wrap right round it. On its long face, to one side:
+    a louvre over a panel of squares, and two big five-sided handwheels, one higher than the other;
+    heavy bolts at the corners; the rest plain. On its roof two fat ribbed ducts rise into box elbows
+    and run back into the furnace, and a short fat ribbed stack stands at the far end.
+    The furnace behind is the bigger block, in two courses, its walls let in in steps, heavy bolts at
+    their corners. Pairs of slim posts stand at its corners; a flat painted frame wraps it at the
+    joint of the courses, and a wider one, flat and broad, lies over its top like a table, crossed by
+    two beams that leave a window over the fat six-sided stack in the middle of the roof. Either side
+    of the stack, under the open bays, the roof is slotted: red neon behind pale bars."""
+    g = 2 * (BH - 0.305)
+    yb = -1.0
+    # ---- the near block, the belt through it
+    X, hy = 1.19, 0.44
+    with m.at((0, yb, 0)):
+        belt_stub(m, -1.5, -X + 0.02, -1.41, -1.41)
+        belt_stub(m, X - 0.02, 1.5, 1.41, 1.41)
+        slab(m, X - 0.01, hy + 0.015, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, X, hy, 0.12, 0.90, 0.035, G, bevel=0.02)
+        slab(m, X - 0.262, hy + 0.015, 0.88, 0.98, 0.04, "h_dark", bevel=0.016)                         # the lid, between the bands
+        for d in SIDES:                                       # at each end: two painted bands round the block, a dark seam between
+            px = d * (X + 0.01)
+            for th, w, tp, mk in ((0.12, 0.95, 1.01, paint), (0.025, 0.90, 0.985, SLIT), (0.12, 0.95, 1.01, paint)):
+                a_, b_ = sorted((px, px - d * th))
+                m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
+                px -= d * th
+            m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (d * (X - 0.004), 0, (0.706 + BZ) / 2), SLIT)
+            xo = d * (X + 0.01)
+            for sy_ in SIDES:                                 # each rail rises into the band's leg
+                pts = [(xo - d * 0.006, 0.03), (xo + d * 0.11, 0.03), (xo + d * 0.11, 0.24), (xo + d * 0.085, 0.262), (xo - d * 0.006, 0.44)]
+                bprism(m, pts if d > 0 else pts[::-1], *sorted((sy_ * 0.358, sy_ * 0.494)), "Y", R, bevel=0.008)
+    yf = yb - hy                                              # the long face: to one side, a louvre over a panel of squares, two handwheels
+    with on_side(m, -1, yf, 0.62, xc=0.0):
+        vent(m, 0.25, 0.18)
+    with on_side(m, -1, yf, 0.26, xc=0.0):
+        grid(m, 0.25, 0.10, 4, 2)
+    for x, z in ((0.46, 0.40), (0.74, 0.60)):
+        with on_side(m, -1, yf, z, xc=x):
+            handwheel(m, 0.15)
+    for x in (-0.86, 0.87):
+        for z in (0.20, 0.81):
+            with on_side(m, -1, yf, z, xc=x):
+                hexbolt(m)
+    # ---- the furnace
+    yc, fx, fy = 0.43, 1.12, 0.79
+    Z1, Z2, Z3 = 0.98, 1.66, 1.72                             # the lower course's top, the upper course's top, the roof
+    with m.at((0, yc, 0)):
+        slab(m, 1.27, 0.94, 0.0, 0.14, 0.04, T, bevel=0.014)
+        slab(m, fx, fy, 0.10, Z1 + 0.02, 0.035, G, bevel=0.02)
+        slab(m, fx - 0.05, fy - 0.05, Z1 + 0.01, Z2, 0.035, G, bevel=0.02)
+        slab(m, fx - 0.03, fy - 0.03, Z2 - 0.02, Z3, 0.04, "h_dark", bevel=0.016)
+        RX, RY = fx + 0.075, fy + 0.075
+        for sx in SIDES:                                      # pairs of slim posts at the corners
+            for sy in SIDES:
+                m.box((0.22, 0.12, 0.03), (sx * (RX - 0.04), sy * RY, 0.15), G, bevel=0.008)
+                for dx in (0.0, -0.08):
+                    m.box((0.05, 0.05, 2.22 - 0.16), (sx * (RX + dx), sy * RY, (2.22 + 0.16) / 2), LT, bevel=0.008)
+        frame_ring(m, fx + 0.145, fy + 0.145, Z1 + 0.0, Z1 + 0.08, 0.14, paint)                          # the flat frame at the joint of the courses
+        frame_ring(m, fx + 0.14, fy + 0.14, Z1 - 0.022, Z1 + 0.004, 0.125, TD)
+        tz = (2.20, 2.28)                                     # the broad flat frame over the top
+        frame_ring(m, fx + 0.28, fy + 0.25, tz[0], tz[1], 0.26, paint)
+        frame_ring(m, fx + 0.27, fy + 0.24, tz[0] - 0.022, tz[0] + 0.004, 0.24, TD)
+        for sx in SIDES:                                      # two beams across it, leaving a window over the stack
+            m.box((0.18, 2 * (fy + 0.25) - 0.26, tz[1] - tz[0] - 0.02), (sx * 0.50, 0, (tz[0] + tz[1]) / 2), paint, bevel=0.012)
+        # the stack: a broad foot, ribs, a funnel with a real hollow
+        m.cyl(0.46, 0.09, (0, 0, Z3 + 0.04), G, seg=6)
+        for k in range(6):                                    # the picture's stack is tall and plainly ribbed, and stands well above the frame
+            wide = k % 2 == 0
+            m.cyl(0.34 if wide else 0.26, 0.124, (0, 0, Z3 + 0.085 + 0.06 + k * 0.12), LT if wide else G, seg=6)
+        zf = Z3 + 0.085 + 6 * 0.12
+        m.cyl(0.30, 0.18, (0, 0, zf + 0.085), G, seg=6, r2=0.40)
+        m.cyl(0.42, 0.05, (0, 0, zf + 0.19), LT, seg=6)
+        m.cyl(0.33, 0.02, (0, 0, zf + 0.212), SLIT, seg=6)
+        for sx in SIDES:                                      # the roof's slots, under the open bays: red neon behind pale bars
+            with m.at((sx * 0.80, 0, Z3)):
+                m.box((0.26, 0.46, 0.014), (0, 0, 0.004), "h_neon")
+                for k in range(4):
+                    y = -0.165 + k * 0.11
+                    m.prism([(y - 0.02, 0.009), (y + 0.02, 0.009), (y + 0.012, 0.032), (y - 0.012, 0.032)], -0.14, 0.14, "X", LT)
+                ring(m, 0.17, 0.27, [(0.0, -0.004), (0.012, 0.036), (0.034, 0.036), (0.046, -0.004)], G, c=0.03)
+    zl, zu = (0.12 + Z1) / 2, (Z1 + 0.08 + Z2 - 0.02) / 2    # the middle heights of the two courses' walls
+    for sx in SIDES:                                          # the end walls: let in in steps, bolts at the corners
+        with on_end(m, sx, sx * fx, yc, zl):
+            sunk(m, 1.16, 0.56)
+        for y in (yc - 0.69, yc + 0.69):
+            for z in (0.24, Z1 - 0.10):
+                with on_end(m, sx, sx * fx, y, z):
+                    hexbolt(m)
+        with on_end(m, sx, sx * (fx - 0.05), yc, zu):
+            sunk(m, 1.10, 0.36)
+    with on_side(m, 1, yc + fy, zl, xc=0.0):                  # the back wall
+        sunk(m, 1.80, 0.56)
+    for x in (-1.02, 1.02):
+        for z in (0.24, Z1 - 0.10):
+            with on_side(m, 1, yc + fy, z, xc=x):
+                hexbolt(m)
+    with on_side(m, 1, yc + fy - 0.05, zu, xc=0.0):
+        sunk(m, 1.70, 0.36)
+    # ---- on the near block's roof: two fat ribbed ducts into the furnace, and a short fat stack
+    Zr, rd, zq = 0.98, 0.13, 1.30
+    ys = yc - fy + 0.05                                       # the furnace's upper wall, facing the near block
+    for x in (-0.40, 0.20):
+        with m.at((x, yb + 0.02, 0)):
+            octa(m, rd + 0.04, rd + 0.01, Zr - 0.01, Zr + 0.06, G)
+            octa(m, rd, rd, Zr + 0.05, zq - 0.16, LT)
+            slab(m, 0.17, 0.17, zq - 0.17, zq + 0.17, 0.035, G, bevel=0.022)
+        y0, y1 = yb + 0.02 + 0.17, ys + 0.03
+        n = 5
+        step = (y1 - y0) / n
+        for k in range(n):
+            wide = k % 2 == 1
+            m.cyl((rd if wide else rd * 0.74) * K, step + 0.004, (x, y0 + (k + 0.5) * step, zq), LT if wide else G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    with m.at((0.82, yb, 0)):
+        octa(m, 0.16, 0.13, Zr - 0.01, Zr + 0.07, G)
+        for k in range(5):
+            wide = k % 2 == 0
+            octa(m, 0.125 if wide else 0.095, 0.125 if wide else 0.095, Zr + 0.06 + k * 0.12, Zr + 0.06 + (k + 1) * 0.12 + 0.004, LT if wide else G)
+        octa(m, 0.10, 0.14, Zr + 0.66, Zr + 0.74, G)
+        oct_ring(m, 0.145, 0.04, Zr + 0.735, Zr + 0.775, LT)
+        octa(m, 0.105, 0.105, Zr + 0.72, Zr + 0.757, SLIT)
+
+
+mill8.frame, mill8.shadow, mill8.res = {"iso": (5.4, 1.3), "side": (5.0, 1.4), "top": (4.4, 0.6), "end": (4.4, 1.4)}, True, 1800
+_hero.HEROES["mill8"] = mill8
+
+
 def former5_paints(m):
     """Not a machine: former5 four times, each in a different trial paint, to choose a colour of our own."""
     for (x, y), key in zip(((-2.3, 1.9), (2.3, 1.9), (-2.3, -1.9), (2.3, -1.9)), PAINTS):
