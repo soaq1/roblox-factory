@@ -24,7 +24,8 @@ G, T, TD, W, D, SLIT = "h_grey", "h_taupe", "h_taupe_d", "h_white", "h_dark", "h
 fk.PAL.update({"h_rail": fk.PAL["h_grey"], "h_rail_d": fk.PAL["h_dark"]})
 R, RD = "h_rail", "h_rail_d"
 SIDES = (-1, 1)                       # used both for the two sides of the belt and for the two ends
-BH, BZ = 0.305, 0.203                 # belt half width and belt surface height (the height was 0.305 until 2026-10-08:
+BH, BZ = 0.343, 0.203                 # belt half width and belt surface height. (The half width was 0.305 until 2026-10-08: the developer
+                                      # asked for the rails as thin as before and the belt itself wider. The height was 0.305 too:
                                       # the developer asked for the belt a third flatter, so that belts can be stacked
                                       # one above another with things passing between)
 BX, BY = 0.47, 0.43                   # half length and half width of the body block
@@ -391,13 +392,14 @@ def foundation_c(m, top=0.82):
         for s in SIDES:
             for z in (0.40, 0.70):
                 m.cyl(0.026, 0.02, (d * (BX + 0.145), s * 0.395, z), D, seg=6, axis="X")
-        m.box((0.02, 0.62, 0.40), (d * (BX + 0.012), 0, 0.50), SLIT)
+        m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (d * (BX + 0.012), 0, (0.706 + BZ) / 2), SLIT)
     return top
 
 
 # Foundation D's rail, from the belt's edge outward and down to the ground.
-# (Widened on 2026-10-08: with the belt flattened, the rail's long outer slope made the end of a belt look
-# like a steeply leaning parallelogram. The rail's head now stands further out and its wall is more upright.)
+# (2026-10-08: with the belt flattened, the rail's long outer slope made the end of a belt look like a steeply
+# leaning parallelogram, so the rail's wall was stood more upright, further out. That left the rail's head thick;
+# the developer asked for it thin again and the belt wider, so the belt now reaches out to the head: see BH.)
 RAIL_D = [(BH, 0.235), (0.408, 0.235), (0.44, 0.207), (0.44, 0.178), (0.426, 0.166), (0.482, 0.05),
           (0.50, 0.05), (0.50, 0.0)]
 # Where a bolt head sits on the rail's sloping outer wall: across, up, and how far the wall leans (from RAIL_D).
@@ -414,7 +416,7 @@ def chevrons2(m, x0, x1, step=0.375):
         xc = x0 + (i + 0.5) * (x1 - x0) / n
         for dx in (-0.035, 0.035):
             for s in SIDES:
-                m.box((0.011, 0.26, 0.004), (xc + dx, s * 0.12, BZ + 0.002), "h_line", rot=s * 0.36)
+                m.box((0.011, 0.30, 0.004), (xc + dx, s * 0.14, BZ + 0.002), "h_line", rot=s * 0.36)
 
 
 # ---- what the body stands on -------------------------------------------------------------------
@@ -529,7 +531,7 @@ def loft_x(m, stations, mk):
 # The collar a tunnel mouth stands on: the rail's own outline grown by about 0.034, so it reads as a clamp
 # wrapped round the rail rather than a block set down on it. Its toe rests on the rail's foot flange,
 # inside the flange's edge. Counter-clockwise, for the rail at +y.
-COLLAR = [(0.34, 0.03), (0.492, 0.03), (0.492, 0.104), (0.42, 0.284), (0.436, 0.30), (0.436, 0.342), (0.392, 0.385), (0.34, 0.385)]
+COLLAR = [(BH + 0.012, 0.03), (0.492, 0.03), (0.492, 0.104), (0.45, 0.284), (0.466, 0.30), (0.466, 0.342), (0.422, 0.385), (BH + 0.012, 0.385)]
 
 
 def collar(m, x0, x1, mk=R):
@@ -564,8 +566,9 @@ def foundation_d(m, top=0.82, foot=None):
         x0 = d * BX
         collar(m, *sorted((x0, x0 + d * 0.318)))               # a collar hugs each rail behind the end frame, which stands on the rail itself
         px = x0
-        folds = [(0.042, 0.84, 0.77, 0.315, R), (0.026, 0.77, 0.735, 0.335, RD)] * 4
-        for th, w, tp, hw, mk in folds + [(0.066, 0.88, 0.79, 0.315, R)]:
+        g = 2 * (BH - 0.305)                                  # the covers grow with the belt
+        folds = [(0.042, 0.84 + g, 0.77, BH + 0.01, R), (0.026, 0.77 + g, 0.735, BH + 0.03, RD)] * 4
+        for th, w, tp, hw, mk in folds + [(0.066, 0.88 + g, 0.79, BH + 0.01, R)]:
             a, b = sorted((px, px + d * th))
             m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
             px += d * th

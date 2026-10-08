@@ -1240,10 +1240,10 @@ def former2(m):
     for sx in SIDES:
         a, b = sorted((sx * (X - 0.01), sx * (X + 0.15)))
         with m.at((0, yb, 0)):
-            m.prism(arch_pts(0.90, 0.84, hole_top=0.705, hw=0.315, c=0.11, ci=0.05), a, b, "X", T)
+            m.prism(arch_pts(0.96, 0.84, hole_top=0.705, hw=BH + 0.01, c=0.11, ci=0.05), a, b, "X", T)
             a2, b2 = sorted((sx * (X + 0.15), sx * (X + 0.185)))
-            m.prism(arch_pts(0.78, 0.775, hole_top=0.705, hw=0.315, c=0.085, ci=0.05), a2, b2, "X", LT)
-            m.box((0.02, 0.62, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
+            m.prism(arch_pts(0.86, 0.775, hole_top=0.705, hw=BH + 0.01, c=0.085, ci=0.05), a2, b2, "X", LT)
+            m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
             m.prism([(sx * x, z) for x, z in ((X - 0.03, 0.83), (X - 0.03, 0.985), (X + 0.03, 0.985), (X + 0.14, 0.87), (X + 0.14, 0.83))],
                     -0.34, 0.34, "Y", ST)                     # the hood
         with on_end(m, sx, sx * X, -0.20, 0.66):
@@ -1545,10 +1545,10 @@ def blast5(m):
     def mouth(sx, y):                                         # a thick frame round the belt, a liner, the dark of the tunnel, a hood
         with m.at((0, y, 0)):
             a_, b_ = sorted((sx * (X - 0.01), sx * (X + 0.15)))
-            m.prism(arch_pts(0.92, 0.86, hole_top=0.705, hw=0.315, c=0.11, ci=0.05), a_, b_, "X", G)
+            m.prism(arch_pts(0.96, 0.86, hole_top=0.705, hw=BH + 0.01, c=0.11, ci=0.05), a_, b_, "X", G)
             a_, b_ = sorted((sx * (X + 0.15), sx * (X + 0.185)))
-            m.prism(arch_pts(0.80, 0.79, hole_top=0.705, hw=0.315, c=0.085, ci=0.05), a_, b_, "X", LT)
-            m.box((0.02, 0.62, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
+            m.prism(arch_pts(0.86, 0.79, hole_top=0.705, hw=BH + 0.01, c=0.085, ci=0.05), a_, b_, "X", LT)
+            m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (sx * (X + 0.02), 0, (0.706 + BZ) / 2), SLIT)
             m.prism([(sx * x, z) for x, z in ((X - 0.03, 0.85), (X - 0.03, 1.02), (X + 0.03, 1.02), (X + 0.14, 0.895), (X + 0.14, 0.85))],
                     -0.36, 0.36, "Y", ST)
 

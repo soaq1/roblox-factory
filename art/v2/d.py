@@ -46,7 +46,7 @@ def chev(m, x, flow=1, z=BZ):
     """A pair of hairline chevrons on the belt, pointing the way it runs."""
     for dx in (-0.035, 0.035):
         for s in SIDES:
-            m.box((0.011, 0.26, 0.004), (x + dx, s * 0.12, z + 0.002), "h_line", rot=flow * s * 0.36)
+            m.box((0.011, 0.30, 0.004), (x + dx, s * 0.14, z + 0.002), "h_line", rot=flow * s * 0.36)
 
 
 def buttress(m, x):
@@ -75,11 +75,12 @@ def cover(m, x0, d, sole=True):
     if sole:
         collar(m, *sorted((x0, x0 + d * 0.318)))
     px = x0
-    for th, w, tp, hw, mk in [(0.042, 0.84, 0.77, 0.315, R), (0.026, 0.77, 0.735, 0.335, RD)] * 4 + [(0.066, 0.88, 0.79, 0.315, R)]:
+    g = 2 * (BH - 0.305)                                      # the covers grow with the belt
+    for th, w, tp, hw, mk in [(0.042, 0.84 + g, 0.77, BH + 0.01, R), (0.026, 0.77 + g, 0.735, BH + 0.03, RD)] * 4 + [(0.066, 0.88 + g, 0.79, BH + 0.01, R)]:
         a, b = sorted((px, px + d * th))
         m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
         px += d * th
-    m.box((0.02, 0.62, 0.694 - BZ), (x0 + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)        # the dark of the tunnel, from the belt up
+    m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (x0 + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)        # the dark of the tunnel, from the belt up
 
 
 def block(m, top=0.82):
@@ -116,8 +117,8 @@ def mouth(m, side, out=False, tall=0.74):
     with frame(m, origin, inward):
         m.prism(SECTION, 0.0, 0.08, "X", R)
         m.box((0.08, BH * 2, 0.03), (0.04, 0, BZ - 0.015), "h_belt")
-        m.prism(arch_pts(0.82, tall, hole_top=tall - 0.12, hw=0.315, c=0.085, ci=0.035), 0.0, 0.075, "X", R)
-        m.box((0.02, 0.62, tall - 0.12 - BZ), (0.068, 0, (tall - 0.12 + BZ) / 2), SLIT)
+        m.prism(arch_pts(0.82 + 2 * (BH - 0.305), tall, hole_top=tall - 0.12, hw=BH + 0.01, c=0.085, ci=0.035), 0.0, 0.075, "X", R)
+        m.box((0.02, 2 * BH + 0.01, tall - 0.12 - BZ), (0.068, 0, (tall - 0.12 + BZ) / 2), SLIT)
         k = -1 if out else 1
         m.prism([(-0.07, tall - 0.085 + k * 0.03), (0.07, tall - 0.085 + k * 0.03), (0.0, tall - 0.085 - k * 0.03)],
                 -0.004, 0.079, "X", "h_line")                 # an arrowhead on the arch: down is in, up is out
