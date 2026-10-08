@@ -256,7 +256,7 @@ def show(build, name, out_dir):
     iso = Vector((-math.cos(elev) * math.cos(rad(45)), -math.cos(elev) * math.sin(rad(45)), math.sin(elev)))
     up = (-iso).cross(Vector((0, 0, 1))).normalized().cross(-iso)
     scene.render.film_transparent = True
-    scene.render.resolution_x = scene.render.resolution_y = 1000
+    scene.render.resolution_x = scene.render.resolution_y = getattr(build, "res", 1000)    # a wide layout may ask for more
     scene.cycles.samples = 64
     os.makedirs(out_dir, exist_ok=True)
     back = Vector((-iso.x, -iso.y, iso.z))    # the catalog angle from the opposite corner, to see what it hides

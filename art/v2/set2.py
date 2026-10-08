@@ -1687,6 +1687,56 @@ def belts_demo(m):
 
 belts_demo.frame, belts_demo.shadow = {"iso": (16.5, 0.9), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
 _hero.HEROES["belts_demo"] = belts_demo
+def belts_all(m):
+    """Not a machine: every conveyor piece in ONE unbroken line, to judge each joint. From the start:
+    two straights, a ramp up on its own, a straight, a ramp down on its own, a straight, a right turn,
+    a straight, a left turn, a straight, a run of three ramps up (first, middle, last), a straight, a
+    left turn, three straights, a left turn, a straight, a run of three ramps down, two straights, a
+    right turn, a straight. Raised pieces stand on nothing, and the ramps above the ground have no
+    trestles: what carries a raised belt is not designed yet."""
+    OX, OY = -2.5, -0.5
+    R90 = rad(90)
+
+    def put(fn, x, y, rz=0.0, z=0.0):
+        with m.at((x + OX, y + OY, z), rz):
+            fn(m)
+
+    def ramp(low, high, down=False, legs=True):
+        return lambda mm: _belts.ramp(mm, low, high, legs=legs, down=down)
+
+    for x in (-6, -5):
+        put(_belts.straight, x, 0)
+    put(ramp(True, True), -3.5, 0)
+    put(_belts.straight, -2, 0, 0.0, 1.0)
+    put(ramp(True, True, down=True), -0.5, 0)
+    put(_belts.straight, 1, 0)
+    put(_belts.corner_right, 2, 0)
+    put(_belts.straight, 2, -1, -R90)
+    put(_belts.corner_left, 2, -2, -R90)
+    put(_belts.straight, 3, -2)
+    put(ramp(True, False), 4.5, -2)
+    put(ramp(False, False, legs=False), 6.5, -2, 0.0, 1.0)
+    put(ramp(False, True, legs=False), 8.5, -2, 0.0, 2.0)
+    put(_belts.straight, 10, -2, 0.0, 3.0)
+    put(_belts.corner_left, 11, -2, 0.0, 3.0)
+    for y in (-1, 0, 1):
+        put(_belts.straight, 11, y, R90, 3.0)
+    put(_belts.corner_left, 11, 2, R90, 3.0)
+    put(_belts.straight, 10, 2, 2 * R90, 3.0)
+    put(ramp(False, True, down=True, legs=False), 8.5, 2, 2 * R90, 2.0)
+    put(ramp(False, False, down=True, legs=False), 6.5, 2, 2 * R90, 1.0)
+    put(ramp(True, False, down=True), 4.5, 2, 2 * R90)
+    for x in (3, 2):
+        put(_belts.straight, x, 2, 2 * R90)
+    put(_belts.corner_right, 1, 2, 2 * R90)
+    put(_belts.straight, 1, 3, R90)
+
+
+belts_all.frame, belts_all.shadow = {"iso": (21.0, 1.6), "side": (19.5, 1.8), "top": (19.5, 0.6), "end": (9.0, 1.8)}, True
+belts_all.res = 3200                      # wide, and the joints must be seen closely
+_hero.HEROES["belts_all"] = belts_all
+
+
 def belts_stack(m):
     """Not a machine: three lines of conveyor one cell above another, each two straights, a ramp without
     trestles and a straight one cell higher, with things riding them, to judge the room between stacked
