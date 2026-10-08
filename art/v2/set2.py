@@ -3334,7 +3334,8 @@ _hero.HEROES["mill8"] = mill8
 
 
 def mill9(m, paint="h_p1"):
-    """Steel mill, 3x3 (hitbox 3x3x3), a through machine: mill8's layout built out of former5's parts.
+    """REJECTED (2026-10-08): "존나 밋밋함. 그냥 사각형 위에 꾸며두는 느낌". A box with fittings on it.
+    Steel mill, 3x3 (hitbox 3x3x3), a through machine: mill8's layout built out of former5's parts.
     mill8 followed the Islands mill mass for mass but in parts of its own (broad flat frames, pairs of
     posts, a six-sided ribbed stack, ribbed ducts, stepped walls, washers under the bolts), and the
     developer asked why it was so inconsistent with the former. So everything here is the former's:
@@ -3470,6 +3471,144 @@ def mill9(m, paint="h_p1"):
 
 mill9.frame, mill9.shadow, mill9.res = {"iso": (5.4, 1.4), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
 _hero.HEROES["mill9"] = mill9
+
+
+def mill10(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. mill9 was a box
+    with fittings on it ("그냥 사각형 위에 꾸며두는 느낌"); what makes former5 work is that its form is a
+    skeleton with a mass hung inside it, not a box. So here the form is changed, not the trim: this is
+    a steel converter, built of former5's parts.
+    Over the belt stands an open tower, three painted frames on four bundles of rods, as the former's
+    is. In it hangs the vessel: eight-sided, a narrow bottom with its tap over the belt, a wide belly,
+    a shoulder drawn in to an open mouth that glows red inside; a painted ring round its belly carries
+    it on two fat trunnions that run into bearing blocks astride the middle frame. Under the top frame,
+    hung from two cross beams, a hood stands over the mouth, and its stack rises through the frame.
+    East of the tower the belt runs through the blower house, a cabinet under a painted body, a
+    painted portal at each mouth. On its roof at the south end stands the blower's casing, its one
+    louvre the air intake; from it the blast main runs west through the open air, past a valve with a
+    big handwheel standing on a pier, round a box elbow and into the south bearing block: the blast
+    goes into the vessel through its trunnion."""
+    g = 2 * (BH - 0.305)
+    xt = -0.42                                                # the tower's and the vessel's middle
+
+    def portal(xa, d):
+        px = xa
+        for th, w, tp, mk in ((0.08, 0.84 + g, 0.82, paint), (0.022, 0.79 + g, 0.795, SLIT), (0.08, 0.84 + g, 0.82, paint)):
+            a_, b_ = sorted((px, px + d * th))
+            m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
+            px += d * th
+        m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (xa + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)
+        xo = xa + d * 0.182
+        for sy_ in SIDES:
+            pts = [(xo - d * 0.006, 0.03), (xo + d * 0.13, 0.03), (xo + d * 0.13, 0.24), (xo + d * 0.10, 0.262), (xo - d * 0.006, 0.44)]
+            bprism(m, pts if d > 0 else pts[::-1], *sorted((sy_ * 0.358, sy_ * 0.494)), "Y", R, bevel=0.008)
+
+    # ---- the belt, open under the tower
+    bed(m, -1.5, 1.5)
+    m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
+    for x in (-4 / 3, -1.0, -0.74, -0.02):
+        chev(m, x)
+    for x in (-4 / 3, -1.0):
+        buttress(m, x)
+    with m.at((xt, 0, 0)):
+        seat(m, 0.30)                                         # the pouring bed under the vessel, the same seat the former stands on
+        m.box((0.32, 0.26, 0.022), (0, 0, BZ + 0.017), LT, bevel=0.006)
+    # ---- the tower: three frames on four bundles of rods, standing on a sill each side of the belt
+    fz = ((0.86, 1.01), (1.37, 1.52), (2.46, 2.61))
+    RX = 0.65
+    for sy in SIDES:
+        with m.at((xt, sy * RX, 0)):
+            slab(m, 0.76, 0.115, 0.0, 0.16, 0.03, T, bevel=0.012)
+    with m.at((xt, 0, 0)):
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.15, 0.14, 0.03), (sx * (RX - 0.0375), sy * (RX - 0.034), 0.17), G, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):
+                    m.box((0.044, 0.044, fz[2][0] + 0.02 - 0.18), (sx * (RX + dx), sy * (RX + dy), (fz[2][0] + 0.02 + 0.18) / 2), LT, bevel=0.008)
+        for z0, z1 in fz:
+            frame_ring(m, 0.72, 0.72, z0, z1, 0.17, paint)
+            frame_ring(m, 0.713, 0.713, z0 - 0.03, z0 + 0.004, 0.15, TD)
+        # the vessel
+        zt = (fz[1][0] + fz[1][1]) / 2                        # the trunnions' height: the middle frame's
+        # It hangs tipped a little on its trunnions, mouth toward the inlet side, as a converter stands when
+        # it is blowing: the form is not upright and square, and the fire in its mouth can be seen.
+        from mathutils import Matrix
+        m.stack.append(m.stack[-1] @ Matrix.Translation((0, 0, zt)) @ Matrix.Rotation(rad(-16), 4, "Y") @ Matrix.Translation((0, 0, -zt)))
+        octa(m, 0.07, 0.07, 0.82, 0.97, ST)                   # the tap
+        octa(m, 0.26, 0.46, 0.95, 1.25, G)
+        octa(m, 0.46, 0.46, 1.24, 1.66, G)
+        octa(m, 0.50, 0.50, zt - 0.06, zt + 0.06, paint)      # the ring that carries it
+        octa(m, 0.475, 0.475, 1.60, 1.65, TD)
+        octa(m, 0.46, 0.30, 1.65, 1.96, G)
+        oct_ring(m, 0.34, 0.07, 1.95, 2.04, TD)               # the mouth's lip, and the fire inside it
+        octa(m, 0.275, 0.275, 1.955, 2.012, "h_neon")
+        m.stack.pop()
+        for sy in SIDES:
+            m.cyl(0.09 * K, 0.15, (0, sy * 0.565, zt), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+            with m.at((0, sy * 0.665, 0)):                    # a bearing block astride the frame's beam
+                slab(m, 0.14, 0.125, zt - 0.145, zt + 0.145, 0.03, G, bevel=0.02)
+                slab(m, 0.152, 0.137, zt + 0.125, zt + 0.185, cut_to(0.152, 0.137, (0.14, 0.125, 0.03), 0.012), TD, bevel=0.012)
+        # the hood, hung from two beams under the top frame
+        for y in (-0.26, 0.26):
+            m.prism([(y - 0.055, 2.385), (y + 0.055, 2.385), (y + 0.04, 2.465), (y - 0.04, 2.465)], -0.62, 0.62, "X", G)
+        octa(m, 0.42, 0.22, 2.22, 2.42, G)
+        oct_ring(m, 0.45, 0.05, 2.20, 2.26, LT)
+    fat_stack(m, xt, 0, 2.40, 2.98, 0.165, foot=0.03)
+    # ---- the blower house, east of the tower, the belt through it
+    hx0, hx1, hy0, hy1 = 0.36, 1.16, -1.26, 0.62
+    xh, yh = (hx0 + hx1) / 2, (hy0 + hy1) / 2
+    hxh, hyh = (hx1 - hx0) / 2, (hy1 - hy0) / 2
+    Zc, Zr = 0.86, 1.12
+    body = (hxh - 0.08, hyh - 0.08, 0.045)
+    portal(hx0, -1)
+    portal(hx1, 1)
+    with m.at((xh, yh, 0)):
+        slab(m, hxh - 0.01, hyh - 0.01, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, hxh, hyh, 0.12, Zc, 0.035, G, bevel=0.02)
+        slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
+    zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
+    with on_side(m, -1, hy0, zc_, xc=xh):                     # the door, in the south end, where one walks in
+        framed(m, 0.34, 0.46, LT)
+        m.box((0.022, 0.11, 0.022), (0.10, 0, 0.02), TD)
+    for x in (hx0 + 0.068, hx1 - 0.068):
+        for z in (0.21, Zc - 0.09):
+            with on_side(m, -1, hy0, z, xc=x):
+                m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+    with on_side(m, -1, yh - body[1], zb_, xc=xh):            # the dial panel, over the door
+        gauges(m, 0.22, 0.10)
+    with on_end(m, -1, xh - body[0], -0.78, zb_):             # the badge
+        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    # the blower's casing on the roof, its louvre the air intake
+    xb, yb_, case = xh, -0.98, (0.26, 0.18, 0.035)
+    Zk = 1.70
+    with m.at((xb, yb_, 0)):
+        slab(m, case[0], case[1], Zr - 0.01, Zk, case[2], G, bevel=0.02)
+        slab(m, case[0] + 0.015, case[1] + 0.015, Zk - 0.02, Zk + 0.04, cut_to(case[0] + 0.015, case[1] + 0.015, case, 0.015), TD, bevel=0.014)
+    with on_side(m, -1, yb_ - case[1], (Zr + Zk) / 2 - 0.01, xc=xb):
+        vent(m, 0.20, 0.19)
+    fat_stack(m, xh, 0.25, Zr, 1.95, 0.10)                    # a short fat stack on the roof's north end
+    # ---- the blast main: out of the casing, through the open air past a valve on a pier, round an elbow, into the south bearing
+    rd, zq = 0.105, zt
+    x0, x1 = xb - case[0], xt + 0.14
+    m.cyl(rd * K, x0 - x1 + 0.03, ((x0 + x1) / 2, yb_, zq), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    xv = 0.11
+    with m.at((xv, yb_, 0)):
+        slab(m, 0.13, 0.13, zq - 0.14, zq + 0.14, 0.03, G, bevel=0.02)
+        slab(m, 0.10, 0.13, 0.0, 0.07, 0.03, T, bevel=0.012)                                             # the pier under it
+        slab(m, 0.05, 0.075, 0.05, zq - 0.13, 0.015, ST, bevel=0.01)
+    with on_side(m, -1, yb_ - 0.13, zq, xc=xv):
+        handwheel(m, 0.14)
+    for x in ((x0 + xv + 0.13) / 2, (xv - 0.13 + x1) / 2):
+        m.cyl((rd + 0.022) * K, 0.06, (x, yb_, zq), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with m.at((xt, yb_, 0)):
+        slab(m, 0.14, 0.14, zq - 0.14, zq + 0.14, 0.03, G, bevel=0.02)
+    ya, yq = yb_ + 0.14, -0.79
+    m.cyl(rd * K, yq - ya + 0.05, (xt, (ya + yq) / 2, zq), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+
+
+mill10.frame, mill10.shadow, mill10.res = {"iso": (5.6, 1.45), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
+_hero.HEROES["mill10"] = mill10
 
 
 def former5_paints(m):
