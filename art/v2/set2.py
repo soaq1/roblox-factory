@@ -2100,7 +2100,8 @@ def fat_stack(m, x, y, z0, z1, r=0.115, foot=0.05):
 def framed(m, w, h, inner="h_dark"):
     """A let-in panel in a raised frame, to be built inside on_side or on_end."""
     m.box((w - 0.05, h - 0.05, 0.008), (0, 0, 0.004), inner)
-    ring(m, w / 2, h / 2, [(0.0, -0.004), (0.008, 0.024), (0.028, 0.024), (0.036, -0.004)], G, c=0.012)
+    ring(m, w / 2, h / 2, [(0.0, -0.004), (0.008, 0.024), (0.028, 0.024), (0.036, -0.004)], G, c=0.028)   # the cut must be more than 0.6 of the
+                                                              # rim's width, or the corner folds over itself and shows as a dark sliver
 
 
 def former5(m, paint=None):
@@ -2150,22 +2151,16 @@ def former5(m, paint=None):
             vent(m, 0.25, 0.115)
         with on_end(m, -1, -0.37, 0, 1.925):                  # the panel: a raised outline round a dark field, and let into the
             m.box((0.46, 0.15, 0.008), (0, 0, 0.004), TD)     # field two dials, each a raised rim round a white face
-            ring(m, 0.26, 0.105, [(0.0, -0.004), (0.008, 0.03), (0.03, 0.03), (0.038, -0.004)], G, c=0.012)
-            for y in (-0.125, 0.125):
+            ring(m, 0.26, 0.105, [(0.0, -0.004), (0.008, 0.03), (0.03, 0.03), (0.038, -0.004)], G, c=0.03)
+            for y, turn in ((-0.125, 0.75), (0.125, -1.15)):  # each needle runs out from its dial's centre, the two at different readings
                 with m.at((y, 0, 0)):
                     ring_round(m, 0.056, 0.042, 0.006, 0.026, LT, seg=12)
                     m.cyl(0.043, 0.008, (0, 0, 0.012), "h_white", seg=12)
-                    m.box((0.009, 0.05, 0.005), (0.006, 0.008, 0.0185), "h_red", rot=0.6)
+                    m.box((0.009, 0.034, 0.005), (-0.016 * math.sin(turn), 0.016 * math.cos(turn), 0.0185), "h_red", rot=turn)
                     m.cyl(0.011, 0.009, (0, 0, 0.0215), TD, seg=8)
         with on_side(m, -1, -0.335, 2.08):                    # and its near face
             bolted(m, 0.46, 0.42, G)
-        for z0, z1 in fz:                                     # every corner of every frame is bolted through to its rod from both faces
-            for sx in SIDES:
-                for sy in SIDES:
-                    with on_end(m, sx, sx * 0.545, sy * RY, (z0 + z1) / 2):
-                        m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
-                    with on_side(m, sy, sy * 0.49, (z0 + z1) / 2, xc=sx * RX):
-                        m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
+        # (the frames' corners carried bolts, on one face and then on both; the developer asked for them all off)
     # the fat duct: up out of the head, through a box, across, through a box, down into the house's roof
     rd, zd, yd = 0.105, 2.80, -0.62
     with m.at((0, yb, 0)):
