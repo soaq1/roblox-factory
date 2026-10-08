@@ -2921,18 +2921,16 @@ def mill6(m, paint="h_p1"):
     # The painted body's west wall. It was a row of eight equal square panels, which the developer found dull:
     # now a wide panel, three narrow ones, a bolted name plate, a panel of small squares and a badge.
     xbw = xr - bodyr[0]
-    with on_end(m, -1, xbw, -0.95, zb):
-        framed(m, 0.40, 0.20)
-    for y in (-0.62, -0.46, -0.30):
+    # (then five kinds of small thing; the developer's reading of Islands is a few fair-sized things, each one
+    # something a machine would have: so a wide panel, a name plate, two more panels of other widths, a badge)
+    for y, w in ((-0.90, 0.50), (0.38, 0.30), (0.70, 0.18)):
         with on_end(m, -1, xbw, y, zb):
-            framed(m, 0.11, 0.20)
-    with on_end(m, -1, xbw, 0.06, zb):
-        bolted(m, 0.44, 0.17, LT, r=0.014)
-    with on_end(m, -1, xbw, 0.64, zb):
-        grid(m, 0.26, 0.10, 6, 2)
-    with on_end(m, -1, xbw, 1.06, zb):
-        m.cyl(0.07, 0.022, (0, 0, 0.008), "h_red", seg=6)
-        m.cyl(0.038, 0.012, (0, 0, 0.024), "h_white", seg=6)
+            framed(m, w, 0.20)
+    with on_end(m, -1, xbw, -0.25, zb):
+        bolted(m, 0.50, 0.17, LT, r=0.016)
+    with on_end(m, -1, xbw, 1.02, zb):
+        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
     for y in (-1.27, 1.27):
         for z in (Zc + 0.06, Zr - 0.06):
             with on_end(m, -1, xr - bodyr[0], y, z):
@@ -2980,15 +2978,19 @@ def mill6(m, paint="h_p1"):
                 m.prism([(x - 0.015, 0.009), (x + 0.015, 0.009), (x + 0.008, 0.03), (x - 0.008, 0.03)], -0.10, 0.10, "Y", LT)
             ring(m, 0.25, 0.13, [(0.0, -0.004), (0.01, 0.034), (0.034, 0.034), (0.046, -0.004)], TD, c=0.03)
     # The furnace's long walls, filled as Islands fills a big wall: not with many small fittings but with one
-    # big let-in panel, and inside it a door and a panel of small squares. Above the frame, a bolted plate.
+    # big let-in panel, and inside it a fair-sized door and a sight port. Above the frame, a bolted plate.
     for d in SIDES:
         with on_side(m, d, d * fy, 0.62, xc=xf):
             framed(m, 0.84, 0.74)
-            with m.at((-0.20, -0.07, 0.006)):
-                framed(m, 0.28, 0.50, LT)
-                m.box((0.022, 0.11, 0.022), (0.085, 0, 0.02), TD)
-            with m.at((0.17, 0.10, 0.006)):
-                grid(m, 0.17, 0.13, 4, 3)
+            with m.at((-0.18, -0.04, 0.006)):                 # a fair-sized door
+                framed(m, 0.34, 0.56, LT)
+                m.box((0.024, 0.13, 0.022), (0.105, 0, 0.02), TD)
+            with m.at((0.20, 0.0, 0.008)):                    # and a sight port: a thick eight-sided rim round dark glass
+                octa(m, 0.10, 0.10, -0.004, 0.012, SLIT)
+                oct_ring(m, 0.145, 0.05, -0.006, 0.036, G)
+                for k in range(4):
+                    a_ = math.pi / 4 + k * math.pi / 2
+                    m.cyl(0.016, 0.014, (0.118 * math.cos(a_), 0.118 * math.sin(a_), 0.04), TD, seg=6)
         with on_side(m, d, d * (fy - 0.03), (fa[1] + Zu - 0.02) / 2, xc=xf):
             bolted(m, 0.62, 0.22, LT, r=0.016)
     # the outlet, in the furnace's east wall
