@@ -109,11 +109,11 @@ def ramp_profile(low, high):
     return lift, pitch
 
 
-def ramp(m, low=True, high=True, flow=1):
+def ramp(m, low=True, high=True, flow=1, legs=True):
     """Ramp, 2x1: from the west, low, to the east, one cell higher. Which ends are level depends on
     what it meets (see ramp_profile): level against a flat belt, sloping on against another ramp.
-    It stands on two portal piers, a leg under each rail and a tie between them, the belt's underside
-    open between the legs."""
+    It stands on two slim trestles (with legs=False, on nothing: for ramps stacked one above another,
+    where trestles would stand on the belt below)."""
     lift_at, pitch_at = ramp_profile(low, high)
     n = 24
     xs = [-1.0 + 2.0 * i / n for i in range(n + 1)]
@@ -142,15 +142,20 @@ def ramp(m, low=True, high=True, flow=1):
         bolt(m)
         m.stack.pop()
         m.stack.pop()
-    for xc in (0.10, 0.80):                                   # piers
-        for s in SIDES:
-            ya, yb = sorted((s * 0.27, s * 0.47))
-            m.prism([(xc - 0.17, 0.02), (xc + 0.17, 0.02), (xc + 0.10, lift_at(xc + 0.10) + 0.02), (xc - 0.10, lift_at(xc - 0.10) + 0.02)],
-                    ya, yb, "Y", T)
-            ya, yb = sorted((s * 0.25, s * 0.49))
-            m.prism([(xc - 0.20, 0.0), (xc + 0.20, 0.0), (xc + 0.18, 0.06), (xc - 0.18, 0.06)], ya, yb, "Y", TD)   # foot
-        zt = lift_at(xc) * 0.55
-        m.prism([(xc - 0.05, zt - 0.05), (xc + 0.05, zt - 0.05), (xc + 0.035, zt + 0.05), (xc - 0.035, zt + 0.05)], -0.28, 0.28, "Y", ST)   # tie
+    if not legs:
+        return
+    for xc in (0.10, 0.80):                                   # trestles: a slim post under each rail on a small foot, a tie
+        for s in SIDES:                                       # between the two, and a knee brace from each post up to the rail
+            ya, yb = sorted((s * 0.385, s * 0.435))
+            m.prism([(xc - 0.028, 0.02), (xc + 0.028, 0.02), (xc + 0.028, lift_at(xc + 0.028) + 0.02), (xc - 0.028, lift_at(xc - 0.028) + 0.02)],
+                    ya, yb, "Y", ST)
+            ya, yb = sorted((s * 0.34, s * 0.48))
+            m.prism([(xc - 0.09, 0.0), (xc + 0.09, 0.0), (xc + 0.07, 0.035), (xc - 0.07, 0.035)], ya, yb, "Y", T)
+            xk, zk = xc - 0.24, lift_at(xc) * 0.42            # the brace: from part way up the post to the rail further down the slope
+            ya, yb = sorted((s * 0.395, s * 0.425))
+            m.prism([(xc - 0.02, zk - 0.03), (xc - 0.02, zk + 0.03), (xk, lift_at(xk) + 0.02), (xk - 0.06, lift_at(xk - 0.06) + 0.02)], ya, yb, "Y", ST)
+        zt = lift_at(xc) * 0.62
+        m.prism([(xc - 0.022, zt - 0.022), (xc + 0.022, zt - 0.022), (xc + 0.022, zt + 0.022), (xc - 0.022, zt + 0.022)], -0.40, 0.40, "Y", ST)   # tie
 
 
 def ramp_start(m):
@@ -166,3 +171,8 @@ def ramp_mid(m):
 def ramp_end(m):
     """The last ramp of a run: sloping on from the ramp below, level where it meets the flat belt."""
     ramp(m, False, True)
+
+
+def ramp_bare(m):
+    """A ramp without trestles, level at both ends."""
+    ramp(m, True, True, legs=False)

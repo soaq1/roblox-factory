@@ -1678,18 +1678,24 @@ def belts_demo(m):
 belts_demo.frame, belts_demo.shadow = {"iso": (12.6, 0.9), "side": (7.0, 1.0), "top": (7.4, 0.6), "end": (6.0, 1.0)}, True
 _hero.HEROES["belts_demo"] = belts_demo
 def belts_stack(m):
-    """Not a machine: three belts one cell above another, things riding each under the one above, to
-    judge the room between them. Nothing holds the upper belts up here: what carries a stacked belt
-    is not designed yet."""
+    """Not a machine: three lines of conveyor one cell above another, each two straights, a ramp without
+    trestles and a straight one cell higher, with things riding them, to judge the room between stacked
+    belts and stacked ramps. Nothing holds the upper lines up: what carries a stacked belt is not
+    designed yet."""
     for k in range(3):
-        for x in (-1, 0, 1):
+        for x in (-2, -1):
             with m.at((x, 0, k)):
                 _belts.straight(m)
-        for x, mk in ((-1.1 + 0.35 * k, "h_ore"), (0.1 + 0.2 * k, "h_copper")):
+        with m.at((0.5, 0, k)):
+            _belts.ramp_bare(m)
+        with m.at((2, 0, k + 1)):
+            _belts.straight(m)
+        for x, mk in ((-2.1 + 0.35 * k, "h_ore"), (-0.9 + 0.2 * k, "h_copper")):
             m.box((0.30, 0.28, 0.22), (x, 0, k + BZ + 0.116), mk, bevel=0.05)
+        m.box((0.30, 0.28, 0.22), (2.0, 0, k + 1 + BZ + 0.116), "h_ore", bevel=0.05)
 
 
-belts_stack.frame, belts_stack.shadow = {"iso": (4.6, 1.3), "side": (3.6, 1.3), "top": (3.4, 0.6), "end": (2.2, 1.3)}, True
+belts_stack.frame, belts_stack.shadow = {"iso": (6.6, 1.7), "side": (5.6, 1.8), "top": (5.4, 0.6), "end": (3.2, 1.8)}, True
 _hero.HEROES["belts_stack"] = belts_stack
 F11 = {"iso": (1.9, 0.25), "side": (1.6, 0.4), "top": (1.5, 0.3), "end": (1.6, 0.4)}
 F21R = {"iso": (3.3, 0.7), "side": (2.8, 0.8), "top": (2.6, 0.5), "end": (2.2, 0.8)}

@@ -396,7 +396,9 @@ def foundation_c(m, top=0.82):
 
 
 # Foundation D's rail, from the belt's edge outward and down to the ground.
-RAIL_D = [(BH, 0.235), (0.372, 0.235), (0.402, 0.209), (0.402, 0.182), (0.386, 0.168), (0.474, 0.05),
+# (Widened on 2026-10-08: with the belt flattened, the rail's long outer slope made the end of a belt look
+# like a steeply leaning parallelogram. The rail's head now stands further out and its wall is more upright.)
+RAIL_D = [(BH, 0.235), (0.408, 0.235), (0.44, 0.207), (0.44, 0.178), (0.426, 0.166), (0.482, 0.05),
           (0.50, 0.05), (0.50, 0.0)]
 # Where a bolt head sits on the rail's sloping outer wall: across, up, and how far the wall leans (from RAIL_D).
 _s0, _s1 = RAIL_D[4], RAIL_D[5]
