@@ -21,7 +21,7 @@ from v2 import base, hero, works, pairs, bay, set2  # noqa: F401  (set2 register
 base.set_style("d")
 NAMES = [a for a in args if "=" not in a] or ["smelter8", "crusher3", "former2", "assembler4"]
 FILE = next((a.split("=", 1)[1] for a in args if a.startswith("file=")), "view")          # file=<name> writes <name>_models.fbx and <name>_info.json
-GLOW = ("h_glow", "h_core")
+GLOW = ("h_glow", "h_core", "h_neon")
 OUT = os.path.join(HERE, "export", "view")
 os.makedirs(OUT, exist_ok=True)
 S, STEP = 3.0, 18.0
