@@ -2847,12 +2847,27 @@ fk.PAL.update({"h_neon": "#ee2f25"})                      # red neon, for a grat
 fk.EMIT.update({"h_neon": 1.8})
 
 
-def handwheel(m, r=0.07, mk="h_red"):
-    """A valve handwheel standing off a wall, to be built inside on_side or on_end."""
-    m.cyl(r * 0.34, 0.06, (0, 0, 0.026), ST, seg=8)
-    ring_round(m, r, r * 0.68, 0.04, 0.062, mk, seg=12)
+def handwheel(m, r=0.11, mk="h_red"):
+    """A valve handwheel standing off a wall, to be built inside on_side or on_end: a five-sided rim, one
+    corner up, on a cross of spokes and a hub. (The developer asked for the rim angular, five- or
+    six-sided, and for the wheels bigger; Islands' are five-sided too, and about a third of a wall high.)"""
+    m.cyl(r * 0.26, 0.06, (0, 0, 0.026), ST, seg=6)
+    with m.at((0, 0, 0), rz=rad(90)):
+        ring_round(m, r, r * 0.70, 0.038, 0.066, mk, seg=5)
     for k in range(2):
-        m.box((r * 1.6, r * 0.26, 0.014), (0, 0, 0.051), ST, rot=k * math.pi / 2)
+        m.box((r * 1.36, r * 0.22, 0.014), (0, 0, 0.051), ST, rot=k * math.pi / 2)
+    m.cyl(r * 0.20, 0.016, (0, 0, 0.066), LT, seg=6)
+
+
+def grid(m, hw, hh, nx, ny):
+    """A let-in panel of small raised squares in rows, to be built inside on_side or on_end."""
+    m.box((2 * hw - 0.06, 2 * hh - 0.06, 0.008), (0, 0, 0.004), TD)
+    ring(m, hw, hh, [(0.0, -0.004), (0.008, 0.026), (0.026, 0.026), (0.034, -0.004)], G, c=0.024)
+    ax, ay = hw - 0.046, hh - 0.046
+    sx_, sy_ = 2 * ax / nx, 2 * ay / ny
+    for a_ in range(nx):
+        for b_ in range(ny):
+            m.box((sx_ - 0.016, sy_ - 0.016, 0.012), (-ax + (a_ + 0.5) * sx_, -ay + (b_ + 0.5) * sy_, 0.013), LT, bevel=0.004)
 
 
 def mill6(m, paint="h_p1"):
@@ -2898,13 +2913,13 @@ def mill6(m, paint="h_p1"):
         slab(m, hxr + 0.015, yr + 0.02, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, hxr, yr, 0.12, Zc, 0.035, G, bevel=0.02)     # corner cuts and bevels as on former5: cabinet 0.035 / 0.02, painted body 0.045 / 0.022
         slab(m, bodyr[0], bodyr[1], Zc - 0.01, Zr, bodyr[2], paint, bevel=0.022)
-    with on_end(m, -1, xr0, -0.27, zc):                       # the cabinet's west wall, between the mouths: a louvre and two handwheels
-        vent(m, 0.16, 0.20)
-    for y in (0.10, 0.32):
-        with on_end(m, -1, xr0, y, zc + 0.04):
-            handwheel(m)
+    with on_end(m, -1, xr0, -0.30, zc):                       # the cabinet's west wall, between the mouths: the machine's one louvre, and two big handwheels
+        vent(m, 0.15, 0.17)
+    for y in (0.07, 0.35):
+        with on_end(m, -1, xr0, y, zc + 0.02):
+            handwheel(m, 0.11)
     # The painted body's west wall. It was a row of eight equal square panels, which the developer found dull:
-    # now a wide panel, three narrow ones, a bolted name plate, a long louvre and a badge, no two alike in a row.
+    # now a wide panel, three narrow ones, a bolted name plate, a panel of small squares and a badge.
     xbw = xr - bodyr[0]
     with on_end(m, -1, xbw, -0.95, zb):
         framed(m, 0.40, 0.20)
@@ -2914,7 +2929,7 @@ def mill6(m, paint="h_p1"):
     with on_end(m, -1, xbw, 0.06, zb):
         bolted(m, 0.44, 0.17, LT, r=0.014)
     with on_end(m, -1, xbw, 0.64, zb):
-        vent(m, 0.26, 0.10)
+        grid(m, 0.26, 0.10, 6, 2)
     with on_end(m, -1, xbw, 1.06, zb):
         m.cyl(0.07, 0.022, (0, 0, 0.008), "h_red", seg=6)
         m.cyl(0.038, 0.012, (0, 0, 0.024), "h_white", seg=6)
@@ -2922,14 +2937,17 @@ def mill6(m, paint="h_p1"):
         for z in (Zc + 0.06, Zr - 0.06):
             with on_end(m, -1, xr - bodyr[0], y, z):
                 m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
-    for d in SIDES:                                           # the room's two end walls: a door and a louvre; a dial panel and a badge above
+    for d in SIDES:                                           # the room's two end walls: a door and a let-in panel
         with on_side(m, d, d * yr, zc, xc=xr - 0.17):
             framed(m, 0.30, 0.46, LT)
             m.box((0.022, 0.11, 0.022), (0.09 * -d, 0, 0.02), TD)
         with on_side(m, d, d * yr, zc, xc=xr + 0.185):
-            vent(m, 0.12, 0.19)
+            framed(m, 0.24, 0.46)
         with on_side(m, d, d * bodyr[1], zb, xc=xr):
-            gauges(m, 0.24, 0.10, turns=(0.75, -1.15, 0.2))
+            if d < 0:                                         # the machine's one dial panel, on the near end
+                gauges(m, 0.24, 0.10, turns=(0.75, -1.15, 0.2))
+            else:
+                bolted(m, 0.44, 0.17, LT, r=0.014)
     # ---- the furnace, in the east
     xf, fx, fy = 0.55, 0.50, 0.90                             # its middle, its half sizes
     Zl, Zu, Zk = 1.14, 1.72, 1.80                             # the lower block's top, the upper block's top, the cap's top
@@ -2961,22 +2979,24 @@ def mill6(m, paint="h_p1"):
                 x = -0.17 + k * 0.085
                 m.prism([(x - 0.015, 0.009), (x + 0.015, 0.009), (x + 0.008, 0.03), (x - 0.008, 0.03)], -0.10, 0.10, "Y", LT)
             ring(m, 0.25, 0.13, [(0.0, -0.004), (0.01, 0.034), (0.034, 0.034), (0.046, -0.004)], TD, c=0.03)
-    for d in SIDES:                                           # the furnace's long walls: a door, a dial panel over a louvre; a bolted plate above the frame
-        with on_side(m, d, d * fy, 0.63, xc=xf - 0.24 * -d):
-            framed(m, 0.30, 0.50, LT)
-            m.box((0.022, 0.11, 0.022), (0.09, 0, 0.02), TD)
-        with on_side(m, d, d * fy, 0.82, xc=xf + 0.20 * -d):
-            gauges(m, 0.20, 0.10)
-        with on_side(m, d, d * fy, 0.44, xc=xf + 0.20 * -d):
-            vent(m, 0.19, 0.13)
+    # The furnace's long walls, filled as Islands fills a big wall: not with many small fittings but with one
+    # big let-in panel, and inside it a door and a panel of small squares. Above the frame, a bolted plate.
+    for d in SIDES:
+        with on_side(m, d, d * fy, 0.62, xc=xf):
+            framed(m, 0.84, 0.74)
+            with m.at((-0.20, -0.07, 0.006)):
+                framed(m, 0.28, 0.50, LT)
+                m.box((0.022, 0.11, 0.022), (0.085, 0, 0.02), TD)
+            with m.at((0.17, 0.10, 0.006)):
+                grid(m, 0.17, 0.13, 4, 3)
         with on_side(m, d, d * (fy - 0.03), (fa[1] + Zu - 0.02) / 2, xc=xf):
             bolted(m, 0.62, 0.22, LT, r=0.016)
     # the outlet, in the furnace's east wall
     belt_stub(m, xf + fx - 0.02, 1.5, 1.39, 1.455)
     portal(xf + fx, 1, 0.0)
-    for y in (-0.67, 0.67):
+    for y in (-0.67, 0.67):                                   # a tall let-in panel each side of the mouth
         with on_end(m, 1, xf + fx, y, 0.60):
-            vent(m, 0.13, 0.20)
+            framed(m, 0.22, 0.56)
     with on_end(m, 1, xf + fx - 0.03, 0, (fa[1] + Zu - 0.02) / 2):
         bolted(m, 1.00, 0.22, LT, r=0.016)
     # ---- the two fat ducts: out of the furnace's upper block, over the lower frame, through box elbows, down into the room's roof
