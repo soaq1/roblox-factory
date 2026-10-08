@@ -2079,6 +2079,161 @@ former4.frame, former4.shadow = {"iso": (4.6, 1.4), "side": (4.4, 1.5), "top": (
 _hero.HEROES["former4"] = former4
 
 
+def fat_stack(m, x, y, z0, z1, r=0.115):
+    """A fat eight-sided stack built of short lengths, alternately wide and narrow and alternately pale and
+    grey, on a flared foot, under a flared head with a real hollow in it."""
+    with m.at((x, y, 0)):
+        octa(m, r + 0.05, r + 0.02, z0 - 0.01, z0 + 0.09, G)
+        n = max(2, round((z1 - z0 - 0.22) / 0.17))
+        h = (z1 - z0 - 0.22) / n
+        for k in range(n):
+            za = z0 + 0.08 + k * h
+            wide = k % 2 == 0
+            octa(m, r if wide else r * 0.84, r if wide else r * 0.84, za, za + h + 0.004, LT if wide else G)
+        octa(m, r * 0.9, r + 0.035, z1 - 0.15, z1 - 0.06, G)
+        octa(m, r + 0.035, r + 0.035, z1 - 0.062, z1 - 0.02, G)
+        oct_ring(m, r + 0.042, 0.047, z1 - 0.022, z1 + 0.02, LT)
+        octa(m, r - 0.008, r - 0.008, z1 - 0.05, z1 + 0.002, SLIT)
+
+
+def framed(m, w, h, inner="h_dark"):
+    """A let-in panel in a raised frame, to be built inside on_side or on_end."""
+    m.box((w - 0.05, h - 0.05, 0.008), (0, 0, 0.004), inner)
+    ring(m, w / 2, h / 2, [(0.0, -0.004), (0.008, 0.024), (0.028, 0.024), (0.036, -0.004)], G, c=0.012)
+
+
+def former5(m):
+    """Former, 3x2 (hitbox 3x2x3). The developer put former3 beside Islands' steel press and said ours is
+    simply too simple: make it much more complicated and impressive, but rough. So this is former3's
+    kind of machine with its masses fattened and its surfaces filled: the open press has three painted
+    frames instead of two, three rods at each corner, a bigger head with a slatted panel, a dark band
+    and a bolted plate, dials on the middle frame, and a fat duct that climbs out of its top, turns
+    through a box, crosses to the works' house, turns through another box and drops into its roof.
+    The house is a grey cabinet with framed doors, big louvres, heavy corner bolts and a sloped hood
+    at its end, under a painted body with a row of framed panels and a badge; on the body's roof stand
+    three fat stacks of different heights and a row of three small ones. Beside it a low platform
+    carries the mould rack and a pump with its pipe into the press's chassis."""
+    yb = 0.5
+    with m.at((0, yb, 0)):
+        run(m, -1.5, 1.5, braces=(-4 / 3, -1.0, 1.0, 4 / 3))
+        collar(m, -0.62, 0.62, mk=T)
+        Zc = 0.385
+        fz = ((0.92, 1.07), (1.58, 1.73), (2.46, 2.61))       # the three frames
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.20, 0.10, 0.055), (sx * 0.44, sy * 0.405, Zc + 0.022), G, bevel=0.012)          # shoe
+                for dx, dy in ((0.0, 0.0), (-0.085, 0.0), (0.0, -0.075)):                                # three rods to a corner
+                    m.box((0.044, 0.044, fz[2][0] + 0.02 - Zc), (sx * (0.475 + dx), sy * (0.425 + dy), (fz[2][0] + 0.02 + Zc) / 2), LT, bevel=0.008)
+        for z0, z1 in fz:
+            frame_ring(m, 0.545, 0.49, z0, z1, 0.15, PY)
+            frame_ring(m, 0.538, 0.483, z0 - 0.03, z0 + 0.004, 0.13, TD)
+        for y in (-0.2, 0.2):                                 # cross beams under the top frame; the head hangs from them
+            m.prism([(y - 0.055, 2.385), (y + 0.055, 2.385), (y + 0.04, 2.465), (y - 0.04, 2.465)], -0.50, 0.50, "X", G)
+        slab(m, 0.37, 0.335, 1.76, 2.395, 0.05, PY, bevel=0.025)                                         # the head
+        slab(m, 0.30, 0.28, 1.28, 1.59, 0.04, G, bevel=0.02)                                             # the guide under the middle frame
+        octa(m, 0.18, 0.18, 1.01, 1.29, ST)                                                              # the ram
+        slab(m, 0.27, 0.25, 0.85, 1.02, 0.035, TD, bevel=0.016)                                          # the die, inside the lowest frame
+        m.box((0.32, 0.26, 0.022), (0, 0, BZ + 0.017), LT, bevel=0.006)                                  # the work, on the belt
+        with on_end(m, -1, -0.37, 0, 2.23):                   # the head's end: slats, a dark band, a bolted plate
+            vent(m, 0.25, 0.12)
+        with on_end(m, -1, -0.37, 0, 2.045):
+            m.box((0.56, 0.06, 0.012), (0, 0, 0.004), SLIT)
+        with on_end(m, -1, -0.37, 0, 1.89):
+            bolted(m, 0.52, 0.17, G, r=0.016)
+        with on_side(m, -1, -0.335, 2.08):                    # and its near face
+            bolted(m, 0.46, 0.42, G)
+        for sx in SIDES:                                      # bolts in the frames' corners, and two dials on the middle one
+            for z0, z1 in fz:
+                for y in (-0.42, 0.42):
+                    with on_end(m, sx, sx * 0.545, y, (z0 + z1) / 2):
+                        m.cyl(0.03, 0.016, (0, 0, 0.006), G, seg=6)
+        for y in (-0.15, 0.15):
+            with on_end(m, -1, -0.545, y, 1.655):
+                m.cyl(0.07, 0.03, (0, 0, 0.012), G, seg=6)
+                m.cyl(0.046, 0.012, (0, 0, 0.03), "h_white", seg=6)
+                m.box((0.012, 0.046, 0.008), (0.01, 0.01, 0.038), "h_red", rot=0.6)
+    # the fat duct: up out of the head, through a box, across, through a box, down into the house's roof
+    rd, zd, yd = 0.105, 2.80, -0.42
+    with m.at((0, yb, 0)):
+        octa(m, rd + 0.035, rd + 0.01, 2.385, 2.47, G)
+        octa(m, rd, rd, 2.46, zd - 0.12, LT)
+        slab(m, 0.14, 0.14, zd - 0.14, zd + 0.14, 0.03, G, bevel=0.02)
+    m.cyl(rd * K, yb - yd - 0.26, (0, (yb + yd) / 2, zd), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    for y in (0.20, -0.12):
+        m.cyl((rd + 0.022) * K, 0.07, (0, y, zd), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    with m.at((0, yd, 0)):
+        slab(m, 0.14, 0.14, zd - 0.14, zd + 0.14, 0.03, G, bevel=0.02)
+    # the near row: a low platform with the mould rack and a pump, and the works' house
+    with m.at((-0.86, -0.5, 0)):
+        slab(m, 0.56, 0.47, 0.0, 0.14, 0.04, T, bevel=0.014)
+    with m.at((-0.98, -0.68, 0)):
+        shell(m, [(0.33, 0.20, 0.03, 0.13), (0.34, 0.21, 0.035, 0.23), (0.325, 0.195, 0.03, 0.245),
+                  (0.30, 0.17, 0.02, 0.245), (0.29, 0.16, 0.018, 0.17)], ST)
+        tower(m, [(0.295, 0.165, 0.02, 0.135), (0.295, 0.165, 0.02, 0.175)], SLIT)
+        for k in range(4):
+            with m.at((-0.215 + k * 0.143, 0, 0)):
+                mould(m, 0.17)
+    pump = (0.20, 0.15, 0.03)
+    with m.at((-0.74, -0.24, 0)):
+        slab(m, pump[0], pump[1], 0.13, 0.50, pump[2], G, bevel=0.016)
+        slab(m, pump[0] + 0.02, pump[1] + 0.02, 0.48, 0.55, cut_to(pump[0] + 0.02, pump[1] + 0.02, pump, 0.02), TD, bevel=0.014)
+        octa(m, 0.07, 0.07, 0.54, 0.62, ST)
+    with on_side(m, -1, -0.24 - pump[1], 0.31, xc=-0.74):
+        bolted(m, 0.26, 0.20, LT, r=0.014)
+    m.cyl(0.05, 0.12, (-0.74, -0.04, 0.30), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    m.cyl(0.066, 0.03, (-0.74, -0.08, 0.30), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    hx0, hx1 = -0.30, 1.42
+    xc, hx = (hx0 + hx1) / 2, (hx1 - hx0) / 2
+    body = (hx - 0.08, 0.39, 0.045)
+    with m.at((xc, -0.5, 0)):
+        slab(m, hx - 0.01, 0.46, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, hx, 0.47, 0.12, 0.665, 0.035, G, bevel=0.02)                                             # cabinet
+        slab(m, body[0], body[1], 0.655, 1.10, body[2], PY, bevel=0.022)                                 # the painted body
+    yf, ye = -0.97, hx1
+    for x in (0.0, 0.42):                                     # cabinet front: two framed doors with handles, a big louvre
+        with on_side(m, -1, yf, 0.40, xc=x):
+            framed(m, 0.36, 0.42, LT)
+            m.box((0.022, 0.11, 0.022), (0.11, 0, 0.02), TD)
+    with on_side(m, -1, yf, 0.40, xc=1.0):
+        vent(m, 0.31, 0.21)
+    for y in (-0.72, -0.28):                                  # cabinet end: two louvres under a sloped hood
+        with on_end(m, 1, ye, y, 0.36):
+            vent(m, 0.19, 0.19)
+    m.prism([(ye - 0.01, 0.585), (ye - 0.01, 0.665), (ye + 0.07, 0.585)], -0.93, -0.07, "Y", ST)
+    for x in (hx0 + 0.07, hx1 - 0.07):                        # heavy bolts at the cabinet's corners
+        for z in (0.21, 0.59):
+            with on_side(m, -1, yf, z, xc=x):
+                m.cyl(0.034, 0.02, (0, 0, 0.008), LT, seg=6)
+    yp = -0.5 - body[1]                                       # the painted body's front: a row of framed panels, a badge
+    for x, w in ((-0.06, 0.20), (0.22, 0.28), (0.52, 0.14), (0.72, 0.14), (0.92, 0.14)):
+        with on_side(m, -1, yp, 0.88, xc=x):
+            framed(m, w, 0.28)
+    with on_side(m, -1, yp, 0.88, xc=1.17):
+        m.cyl(0.085, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.045, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    for x in (hx0 + 0.15, hx1 - 0.15):
+        for z in (0.72, 1.04):
+            with on_side(m, -1, yp, z, xc=x):
+                m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
+    Zr = 1.10                                                 # on the body's roof: the duct coming down, three fat stacks, three small ones
+    with m.at((0, yd, 0)):
+        octa(m, rd + 0.05, rd + 0.02, Zr - 0.01, Zr + 0.09, G)
+        n = 8
+        for k in range(n):
+            za = Zr + 0.08 + k * (zd - 0.14 - Zr - 0.08) / n
+            wide = k % 2 == 0
+            octa(m, rd if wide else rd * 0.84, rd if wide else rd * 0.84, za, za + (zd - 0.14 - Zr - 0.08) / n + 0.004, LT if wide else G)
+    fat_stack(m, 0.42, -0.62, Zr, 2.30)
+    fat_stack(m, 0.76, -0.36, Zr, 2.66)
+    fat_stack(m, 1.08, -0.64, Zr, 2.02)
+    for k, top in enumerate((1.56, 1.46, 1.62)):
+        fat_stack(m, 0.98 + k * 0.125, -0.19, Zr, top, 0.042)
+
+
+former5.frame, former5.shadow = {"iso": (4.7, 1.45), "side": (4.4, 1.5), "top": (3.9, 0.6), "end": (3.6, 1.5)}, True
+_hero.HEROES["former5"] = former5
+
+
 def formers_cmp(m):
     """Not a machine: the two formers side by side on a short line each, to compare a machine after
     Satisfactory (far) with one after Islands (near)."""
