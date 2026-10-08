@@ -3632,7 +3632,8 @@ def mouth3(m, xa, d, paint):
 
 
 def mill11(m, paint="h_p1"):
-    """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. The developer
+    """REJECTED (2026-10-09): "기차인 줄. 뇌절이 너무 심했다". Three systems of pipe on one body is too much.
+    Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the middle row. The developer
     dropped the converter (mill10) and with it the idea of acting out the process: iron and coal go
     into a machine and steel comes out, and what happens inside is not shown. His words for this one:
     in the former's manner, but closed where the former's press is open; a big rectangular body, very
