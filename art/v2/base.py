@@ -400,13 +400,15 @@ def foundation_c(m, top=0.82):
 # (2026-10-08: with the belt flattened, the rail's long outer slope made the end of a belt look like a steeply
 # leaning parallelogram, so the rail's wall was stood more upright, further out. That left the rail's head thick;
 # the developer asked for it thin again and the belt wider, so the belt now reaches out to the head: see BH.)
-RAIL_D = [(BH, 0.235), (0.408, 0.235), (0.44, 0.207), (0.44, 0.178), (0.426, 0.166), (0.482, 0.05),
-          (0.50, 0.05), (0.50, 0.0)]
+# (2026-10-08, later: the side was one flat leaning face, which the developer found dull. It is now a
+# channel: a head above, a foot below, and a sunken web between them carrying a darker strip and the bolts.)
+RAIL_D = [(BH, 0.235), (0.412, 0.235), (0.44, 0.211), (0.44, 0.196), (0.424, 0.184), (0.424, 0.094),
+          (0.44, 0.076), (0.484, 0.076), (0.50, 0.06), (0.50, 0.0)]
+# The darker strip let into the web, standing a little proud of it and inside the head's overhang.
+WEB = [(0.424, 0.10), (0.431, 0.10), (0.431, 0.178), (0.424, 0.178)]
 # Where a bolt head sits on the rail's sloping outer wall: across, up, and how far the wall leans (from RAIL_D).
-_s0, _s1 = RAIL_D[4], RAIL_D[5]
-_sl = math.hypot(_s1[0] - _s0[0], _s1[1] - _s0[1])
-BOLT_LEAN = math.atan2(_s1[0] - _s0[0], _s0[1] - _s1[1])
-BOLT_AT = ((_s0[0] + _s1[0]) / 2 + 0.006 * (_s0[1] - _s1[1]) / _sl, (_s0[1] + _s1[1]) / 2 + 0.006 * (_s1[0] - _s0[0]) / _sl)
+BOLT_LEAN = 0.0                       # the web stands upright
+BOLT_AT = (WEB[1][0] + 0.004, (WEB[0][1] + WEB[2][1]) / 2)
 
 
 def chevrons2(m, x0, x1, step=0.375):
@@ -542,7 +544,7 @@ def collar(m, x0, x1, mk=R):
         loft_x(m, [(x, [(s * y, z) for y, z in o]) for x, o in st], mk)
 
 
-BOLT = (0.032, 0.012)        # a rail bolt's head: radius and height. Low, so it lies close on the rail.
+BOLT = (0.026, 0.012)        # a rail bolt's head: radius and height. Low, so it lies close on the rail.
 
 
 def foundation_d(m, top=0.82, foot=None):

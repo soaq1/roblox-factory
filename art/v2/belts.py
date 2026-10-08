@@ -17,7 +17,7 @@ import bmesh
 from mathutils import Matrix
 from .d import *          # noqa: F401,F403
 from .d import run, chev, SECTION, BED, K
-from .base import BOLT, BOLT_AT, BOLT_LEAN
+from .base import BOLT, BOLT_AT, BOLT_LEAN, WEB
 
 ST = "h_steel"
 
@@ -61,6 +61,8 @@ def corner(m, turn=-1):
 
     steps = [90.0 * i / ARC for i in range(ARC + 1)]
     loft(m, [[at(th, y, z) for y, z in SECTION] for th in steps], R)
+    loft(m, [[at(th, y, z) for y, z in WEB] for th in steps], RD)                       # the strip in the outer rail's web
+    loft(m, [[at(th, -y, z) for y, z in WEB] for th in steps], RD)                      # and in the inner rail's
     loft(m, [[at(th, y, z) for y, z in BELT] for th in steps], "h_belt")
     for th in (22.5, 67.5):                                   # arrows, turning with the belt
         x, y, _ = at(th, 0.0, 0.0)
@@ -125,6 +127,8 @@ def ramp(m, low=True, high=True, flow=1, legs=True, down=False):
     n = 24
     xs = [-1.0 + 2.0 * i / n for i in range(n + 1)]
     loft(m, [[(x, y, z + lift_at(x)) for y, z in SECTION] for x in xs], R)
+    for s in SIDES:
+        loft(m, [[(x, s * y, z + lift_at(x)) for y, z in WEB] for x in xs], RD)
     loft(m, [[(x, y, z + lift_at(x)) for y, z in BELT] for x in xs], "h_belt")
 
     def on_slope(x):                                          # a frame lying on the ramp at x

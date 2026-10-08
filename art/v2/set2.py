@@ -9,7 +9,7 @@ from .base import foot_hearth, foot_drain
 from .supply import crystal
 from .d import *          # noqa: F401,F403
 from .d import run, cover, block, frame, stub_form, strip, frustum, K
-from .d import SECTION, chev, buttress
+from .d import SECTION, chev, buttress, bed
 
 ST, LT = "h_steel", "h_lite"
 F31 = {"iso": (3.3, 0.72), "side": (3.4, 0.95), "top": (3.2, 0.6), "end": (2.6, 1.0)}
@@ -1216,7 +1216,7 @@ def former2(m):
     The belt runs along the far row (y = +0.5); the platform is the near strip."""
     yb = 0.5
     with m.at((0, yb, 0)):
-        m.prism(SECTION, -1.5, 1.5, "X", R)                   # the conveyor, as d.run lays it, but with its arrows placed by hand:
+        bed(m, -1.5, 1.5)                   # the conveyor, as d.run lays it, but with its arrows placed by hand:
         m.box((3.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
         for x in (-1.28, 1.28):                               # one whole pair on each open stretch; none under the mouth's frame, where the
             chev(m, x)                                        # jamb and the dark of the tunnel would cut it off
@@ -1344,7 +1344,7 @@ _hero.HEROES["lineup1"] = lineup1
 def belt_stub(m, x0, x1, arrow, bolt):
     """A stub of conveyor from x0 to x1, as d.run lays it, but with one whole pair of arrows at `arrow`
     (so none is cut off under a mouth's cover) and a bolt at `bolt`."""
-    m.prism(SECTION, x0, x1, "X", R)
+    bed(m, x0, x1)
     m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
     chev(m, arrow)
     buttress(m, bolt)
@@ -1730,7 +1730,7 @@ def smelter9(m):
     into a boot on its wall."""
     yb, X = 0.5, 1.25
     with m.at((0, yb, 0)):
-        m.prism(SECTION, -2.0, 2.0, "X", R)
+        bed(m, -2.0, 2.0)
         m.box((4.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
         for x in (-1.80, 1.80):                               # one whole pair of arrows on each open stretch
             chev(m, x)

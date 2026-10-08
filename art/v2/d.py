@@ -14,7 +14,7 @@ from mathutils import Matrix
 import factorykit as fk
 from .base import (rad, G, T, TD, W, D, SLIT, R, RD, SIDES, BH, BZ, BX, BY, RAIL_D, gear, side_pipe, side_panel,
                    octa, oct_ring, bx, foundation_d, foot_beams, foot_springs, foot_hearth, foot_anchor, foot_drain,
-                   foot_bin, bprism, collar, BOLT, BOLT_AT, BOLT_LEAN, offset_closed, loft_x)
+                   foot_bin, bprism, collar, BOLT, BOLT_AT, BOLT_LEAN, WEB, offset_closed, loft_x)
 from .kit import arch_pts, machine2
 from .hero import sunk_frame
 from .forms import frustum
@@ -56,10 +56,17 @@ def buttress(m, x):
         m.cyl(BOLT[0], BOLT[1], (x, s * BOLT_AT[0], BOLT_AT[1]), "h_lite", seg=6, axis="Y", rot=(s * BOLT_LEAN, 0, 0))
 
 
+def bed(m, x0, x1):
+    """Rails and bed in one piece from x0 to x1, and the darker strip let into each rail's web."""
+    m.prism(SECTION, x0, x1, "X", R)
+    for s in SIDES:
+        m.prism([(s * y, z) for y, z in WEB], x0, x1, "X", RD)
+
+
 def run(m, x0, x1, flow=1, braces=()):
     """A length of conveyor: rails and bed in one piece, the belt, its arrows, and a bolt at each place
     listed in `braces`."""
-    m.prism(SECTION, x0, x1, "X", R)
+    bed(m, x0, x1)
     m.box((x1 - x0, BH * 2, 0.03), ((x0 + x1) / 2, 0, BZ - 0.015), "h_belt")
     n = max(1, round((x1 - x0) / 0.375))
     for i in range(n):
@@ -115,7 +122,7 @@ def mouth(m, side, out=False, tall=0.74):
     of conveyor, an arch round the opening, darkness inside."""
     origin, inward = DIRS[side]
     with frame(m, origin, inward):
-        m.prism(SECTION, 0.0, 0.08, "X", R)
+        bed(m, 0.0, 0.08)
         m.box((0.08, BH * 2, 0.03), (0.04, 0, BZ - 0.015), "h_belt")
         m.prism(arch_pts(0.82 + 2 * (BH - 0.305), tall, hole_top=tall - 0.12, hw=BH + 0.01, c=0.085, ci=0.035), 0.0, 0.075, "X", R)
         m.box((0.02, 2 * BH + 0.01, tall - 0.12 - BZ), (0.068, 0, (tall - 0.12 + BZ) / 2), SLIT)

@@ -10,8 +10,8 @@
     1,
     1
    ],
-   "tris": 344,
-   "colors": 4,
+   "tris": 384,
+   "colors": 5,
    "height": 0.23,
    "v1size": [
     1,
@@ -28,8 +28,8 @@
     1,
     1
    ],
-   "tris": 512,
-   "colors": 4,
+   "tris": 720,
+   "colors": 5,
    "height": 0.23,
    "v1size": [
     1,
@@ -46,8 +46,8 @@
     2,
     1
    ],
-   "tris": 1876,
-   "colors": 6,
+   "tris": 2468,
+   "colors": 7,
    "height": 1.24,
    "v1size": [
     2,
@@ -80,8 +80,8 @@
     1,
     1
    ],
-   "tris": 864,
-   "colors": 8,
+   "tris": 984,
+   "colors": 9,
    "height": 0.9,
    "v1size": [
     1,
@@ -114,8 +114,8 @@
     1,
     1
    ],
-   "tris": 848,
-   "colors": 7,
+   "tris": 968,
+   "colors": 8,
    "height": 0.88,
    "v1size": [
     1,
@@ -148,8 +148,8 @@
     1,
     1
    ],
-   "tris": 992,
-   "colors": 8,
+   "tris": 1112,
+   "colors": 9,
    "height": 1.22,
    "v1size": [
     1,
@@ -182,8 +182,8 @@
     1,
     1
    ],
-   "tris": 1000,
-   "colors": 9,
+   "tris": 1120,
+   "colors": 10,
    "height": 1.38,
    "v1size": [
     1,
@@ -216,7 +216,7 @@
     1,
     1
    ],
-   "tris": 432,
+   "tris": 456,
    "colors": 7,
    "height": 0.7,
    "v1size": [
@@ -245,7 +245,7 @@
     3,
     1
    ],
-   "tris": 2836,
+   "tris": 2852,
    "colors": 11,
    "height": 1.62,
    "v1size": [
@@ -274,7 +274,7 @@
     3,
     1
    ],
-   "tris": 2672,
+   "tris": 2688,
    "colors": 11,
    "height": 1.93,
    "v1size": [
@@ -316,7 +316,7 @@
     2,
     1
    ],
-   "tris": 1444,
+   "tris": 1484,
    "colors": 9,
    "height": 1.38,
    "v1size": [
@@ -376,7 +376,7 @@
     2,
     1
    ],
-   "tris": 1988,
+   "tris": 2028,
    "colors": 11,
    "height": 2.38,
    "v1size": [
@@ -400,7 +400,7 @@
     2,
     1
    ],
-   "tris": 1496,
+   "tris": 1536,
    "colors": 10,
    "height": 1.68,
    "v1size": [
@@ -418,8 +418,8 @@
     1,
     1
    ],
-   "tris": 516,
-   "colors": 6,
+   "tris": 556,
+   "colors": 7,
    "height": 1.02,
    "v1size": [
     1,
@@ -436,8 +436,8 @@
     1,
     1
    ],
-   "tris": 512,
-   "colors": 6,
+   "tris": 552,
+   "colors": 7,
    "height": 1.42,
    "v1size": [
     1,
@@ -454,8 +454,8 @@
     1,
     1
    ],
-   "tris": 752,
-   "colors": 7,
+   "tris": 792,
+   "colors": 8,
    "height": 1.36,
    "v1size": [
     1,
@@ -568,7 +568,7 @@
     2,
     1
    ],
-   "tris": 1644,
+   "tris": 1684,
    "colors": 9,
    "height": 1.6,
    "v1size": [
@@ -592,7 +592,7 @@
     2,
     1
    ],
-   "tris": 1664,
+   "tris": 1704,
    "colors": 11,
    "height": 1.6,
    "v1size": [
@@ -616,7 +616,7 @@
     2,
     1
    ],
-   "tris": 1664,
+   "tris": 1704,
    "colors": 11,
    "height": 1.6,
    "v1size": [
@@ -640,7 +640,7 @@
     2,
     1
    ],
-   "tris": 1776,
+   "tris": 1816,
    "colors": 11,
    "height": 1.87,
    "v1size": [
@@ -664,7 +664,7 @@
     2,
     1
    ],
-   "tris": 1928,
+   "tris": 1968,
    "colors": 10,
    "height": 1.77,
    "v1size": [
@@ -688,7 +688,7 @@
     3,
     1
    ],
-   "tris": 1708,
+   "tris": 1748,
    "colors": 9,
    "height": 1.9,
    "v1size": [
@@ -712,7 +712,7 @@
     2,
     1
    ],
-   "tris": 2060,
+   "tris": 2100,
    "colors": 13,
    "height": 1.38,
    "v1size": [
@@ -754,7 +754,7 @@
     2,
     1
    ],
-   "tris": 1692,
+   "tris": 1732,
    "colors": 11,
    "height": 1.35,
    "v1size": [
@@ -783,7 +783,7 @@
     3,
     1
    ],
-   "tris": 3488,
+   "tris": 3504,
    "colors": 11,
    "height": 1.89,
    "v1size": [
@@ -812,7 +812,7 @@
     3,
     1
    ],
-   "tris": 5296,
+   "tris": 5312,
    "colors": 11,
    "height": 1.38,
    "v1size": [
@@ -841,7 +841,7 @@
     3,
     1
    ],
-   "tris": 4200,
+   "tris": 4216,
    "colors": 11,
    "height": 2.13,
    "v1size": [
@@ -870,7 +870,7 @@
     3,
     1
    ],
-   "tris": 3088,
+   "tris": 3104,
    "colors": 10,
    "height": 1.35,
    "v1size": [
@@ -899,7 +899,7 @@
     3,
     1
    ],
-   "tris": 2576,
+   "tris": 2592,
    "colors": 11,
    "height": 1.37,
    "v1size": [
@@ -928,7 +928,7 @@
     3,
     1
    ],
-   "tris": 2936,
+   "tris": 2952,
    "colors": 11,
    "height": 1.48,
    "v1size": [
@@ -957,7 +957,7 @@
     3,
     1
    ],
-   "tris": 2588,
+   "tris": 2604,
    "colors": 11,
    "height": 1.62,
    "v1size": [
@@ -986,7 +986,7 @@
     3,
     1
    ],
-   "tris": 3132,
+   "tris": 3148,
    "colors": 14,
    "height": 1.6,
    "v1size": [
@@ -1015,7 +1015,7 @@
     3,
     1
    ],
-   "tris": 2644,
+   "tris": 2660,
    "colors": 10,
    "height": 1.51,
    "v1size": [
@@ -1044,7 +1044,7 @@
     3,
     1
    ],
-   "tris": 2452,
+   "tris": 2468,
    "colors": 11,
    "height": 1.56,
    "v1size": [
@@ -1073,7 +1073,7 @@
     3,
     1
    ],
-   "tris": 2760,
+   "tris": 2776,
    "colors": 10,
    "height": 1.32,
    "v1size": [
@@ -1102,7 +1102,7 @@
     3,
     1
    ],
-   "tris": 3060,
+   "tris": 3076,
    "colors": 13,
    "height": 1.94,
    "v1size": [
@@ -1131,7 +1131,7 @@
     3,
     1
    ],
-   "tris": 2720,
+   "tris": 2736,
    "colors": 10,
    "height": 1.38,
    "v1size": [
@@ -1160,7 +1160,7 @@
     3,
     1
    ],
-   "tris": 2844,
+   "tris": 2860,
    "colors": 11,
    "height": 1.56,
    "v1size": [
@@ -1189,7 +1189,7 @@
     3,
     1
    ],
-   "tris": 2612,
+   "tris": 2628,
    "colors": 10,
    "height": 1.5,
    "v1size": [
@@ -1218,7 +1218,7 @@
     3,
     1
    ],
-   "tris": 3252,
+   "tris": 3268,
    "colors": 11,
    "height": 1.54,
    "v1size": [
@@ -1257,7 +1257,7 @@
     3,
     1
    ],
-   "tris": 2524,
+   "tris": 2620,
    "colors": 9,
    "height": 2.36,
    "v1size": [
@@ -1296,7 +1296,7 @@
     3,
     1
    ],
-   "tris": 2720,
+   "tris": 2816,
    "colors": 9,
    "height": 1.82,
    "v1size": [
@@ -1335,7 +1335,7 @@
     3,
     1
    ],
-   "tris": 2380,
+   "tris": 2476,
    "colors": 9,
    "height": 1.48,
    "v1size": [
@@ -1374,7 +1374,7 @@
     3,
     1
    ],
-   "tris": 2656,
+   "tris": 2752,
    "colors": 12,
    "height": 2.39,
    "v1size": [
@@ -1413,7 +1413,7 @@
     3,
     1
    ],
-   "tris": 2568,
+   "tris": 2664,
    "colors": 10,
    "height": 1.62,
    "v1size": [
@@ -1452,7 +1452,7 @@
     3,
     1
    ],
-   "tris": 2376,
+   "tris": 2472,
    "colors": 11,
    "height": 1.52,
    "v1size": [
@@ -1491,7 +1491,7 @@
     3,
     1
    ],
-   "tris": 2664,
+   "tris": 2760,
    "colors": 10,
    "height": 1.61,
    "v1size": [
@@ -1530,7 +1530,7 @@
     3,
     1
    ],
-   "tris": 2444,
+   "tris": 2540,
    "colors": 11,
    "height": 1.71,
    "v1size": [
@@ -1569,7 +1569,7 @@
     3,
     1
    ],
-   "tris": 2564,
+   "tris": 2660,
    "colors": 11,
    "height": 1.4,
    "v1size": [
@@ -1608,7 +1608,7 @@
     3,
     1
    ],
-   "tris": 2544,
+   "tris": 2640,
    "colors": 9,
    "height": 1.49,
    "v1size": [
@@ -1632,7 +1632,7 @@
     2,
     1
    ],
-   "tris": 1816,
+   "tris": 1856,
    "colors": 10,
    "height": 2.06,
    "v1size": [
@@ -1656,7 +1656,7 @@
     2,
     1
    ],
-   "tris": 1716,
+   "tris": 1756,
    "colors": 11,
    "height": 2.27,
    "v1size": [
@@ -1965,7 +1965,7 @@
     5,
     5
    ],
-   "tris": 3896,
+   "tris": 4056,
    "colors": 10,
    "height": 2.94,
    "v1size": [
