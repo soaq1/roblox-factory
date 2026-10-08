@@ -2271,6 +2271,156 @@ former5.frame, former5.shadow, former5.res = {"iso": (4.7, 1.45), "side": (4.4, 
 _hero.HEROES["former5"] = former5
 
 
+def gauges(m, hw, hh, turns=(0.75, -1.15)):
+    """An instrument panel, to be built inside on_side or on_end: a raised outline round a dark field, and
+    let into the field a row of dials, each a raised rim round a white face, its needle running out from
+    the centre. The needles point different ways."""
+    m.box((2 * hw - 0.06, 2 * hh - 0.06, 0.008), (0, 0, 0.004), TD)
+    ring(m, hw, hh, [(0.0, -0.004), (0.008, 0.03), (0.03, 0.03), (0.038, -0.004)], G, c=0.03)
+    n = len(turns)
+    step = (2 * hw - 0.10) / n
+    for k, turn in enumerate(turns):
+        with m.at((-(n - 1) * step / 2 + k * step, 0, 0)):
+            ring_round(m, 0.052, 0.039, 0.006, 0.026, LT, seg=12)
+            m.cyl(0.04, 0.008, (0, 0, 0.012), "h_white", seg=12)
+            m.box((0.009, 0.031, 0.005), (-0.0145 * math.sin(turn), 0.0145 * math.cos(turn), 0.0185), "h_red", rot=turn)
+            m.cyl(0.011, 0.009, (0, 0, 0.0215), TD, seg=8)
+
+
+def smelter10(m, paint=None):
+    """Smelter, 4x2 (hitbox 4x2x3), in the look the developer confirmed with former5: fat masses, crowded
+    surfaces, grey with one paint colour, the added parts joined into one system, nothing touching its
+    neighbour. What the machine is has not changed since smelter8, which the developer approved: ore
+    goes through a firebox with fire mouths in its walls, under an open hearth with the fire under a
+    row of bars and a glowing tap port in its end.
+    The belt runs along the far row, through the firebox. On the firebox lies the painted body, with a
+    row of framed panels, an instrument panel and a badge. On the body's roof: the hearth; round it,
+    on four bundles of rods, a painted frame left open above the fire (the grammar the developer found
+    in Islands' machines: a frame is open above whatever gives off heat or smoke); a fat pipe from the
+    hearth's end into the plain end wall of a plenum, out of which two fat stacks rise, one taller than
+    the other; and a blower beside the plenum, its louvre to the front and its pipe into the plenum's
+    side."""
+    paint = paint or PY
+    yb, X = 0.5, 1.25
+    with m.at((0, yb, 0)):
+        bed(m, -2.0, 2.0)
+        m.box((4.0, BH * 2, 0.03), (0, 0, BZ - 0.015), "h_belt")
+        for x in (-1.80, 1.80):                               # one whole pair of arrows on each open stretch
+            chev(m, x)
+        for x in (-1.87, 1.87):
+            buttress(m, x)
+        cover(m, X, 1, sole=False)
+        cover(m, -X, -1, sole=False)
+        collar(m, -X - 0.318, X + 0.318, mk=T)
+    y0, y1 = -0.90, 0.94
+    yc, hy = (y0 + y1) / 2, (y1 - y0) / 2
+    bx, by = X - 0.08, hy - 0.08                              # the painted body's half sizes
+    Zf, Zr = 0.985, 1.32                                      # the firebox's top, the body's roof
+    zw, zb = (0.37 + Zf) / 2, (Zf + Zr) / 2                   # the middle heights of the two walls
+    bprism(m, [(-X - 0.012, y0 - 0.012), (X + 0.012, y0 - 0.012), (X + 0.012, 0.02), (-X - 0.012, 0.02)], 0.0, 0.39, "Z", T, bevel=0.014)   # the foot, in the near row
+    with m.at((0, yc, 0)):
+        slab(m, X, hy, 0.37, Zf, 0.05, G, bevel=0.022)        # firebox
+        slab(m, bx, by, Zf - 0.01, Zr, 0.045, paint, bevel=0.022)   # the painted body
+    # the firebox's walls: on each, everything keeps at least 0.05 of bare wall round it
+    for x in (-0.72, -0.08):                                  # front: two fire mouths, a door, a louvre
+        with on_side(m, -1, y0, zw, xc=x):
+            fire_window(m, bars=6, hx=0.28, hy=0.18)
+    with on_side(m, -1, y0, zw, xc=0.50):
+        framed(m, 0.34, 0.42, LT)
+        m.box((0.022, 0.11, 0.022), (0.10, 0, 0.02), TD)
+    with on_side(m, -1, y0, zw, xc=0.90):
+        vent(m, 0.17, 0.18)
+    for x in (-0.62, 0.62):                                   # back: two fire mouths and a bolted plate between
+        with on_side(m, 1, y1, zw, xc=x):
+            fire_window(m, bars=6, hx=0.28, hy=0.18)
+    with on_side(m, 1, y1, zw, xc=0.0):
+        bolted(m, 0.40, 0.36, LT)
+    for d, y in ((-1, y0), (1, y1)):                          # heavy bolts in the corners of both long walls
+        for x in (-X + 0.085, X - 0.085):
+            for z in (0.45, 0.91):
+                with on_side(m, d, y, z, xc=x):
+                    m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+    for sx in SIDES:                                          # each end wall, beside the belt's mouth: a louvre
+        with on_end(m, sx, sx * X, -0.45, zw):
+            vent(m, 0.28, 0.18)
+    # the painted body's walls
+    yp = yc - by
+    for x, w in ((-0.85, 0.26), (-0.53, 0.26), (-0.275, 0.13), (-0.085, 0.13), (0.105, 0.13)):
+        with on_side(m, -1, yp, zb, xc=x):
+            framed(m, w, 0.22)
+    with on_side(m, -1, yp, zb, xc=0.50):
+        gauges(m, 0.22, 0.10)
+    with on_side(m, -1, yp, zb, xc=0.88):
+        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    for x in (-0.80, -0.48, -0.16, 0.16, 0.48, 0.80):
+        with on_side(m, 1, yc + by, zb, xc=x):
+            framed(m, 0.22, 0.22)
+    for d, y in ((-1, yp), (1, yc + by)):
+        for x in (-bx + 0.11, bx - 0.11):
+            for z in (Zf + 0.05, Zr - 0.055):
+                with on_side(m, d, y, z, xc=x):
+                    m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
+    for sx in SIDES:
+        with on_end(m, sx, sx * bx, yc, zb):
+            bolted(m, 0.60, 0.20, G, r=0.016)
+    # the hearth, on the roof
+    xt = -0.42
+    with m.at((xt, yc, 0)):
+        tower(m, [(0.44, 0.36, 0.06, Zr - 0.01), (0.46, 0.38, 0.065, Zr + 0.34), (0.46, 0.38, 0.065, Zr + 0.36)], G)
+        shell(m, [(0.49, 0.41, 0.075, Zr + 0.33), (0.49, 0.41, 0.075, Zr + 0.40), (0.465, 0.385, 0.065, Zr + 0.425),
+                  (0.40, 0.32, 0.045, Zr + 0.425), (0.385, 0.305, 0.04, Zr + 0.33)], TD)
+        tower(m, [(0.395, 0.315, 0.042, Zr + 0.322), (0.395, 0.315, 0.042, Zr + 0.372)], "h_glow")   # the fire, showing above the walls' top
+        for k in range(6):                                    # bars across the hearth, their ends set into the rim
+            x = -0.30 + k * 0.12
+            m.prism([(x - 0.03, Zr + 0.366), (x + 0.03, Zr + 0.366), (x + 0.017, Zr + 0.412), (x - 0.017, Zr + 0.412)], -0.33, 0.33, "Y", TD)
+        # the frame round the hearth, open above the fire, on four bundles of rods, each bundle on a pad
+        z0, z1 = Zr + 0.62, Zr + 0.77
+        RX, RY = 0.63, 0.55
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.15, 0.14, 0.03), (sx * (RX - 0.0375), sy * (RY - 0.034), Zr + 0.01), G, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):
+                    m.box((0.044, 0.044, z0 + 0.02 - Zr - 0.02), (sx * (RX + dx), sy * (RY + dy), (z0 + 0.02 + Zr + 0.02) / 2), LT, bevel=0.008)
+        frame_ring(m, 0.70, 0.62, z0, z1, 0.17, paint)
+        frame_ring(m, 0.693, 0.613, z0 - 0.03, z0 + 0.004, 0.15, TD)
+    with on_end(m, -1, xt - 0.445, yc, Zr + 0.18):            # tap port in the hearth's end
+        octa(m, 0.075, 0.075, -0.008, 0.012, "h_glow")
+        oct_ring(m, 0.115, 0.045, -0.04, 0.035, T)
+    # the smoke's way: out of the hearth's other end, along the roof, into the plenum's plain end wall, up two stacks
+    rd, zq = 0.10, Zr + 0.145
+    px0, px1, ph, pz = 0.42, 1.09, 0.20, Zr + 0.36
+    xa = xt + 0.445
+    m.cyl(rd * K, px0 - xa + 0.03, ((px0 + xa) / 2, yc, zq), LT, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    m.cyl((rd + 0.022) * K, 0.06, ((px0 + xa) / 2, yc, zq), G, seg=8, axis="X", rot=(rad(22.5), 0, 0))
+    with m.at(((px0 + px1) / 2, yc, 0)):
+        slab(m, (px1 - px0) / 2, ph, Zr - 0.01, pz, 0.04, G, bevel=0.02)
+        slab(m, (px1 - px0) / 2 + 0.012, ph + 0.012, pz - 0.05, pz + 0.012, cut_to((px1 - px0) / 2 + 0.012, ph + 0.012, ((px1 - px0) / 2, ph, 0.04), 0.012), LT, bevel=0.012)
+    for x, top in ((0.605, 2.42), (0.905, 2.80)):
+        fat_stack(m, x, yc, pz, top, 0.105, foot=0.035)
+    with on_side(m, 1, yc + ph, Zr + 0.155, xc=(px0 + px1) / 2):   # a hatch in the plenum's far face
+        bolted(m, 0.28, 0.15, LT, r=0.014)
+    # the blower, in front of the plenum: its louvre to the front, its pipe into the plenum's side
+    xw, yw, case = 0.80, yc - 0.54, (0.22, 0.16, 0.03)
+    with m.at((xw, yw, 0)):
+        slab(m, case[0], case[1], Zr - 0.01, Zr + 0.27, case[2], ST, bevel=0.016)
+        slab(m, case[0] + 0.015, case[1] + 0.015, Zr + 0.25, Zr + 0.31, cut_to(case[0] + 0.015, case[1] + 0.015, case, 0.015), TD, bevel=0.014)
+        octa(m, 0.07, 0.07, Zr + 0.30, Zr + 0.37, ST)
+    with on_side(m, -1, yw - case[1], Zr + 0.13, xc=xw):
+        vent(m, 0.16, 0.09)
+    ya, yq = yw + case[1], yc - ph
+    m.cyl(0.06 * K, yq - ya + 0.03, (xw, (ya + yq) / 2, Zr + 0.14), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    m.cyl(0.078 * K, 0.045, (xw, (ya + yq) / 2, Zr + 0.14), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    m.box((0.46, 0.20, 0.03), (0.78, yc + 0.55, Zr + 0.01), LT, bevel=0.012)                             # a hatch in the roof behind
+    for sx in SIDES:
+        for sy in SIDES:
+            m.cyl(0.02, 0.012, (0.78 + sx * 0.19, yc + 0.55 + sy * 0.065, Zr + 0.03), TD, seg=6)
+
+
+smelter10.frame, smelter10.shadow, smelter10.res = {"iso": (5.4, 1.2), "side": (5.0, 1.3), "top": (4.6, 0.6), "end": (3.6, 1.3)}, True, 1600
+_hero.HEROES["smelter10"] = smelter10
+
+
 PAINTS = {"h_p1": "#cf5134", "h_p2": "#2f8f8a", "h_p3": "#3f6f9f", "h_p4": "#d9822b"}       # trial paints: vermilion, teal, steel blue, orange
 fk.PAL.update(PAINTS)
 
