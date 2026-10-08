@@ -3378,10 +3378,7 @@ def mill9(m, paint="h_p1"):
         slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
     yf, yp = yb - hy, yb - body[1]
     zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
-    with on_side(m, -1, yf, zc_, xc=-0.70):                   # the cabinet's long face: a door, the louvre, two handwheels, corner bolts
-        framed(m, 0.34, 0.42, LT)
-        m.box((0.022, 0.11, 0.022), (0.10, 0, 0.02), TD)
-    with on_side(m, -1, yf, zc_, xc=-0.08):
+    with on_side(m, -1, yf, zc_, xc=-0.36):                   # the cabinet's long face, made simpler: the louvre, two handwheels, corner bolts
         vent(m, 0.31, 0.21)
     for x, z in ((0.48, 0.40), (0.76, 0.58)):
         with on_side(m, -1, yf, z, xc=x):
@@ -3390,16 +3387,12 @@ def mill9(m, paint="h_p1"):
         for z in (0.21, Zc - 0.09):
             with on_side(m, -1, yf, z, xc=x):
                 m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
-    for x, w in ((-0.70, 0.20), (-0.42, 0.28), (-0.14, 0.14), (0.06, 0.14), (0.26, 0.14)):   # the body's long face: a row of framed panels, a badge
+    for x, w in ((-0.52, 0.52), (0.02, 0.32)):                # the body's long face, made simpler: two panels and a badge
         with on_side(m, -1, yp, zb_, xc=x):
             framed(m, w, 0.18)
-    with on_side(m, -1, yp, zb_, xc=0.56):
+    with on_side(m, -1, yp, zb_, xc=0.50):
         m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
         m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
-    for x in (-body[0] + 0.13, body[0] - 0.13):
-        for z in (Zc + 0.05, Zr - 0.055):
-            with on_side(m, -1, yp, z, xc=x):
-                m.cyl(0.026, 0.016, (0, 0, 0.006), G, seg=6)
     with on_end(m, -1, -body[0], yb, zb_):                    # the body's end: the dial panel
         gauges(m, 0.20, 0.10)
     # ---- the furnace
@@ -3429,7 +3422,10 @@ def mill9(m, paint="h_p1"):
                     y = -0.17 + k * 0.085
                     m.prism([(y - 0.015, 0.009), (y + 0.015, 0.009), (y + 0.008, 0.03), (y - 0.008, 0.03)], -0.10, 0.10, "X", LT)
                 ring(m, 0.13, 0.25, [(0.0, -0.004), (0.01, 0.034), (0.034, 0.034), (0.046, -0.004)], TD, c=0.03)
-    fat_stack(m, 0, yc, Z3, 2.95, 0.19, foot=0.09)
+    with m.at((0, yc, 0)):                                    # the stack's base, filling the middle of the cap
+        slab(m, 0.36, 0.36, Z3 - 0.01, Z3 + 0.16, 0.06, G, bevel=0.02)
+        slab(m, 0.372, 0.372, Z3 + 0.11, Z3 + 0.172, cut_to(0.372, 0.372, (0.36, 0.36, 0.06), 0.012), LT, bevel=0.012)
+    fat_stack(m, 0, yc, Z3 + 0.16, 2.95, 0.21, foot=0.07)
     zl, zu = (0.10 + fa[0] - 0.03) / 2, (fa[1] + Z2 - 0.02) / 2   # the middle heights of the walls below and above the lower frame
     for sx in SIDES:                                          # the end walls: two doors below, a bolted plate above
         for y in (yc - 0.30, yc + 0.30):
@@ -3440,8 +3436,9 @@ def mill9(m, paint="h_p1"):
             for z in (0.21, fa[0] - 0.12):
                 with on_end(m, sx, sx * fx, y, z):
                     m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
-        with on_end(m, sx, sx * (fx - 0.03), yc, zu):
-            bolted(m, 0.80, 0.34, G, r=0.02)
+        for y in (yc - 0.48, yc, yc + 0.48):                  # upright ribs brace the upper course
+            with on_end(m, sx, sx * (fx - 0.03), y, zu):
+                m.box((0.075, Z2 - 0.02 - fa[1], 0.045), (0, 0, 0.02), LT, bevel=0.01)
     with on_side(m, 1, yc + fy, zl, xc=-0.45):                # the back wall: a louvre and two panels below, a bolted plate above
         vent(m, 0.31, 0.21)
     for x in (0.25, 0.70):
@@ -3451,8 +3448,12 @@ def mill9(m, paint="h_p1"):
         for z in (0.21, fa[0] - 0.12):
             with on_side(m, 1, yc + fy, z, xc=x):
                 m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
-    with on_side(m, 1, yc + fy - 0.03, zu, xc=0.0):
-        bolted(m, 1.20, 0.34, G, r=0.02)
+    for x in (-0.84, -0.28, 0.28, 0.84):
+        with on_side(m, 1, yc + fy - 0.03, zu, xc=x):
+            m.box((0.075, Z2 - 0.02 - fa[1], 0.045), (0, 0, 0.02), LT, bevel=0.01)
+    for x in (-0.84, -0.10, 0.62):                            # and on the wall facing the near block, clear of the two ducts
+        with on_side(m, -1, yc - fy + 0.03, zu, xc=x):
+            m.box((0.075, Z2 - 0.02 - fa[1], 0.045), (0, 0, 0.02), LT, bevel=0.01)
     # ---- the ducts: out of the near block's roof, through box elbows, back into the furnace's upper course
     rd, zq = 0.105, 1.46
     ys = yc - fy + 0.03
