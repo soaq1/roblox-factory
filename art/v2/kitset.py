@@ -16,6 +16,7 @@
 import math
 from . import hero as _hero
 from . import set2 as s2
+from .base import loft_x, offset_closed
 
 RD = 0.105               # the fat duct's radius
 PLEN = 0.42              # a plenum's height: tall enough that a duct's socket sits wholly in plain wall under the rim
@@ -287,20 +288,57 @@ def _stub_wall(m, hy=0.60, top=1.0):
     s2.slab(m, 0.17, hy, 0.0, top, 0.035, s2.G, bevel=0.02)
 
 
+def _rib(m, x0, x1, w, top, hole_top, mk, soft=0.016, hw=None):
+    """One rib of a mouth: an arch over the belt from x0 to x1, its edges cut back by `soft` so that it is
+    rounded off rather than sharp (the developer: the mouths' ribs are to be softened)."""
+    o = s2.arch_pts(w, top, hole_top=hole_top, hw=hw or s2.BH + 0.01, c=0.085, ci=0.035)[::-1]
+    a, b = sorted((x0, x1))
+    st = [(a, offset_closed(o, soft)), (a + soft, o), (b - soft, o), (b, offset_closed(o, soft))] if soft else [(a, o), (b, o)]
+    loft_x(m, st, mk)
+
+
+def mouth(m, xa, d, grade, paint=None):
+    """A conveyor mouth on the wall at xa, opening toward d, the belt's middle at y = 0. Every mouth of one
+    grade is this same thing, and every machine calls this rather than drawing its own.
+    All grades: deep and long, so that things go into it and not through a wall; as wide as the belt's
+    rails, which run straight into its legs (nothing stands on the rails beside it); and made of a few
+    thick ribs with a gap between each, their edges rounded off, not of many thin ones.
+    grade "low": three plain grey ribs, and lower than the others.
+    grade 3: three painted ribs at full height, the gaps a grey sleeve, the throat lined dark.
+    Returns how far out the mouth reaches."""
+    low = grade == "low"
+    top, web_top = (0.70, 0.655) if low else (0.82, 0.775)
+    hole = top - 0.115
+    rib_mk, web_mk = (s2.R, s2.RD) if low else (paint or s2.PY, s2.G)
+    parts = [("web", 0.05), ("rib", 0.095), ("web", 0.055), ("rib", 0.095), ("web", 0.055), ("rib", 0.11)]
+    px = xa
+    for kind, th in parts:
+        nx = px + d * th
+        if kind == "rib":
+            _rib(m, px, nx, 0.988, top, hole, rib_mk)
+        else:
+            _rib(m, px - d * 0.004, nx + d * 0.004, 0.93, web_top, hole + 0.002, web_mk, soft=0.0, hw=s2.BH + 0.012)
+        px = nx
+    depth = abs(px - xa)
+    if not low:                                               # the throat's dark lining
+        a_, b_ = sorted((xa + d * 0.02, xa + d * (depth - 0.03)))
+        m.prism(s2.arch_pts(2 * (s2.BH + 0.03), hole + 0.02, hole_top=hole - 0.006, hw=s2.BH + 0.004, c=0.05, ci=0.035), a_, b_, "X", s2.TD)
+    m.box((0.02, 2 * s2.BH + 0.01, hole - 0.006 - s2.BZ), (xa + d * 0.012, 0, (hole + 0.006 + s2.BZ) / 2), s2.SLIT)
+    return depth
+
+
 def k_mouth_low(m):
-    """Mouth of the low grades: the ribbed folding cover over the belt (the smelter's), six folds deep, as
-    wide as the rails so that they run straight into it."""
+    """Mouth of the low grades: three thick grey ribs with gaps between, lower than the others."""
     s2.run(m, -1.2, 0.02, braces=(-1.05,))
-    s2.cover(m, 0.0, -1, sole=False, n=6, wide=True)
+    mouth(m, 0.0, -1, "low")
     with m.at((0.19, 0, 0)):
-        _stub_wall(m, 0.56, 0.95)
+        _stub_wall(m, 0.56, 0.90)
 
 
 def k_mouth3(m, paint=None):
-    """Mouth of grade 3: long, two painted arches with a dark seam at its face, a third against the wall, a
-    grey sleeve over a dark throat between, as wide as the rails so that they run straight into it."""
+    """Mouth of grade 3: three thick painted ribs on a grey sleeve over a dark throat."""
     s2.belt_stub(m, -1.2, 0.02, -0.85, -1.05)
-    s2.mouth3(m, 0.0, -1, paint or s2.PY, depth=0.46, ears=False, wide=True)
+    mouth(m, 0.0, -1, 3, paint)
     with m.at((0.19, 0, 0)):
         _stub_wall(m, 0.60, 1.0)
 
