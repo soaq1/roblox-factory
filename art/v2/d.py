@@ -75,20 +75,27 @@ def run(m, x0, x1, flow=1, braces=()):
         buttress(m, x)
 
 
-def cover(m, x0, d, sole=True):
+def cover(m, x0, d, sole=True, n=4, wide=False):
     """The folding cover over a tunnel mouth at the body's end x0, opening toward d. A collar hugs each
     rail behind the end frame, which stands on the rail itself; with sole=False the machine supplies
-    its own."""
+    its own. `n` is the number of folds (more folds, a deeper mouth: the developer wants every mouth,
+    of whatever grade, to look as if things go deep into it). With wide=True the folds are as wide as
+    the belt's rails, so that the rails run into them and nothing has to hug the rails beside them.
+    Returns how far out the cover reaches."""
     x0 += d * 0.004                                           # a hair clear of the belt's own end, so no two faces share a plane there
-    if sole:
-        collar(m, *sorted((x0, x0 + d * 0.318)))
-    px = x0
     g = 2 * (BH - 0.305)                                      # the covers grow with the belt
-    for th, w, tp, hw, mk in [(0.042, 0.84 + g, 0.77, BH + 0.01, R), (0.026, 0.77 + g, 0.735, BH + 0.03, RD)] * 4 + [(0.066, 0.88 + g, 0.79, BH + 0.01, R)]:
+    w1, w2, w3 = (0.96, 0.90, 0.988) if wide else (0.84 + g, 0.77 + g, 0.88 + g)
+    folds = [(0.042, w1, 0.77, BH + 0.01, R), (0.026, w2, 0.735, BH + 0.03, RD)] * n + [(0.066, w3, 0.79, BH + 0.01, R)]
+    depth = sum(f[0] for f in folds)
+    if sole:
+        collar(m, *sorted((x0, x0 + d * depth)))
+    px = x0
+    for th, w, tp, hw, mk in folds:
         a, b = sorted((px, px + d * th))
         m.prism(arch_pts(w, tp, hole_top=tp - 0.11, hw=hw, c=0.085, ci=0.035), a, b, "X", mk)
         px += d * th
     m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (x0 + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)        # the dark of the tunnel, from the belt up
+    return depth
 
 
 def block(m, top=0.82):
