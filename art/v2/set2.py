@@ -4114,6 +4114,7 @@ def mill14(m, paint="h_p1", trim=False):
     # ---- the furnace
     yc, fx, fy = 0.36, 0.90, 0.70
     Z1, Z2, Z3 = 0.98, 1.70, 1.76
+    HD = 0.24                                                 # how deep the plain block is that the pipes come into
     fa, fb = (Z1 - 0.01, Z1 + 0.14), (2.26, 2.41)
     RX, RY = fx + 0.10, fy + 0.10
     xs_, ys_ = -0.47, 0.30                                    # the big stack, in the back corner
@@ -4121,6 +4122,10 @@ def mill14(m, paint="h_p1", trim=False):
         slab(m, fx + 0.20, fy + 0.20, 0.0, 0.14, 0.04, T, bevel=0.014)
         courses(m, fx, fy, 0.10, Z1 + 0.01, 4, 0.035, G)       # the furnace's walls: level courses, a groove between each
         courses(m, fx - 0.03, fy - 0.03, Z1, Z2, 3, 0.035, G)
+        # where the pipes come in the wall is plain: a pipe let into a grooved wall is not believable (the
+        # developer). The front of the upper part is one plain block, a little proud of the courses behind.
+        with m.at((0, -(fy - 0.03) + HD / 2 - 0.012, 0)):
+            slab(m, fx - 0.018, HD / 2, Z1 + 0.005, Z2 - 0.005, 0.03, G, bevel=0.02)
         slab(m, fx - 0.01, fy - 0.01, Z2 - 0.02, Z3, 0.04, "h_dark", bevel=0.016)
         for sx in SIDES:
             for sy in SIDES:
@@ -4165,13 +4170,12 @@ def mill14(m, paint="h_p1", trim=False):
     with m.at((xp, yb, 0)):
         kit.k_stack_rise3(m, Zr)
     ys2 = yc - fy + 0.03                                      # the furnace's upper wall, facing the low block
-    for x in (0.05, 0.47):                                    # each pipe lands on a seat: the wall is in courses, and a
-        ye = kit._seat_y(m, x, ys2, zq, -1)                   # flange straight on it would sit across the grooves
+    ye = ys2 - 0.012                                          # the plain block's face, where the pipes come in
+    for x in (0.05, 0.47):
         kit._run_y(m, yb + 0.20 - 0.012, ye + 0.012, x, zq)
-    xw, zq2 = -0.55, 1.50                                     # the third: up, round a bend, across higher
+    xw, zq2 = -0.55, 1.53                                     # the third: up, round a bend, across higher
     kit._riser(m, xw, yb, Zr, zq2 - kit.BEND, top=False)
     kit._bend(m, (xw, yb, zq2), (0, 0, 1), (0, 1, 0))
-    ye = kit._seat_y(m, xw, ys2, zq2, -1)
     kit._run_y(m, yb + kit.BEND, ye + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
     if trim:
         for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
