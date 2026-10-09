@@ -19,12 +19,17 @@ from mathutils import Vector
 import factorykit as fk
 from . import hero as _hero
 
-fk.PAL.update({"t_bark": "#5d3b30", "t_leaf": "#1f5a23", "t_leaf_d": "#184a1d", "t_leaf_l": "#2c7030", "t_leaf_h": "#37803a"})
+fk.PAL.update({"t_bark": "#5d3b30", "t_leaf": "#1f5a23", "t_leaf_d": "#1a4d1f", "t_leaf_l": "#27672a"})
 BARK = "t_bark"
 
 
-def limb(m, pts, r0, r1, sides=6):
-    """A limb through the points given, its radius running from r0 at the first to r1 at the last."""
+def limb(m, pts, r0, r1, sides=6, radii=None):
+    """A limb through the points given, its radius running from r0 at the first to r1 at the last, or
+    as listed in `radii`, one for each point.
+    Where a trunk forks, do not end the trunk and start two limbs at its tip: that leaves a lip round the
+    joint (the developer marked it). Carry the trunk on as one of the limbs, in one piece, and start
+    the other from a point inside the trunk a little below the fork, thinner than the trunk there, so
+    that it comes out through the trunk's side."""
     bm = bmesh.new()
     pts = [Vector(p) for p in pts]
     n = len(pts)
@@ -34,7 +39,7 @@ def limb(m, pts, r0, r1, sides=6):
         ref = Vector((1, 0, 0)) if abs(d.x) < 0.9 else Vector((0, 1, 0))
         a = (ref - d * ref.dot(d)).normalized()
         b = d.cross(a)
-        r = r0 + (r1 - r0) * k / (n - 1)
+        r = radii[k] if radii else r0 + (r1 - r0) * k / (n - 1)
         rings.append([bm.verts.new(p + (a * math.cos(t) + b * math.sin(t)) * r) for t in (2 * math.pi * j / sides + 0.3 for j in range(sides))])
     for a_, b_ in zip(rings, rings[1:]):
         for j in range(sides):
@@ -45,16 +50,13 @@ def limb(m, pts, r0, r1, sides=6):
 
 
 def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
-    """A mass of leaves: the hull of points scattered over a squashed ball, so that it is made of flat
-    three-sided faces. Its underside is cut off flat-ish (at `flat` of its half-height below the
-    middle); `peak` draws its top up to a blunt point.
-    The faces are not all one green: each takes one of four tones, lighter the more it faces the sky
-    and darker underneath, with some chance either way. Without that a mass showed as a few big
-    blank faces (the developer: the leaves looked empty)."""
+    """A mass of leaves: the hull of a handful of points scattered over a squashed ball, so that it is
+    made of a few big flat faces. Its underside is cut off flat-ish (at `flat` of its half-height
+    below the middle); `peak` draws its top up to a blunt point."""
     rnd = random.Random(seed)
     bm = bmesh.new()
     sx, sy, sz = size[0] / 2, size[1] / 2, size[2] / 2
-    for k in range(46):
+    for k in range(30):
         u, v = rnd.uniform(-1, 1), rnd.uniform(0, 2 * math.pi)
         w = math.sqrt(1 - u * u)
         rr = rnd.uniform(0.9, 1.0)
@@ -67,26 +69,15 @@ def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
     junk = list({g for g in got.get("geom_interior", []) + got.get("geom_unused", []) if isinstance(g, bmesh.types.BMVert)})
     if junk:
         bmesh.ops.delete(bm, geom=junk, context="VERTS")
-    before = len(m.bm.faces)
     m._add(bm, mk)
-    tones = ["t_leaf_d", "t_leaf", "t_leaf_l", "t_leaf_h"]
-    for t in tones:
-        if t not in m.mats:
-            m.mats.append(t)
-    lean = {"t_leaf_d": -0.5, "t_leaf": 0.0, "t_leaf_l": 0.5}.get(mk, 0.0)
-    m.bm.faces.ensure_lookup_table()
-    for f in m.bm.faces[before:]:
-        f.normal_update()
-        k = 1.2 + f.normal.z * 1.1 + lean + rnd.uniform(-0.9, 0.9)       # 0 dark .. 3 light
-        f.material_index = m.mats.index(tones[max(0, min(3, round(k)))])
 
 
 def oak_a(m, seed=11):
     """Broad: the trunk forks a little under half its height into two limbs, a big crown on each; two
     twigs lower down each carry a small crown."""
-    limb(m, [(0, 0, 0), (0.02, 0.0, 0.55), (-0.02, 0.03, 1.15), (0.02, 0.05, 1.75)], 0.13, 0.085)
-    limb(m, [(0.02, 0.05, 1.75), (-0.22, 0.02, 2.25), (-0.42, 0.0, 2.85)], 0.075, 0.045, 5)
-    limb(m, [(0.02, 0.05, 1.75), (0.30, 0.08, 2.15), (0.62, 0.10, 2.55)], 0.07, 0.04, 5)
+    limb(m, [(0, 0, 0), (0.02, 0.0, 0.55), (-0.02, 0.03, 1.15), (0.02, 0.05, 1.75), (-0.22, 0.02, 2.25), (-0.42, 0.0, 2.85)], 0, 0,
+         radii=[0.13, 0.115, 0.10, 0.085, 0.062, 0.045])
+    limb(m, [(0.01, 0.045, 1.50), (0.30, 0.08, 2.15), (0.62, 0.10, 2.55)], 0.062, 0.04, 5)
     limb(m, [(0.0, 0.01, 0.85), (-0.30, 0.0, 1.10), (-0.62, -0.02, 1.38)], 0.05, 0.03, 5)
     limb(m, [(0.0, 0.03, 1.20), (0.28, 0.02, 1.38), (0.55, 0.0, 1.55)], 0.045, 0.028, 5)
     crown(m, (-0.50, 0.0, 3.30), (2.35, 2.05, 2.30), seed)         # the crowns are big and run into one another: the top of the
@@ -111,9 +102,9 @@ def oak_b(m, seed=21):
 
 def oak_c(m, seed=31):
     """Spreading: the trunk leans and forks low; wide flat crowns lie in layers, the widest on top."""
-    limb(m, [(0, 0, 0), (-0.04, 0.0, 0.5), (-0.12, 0.02, 1.0), (-0.16, 0.03, 1.45)], 0.14, 0.09)
-    limb(m, [(-0.16, 0.03, 1.45), (-0.30, 0.02, 2.0), (-0.38, 0.0, 2.6)], 0.075, 0.04, 5)
-    limb(m, [(-0.16, 0.03, 1.45), (0.12, 0.05, 1.95), (0.45, 0.08, 2.45), (0.60, 0.05, 2.95)], 0.07, 0.035, 5)
+    limb(m, [(0, 0, 0), (-0.04, 0.0, 0.5), (-0.12, 0.02, 1.0), (-0.16, 0.03, 1.45), (-0.30, 0.02, 2.0), (-0.38, 0.0, 2.6)], 0, 0,
+         radii=[0.14, 0.125, 0.105, 0.09, 0.062, 0.04])
+    limb(m, [(-0.13, 0.03, 1.22), (0.12, 0.05, 1.95), (0.45, 0.08, 2.45), (0.60, 0.05, 2.95)], 0.062, 0.035, 5)
     limb(m, [(-0.06, 0.01, 1.05), (0.22, -0.05, 1.35), (0.45, -0.12, 1.55)], 0.045, 0.028, 5)
     crown(m, (0.25, 0.0, 3.35), (3.05, 2.55, 1.45), seed, "t_leaf", flat=0.35)
     crown(m, (-0.95, 0.0, 2.60), (2.05, 1.75, 1.15), seed + 1, "t_leaf_l", flat=0.35)
