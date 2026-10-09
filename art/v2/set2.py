@@ -4058,7 +4058,7 @@ def bolted_plate(m, w, h, mk=G, inset=0.065):
     slab(m, w / 2, h / 2, -0.006, 0.03, 0.03, mk, bevel=0.014)
     for sx in SIDES:
         for sy in SIDES:
-            m.cyl(0.026, 0.02, (sx * (w / 2 - inset), sy * (h / 2 - inset), 0.036), "h_steel", seg=6)   # darker than the plate (the developer)
+            m.cyl(0.026, 0.02, (sx * (w / 2 - inset), sy * (h / 2 - inset), 0.036), TD, seg=6)   # dark against the plate (the developer)
 
 
 def courses(m, hx, hy, z0, z1, n, c, mk, bevel=0.028):
