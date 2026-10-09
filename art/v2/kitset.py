@@ -344,19 +344,23 @@ def k_mouth3(m, paint=None):
 
 
 def k_pipe_join(m):
-    """Not a piece: three stack groups joined plenum to plenum, by a long pipe and by a short one, to show
-    how a pipe meets another part. Each end goes a little way into the part. (Drums are not piped up.)"""
-    with m.at((-0.62, 0, 0)):
+    """Not a piece, and not a layout to copy: only the two cases of a pipe meeting another part, kept apart
+    so that neither crowds the other. In front, a long pipe between two plenums; behind, a short one
+    from a plenum into a plain wall. Each end goes a little way into the part. (The first version packed
+    three stack groups together, and the developer asked whether it was overdone on purpose.)"""
+    with m.at((-0.70, -0.55, 0)):
         k_stack_row2(m)
-    with m.at((0.78, 0, 0)):
+    with m.at((0.75, -0.55, 0)):
         k_stack_pair(m)
-    _run_x(m, -0.62 + 0.34 - 0.012, 0.78 - 0.36 + 0.012, 0, DUCT_AT)
-    with m.at((-0.62, 0.74, 0)):
-        k_stack_rise3(m)
-    _run_y(m, 0.20 - 0.012, 0.74 - 0.20 + 0.012, -0.62, DUCT_AT)
+    _run_x(m, -0.70 + 0.34 - 0.012, 0.75 - 0.36 + 0.012, -0.55, DUCT_AT)
+    with m.at((-0.45, 0.85, 0)):
+        k_stack_row2(m)
+    with m.at((0.40, 0.85, 0)):
+        s2.slab(m, 0.14, 0.42, 0.0, 0.80, 0.035, s2.G, bevel=0.02)
+    _run_x(m, -0.45 + 0.34 - 0.012, 0.40 - 0.14 + 0.012, 0.85, DUCT_AT)
 
 
-k_pipe_join.frame, k_pipe_join.shadow, k_pipe_join.res = {"iso": (3.8, 0.72), "side": (3.8, 0.72), "top": (3.8, 0.6), "end": (3.8, 0.72)}, True, 1100
+k_pipe_join.frame, k_pipe_join.shadow, k_pipe_join.res = {"iso": (4.2, 0.72), "side": (4.2, 0.72), "top": (4.2, 0.6), "end": (4.2, 0.72)}, True, 1100
 _hero.HEROES["k_pipe_join"] = k_pipe_join
 
 
