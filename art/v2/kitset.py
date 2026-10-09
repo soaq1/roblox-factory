@@ -8,7 +8,8 @@
 #   drums    k_drum_band, k_drum_cone
 #   towers   k_tower2, k_tower3
 #   houses   k_house_s, k_house_m, k_house_l
-#   mouths   k_mouth_low (the ribbed folding cover of the low grades), k_mouth3 (grade 3)
+#   mouths   k_mouth_low, k_mouth3 (both built by mouth())
+#   others   k_hopper, k_blower, k_gears, k_walk, k_hoist (what complicates a machine besides stacks and pipes)
 #
 # Joints: a fat duct is 0.105 in radius everywhere, of whatever length is needed, carries a ring every 0.26
 # along it (never plain), and swells into a socket at each end that meets another part;
@@ -343,6 +344,99 @@ def k_mouth3(m, paint=None):
         _stub_wall(m, 0.60, 1.0)
 
 
+def k_hopper(m, z0=0.0):
+    """Hopper: a funnel that spreads upward from a neck to a wide rimmed mouth with a real hollow, a band
+    round its waist, on a collar. Where material goes in and gathers."""
+    s2.slab(m, 0.21, 0.21, z0 - 0.01, z0 + 0.06, 0.04, s2.T, bevel=0.012)
+    s2.tower(m, [(0.16, 0.16, 0.035, z0 + 0.05), (0.16, 0.16, 0.035, z0 + 0.14), (0.38, 0.38, 0.07, z0 + 0.52), (0.38, 0.38, 0.07, z0 + 0.535)], s2.G)
+    s2.tower(m, [(0.262, 0.262, 0.052, z0 + 0.31), (0.297, 0.297, 0.058, z0 + 0.37)], s2.LT)            # the band, on the slope
+    s2.shell(m, [(0.405, 0.405, 0.075, z0 + 0.52), (0.405, 0.405, 0.075, z0 + 0.59), (0.39, 0.39, 0.07, z0 + 0.605),
+                 (0.33, 0.33, 0.05, z0 + 0.605), (0.315, 0.315, 0.045, z0 + 0.52)], s2.TD)
+    s2.tower(m, [(0.322, 0.322, 0.047, z0 + 0.515), (0.322, 0.322, 0.047, z0 + 0.545)], s2.SLIT)
+
+
+def k_blower(m, z0=0.0):
+    """Blower: a round casing standing on edge on a base, its outlet rising square from one side to a flange
+    a duct can start from, its intake a rimmed hole in the face with a hub and three arms."""
+    zc = z0 + 0.40
+    with m.at((0, 0, 0)):
+        s2.slab(m, 0.30, 0.17, z0, z0 + 0.12, 0.03, s2.T, bevel=0.012)
+    m.cyl(0.31, 0.24, (0, 0, zc), s2.G, seg=12, axis="Y", rot=(0, s2.rad(15), 0))
+    m.cyl(0.325, 0.06, (0, 0, zc), s2.LT, seg=12, axis="Y", rot=(0, s2.rad(15), 0))                    # a band round the casing's edge
+    m.box((0.24, 0.20, 0.36), (0.185, 0, zc + 0.24), s2.G, bevel=0.02)                                   # the outlet, rising off the casing's side
+    with m.at((0.185, 0, 0)):
+        s2.slab(m, 0.145, 0.125, zc + 0.40, zc + 0.46, 0.03, s2.LT, bevel=0.012)
+        s2.slab(m, 0.095, 0.075, zc + 0.44, zc + 0.47, 0.02, s2.SLIT, bevel=0.004)
+    with s2.on_side(m, -1, -0.12, zc, xc=0.0):                # the intake
+        s2.ring_round(m, 0.19, 0.135, -0.004, 0.035, s2.TD, seg=12)
+        m.cyl(0.14, 0.01, (0, 0, 0.004), s2.SLIT, seg=12)
+        m.cyl(0.04, 0.03, (0, 0, 0.02), s2.ST, seg=8)
+        for k in range(3):
+            a_ = s2.rad(90 + 120 * k)
+            m.box((0.022, 0.12, 0.014), (0.085 * math.cos(a_), 0.085 * math.sin(a_), 0.024), s2.ST, rot=a_ - math.pi / 2)
+
+
+def k_gears(m, paint=None, z0=0.0):
+    """Gears: a big toothed wheel and a small one in mesh, each on a shaft between two bearing blocks, on a
+    base. The one part that is seen to turn."""
+    paint = paint or s2.PY
+    s2.slab(m, 0.56, 0.22, z0, z0 + 0.08, 0.03, s2.T, bevel=0.012)
+    for x, zc, r, teeth in ((-0.14, z0 + 0.50, 0.36, 12), (0.33, z0 + 0.30, 0.17, 8)):
+        m.gear(r, 0.09, (x, 0, zc), s2.G, teeth=teeth, axis="Y")
+        m.cyl(r * 0.50, 0.11, (x, 0, zc), paint, seg=8, axis="Y", rot=(0, s2.rad(22.5), 0))             # a painted hub
+        m.cyl(0.04, 0.40, (x, 0, zc), s2.ST, seg=8, axis="Y", rot=(0, s2.rad(22.5), 0))                 # the shaft
+        for sy in s2.SIDES:                                   # a bearing block each side, on a pedestal
+            with m.at((x, sy * 0.16, 0)):
+                s2.slab(m, 0.075, 0.04, z0 + 0.06, zc - 0.05, 0.015, s2.LT, bevel=0.008)
+                s2.slab(m, 0.085, 0.05, zc - 0.07, zc + 0.07, 0.02, s2.G, bevel=0.012)
+
+
+def k_walk(m, L=1.4, z=0.85):
+    """Walkway: a deck on two legs with a kerb, a rail and a mid-rail on stout posts along its outer side,
+    and a ladder down to the ground at one end. The way up to look after a machine, and a measure of
+    how big the machine is."""
+    m.box((L, 0.32, 0.04), (0, 0, z), s2.TD, bevel=0.008)
+    m.box((L, 0.03, 0.07), (0, -0.138, z + 0.03), s2.LT, bevel=0.006)                                    # the kerb
+    for x in (-L / 2 + 0.05, 0.0, L / 2 - 0.05):
+        m.box((0.045, 0.045, 0.40), (x, -0.138, z + 0.22), s2.LT, bevel=0.008)
+    m.box((L, 0.05, 0.05), (0, -0.138, z + 0.43), s2.LT, bevel=0.01)
+    m.box((L - 0.06, 0.03, 0.03), (0, -0.138, z + 0.25), s2.ST)
+    for x in (-L / 2 + 0.16, L / 2 - 0.42):                   # the legs
+        with m.at((x, 0.09, 0)):
+            s2.slab(m, 0.07, 0.07, 0.0, 0.05, 0.02, s2.T, bevel=0.01)
+            s2.slab(m, 0.035, 0.035, 0.04, z - 0.015, 0.01, s2.ST, bevel=0.006)
+    xl = L / 2 + 0.035                                        # the ladder, at the +x end
+    for sy in s2.SIDES:
+        m.box((0.035, 0.035, z + 0.30), (xl, sy * 0.11, (z + 0.30) / 2), s2.LT, bevel=0.006)
+    n = int((z - 0.10) / 0.13)
+    for k in range(n + 1):
+        m.box((0.028, 0.22, 0.028), (xl, 0, 0.12 + k * 0.13), s2.ST)
+
+
+def k_hoist(m, paint=None, L=1.3, z0=0.0):
+    """Hoist: a painted beam between two brackets, dark flanges above and below it, a trolley under it, a
+    chain and a hook. For changing what is heavy; it stands across the top of a tower."""
+    paint = paint or s2.PY
+    zb = z0 + 0.32
+    for x in (-L / 2 + 0.10, L / 2 - 0.10):
+        with m.at((x, 0, 0)):
+            s2.slab(m, 0.07, 0.10, z0, zb - 0.07, 0.02, s2.G, bevel=0.012)
+    m.box((L, 0.10, 0.15), (0, 0, zb), paint, bevel=0.012)
+    for dz in (-0.085, 0.085):
+        m.box((L, 0.17, 0.03), (0, 0, zb + dz), s2.TD, bevel=0.008)
+    xt = 0.18                                                 # the trolley
+    m.box((0.20, 0.23, 0.07), (xt, 0, zb - 0.135), s2.G, bevel=0.012)
+    for sx in s2.SIDES:
+        for sy in s2.SIDES:
+            m.cyl(0.035, 0.03, (xt + sx * 0.06, sy * 0.105, zb - 0.075), s2.LT, seg=8, axis="Y")
+    m.box((0.028, 0.028, 0.20), (xt, 0, zb - 0.265), s2.ST)
+    with m.at((xt, 0, 0)):
+        s2.octa(m, 0.05, 0.05, zb - 0.42, zb - 0.36, s2.TD)
+    m.box((0.03, 0.03, 0.09), (xt, 0, zb - 0.46), s2.ST)     # the hook: a shank, a bend, a tip
+    m.box((0.09, 0.03, 0.03), (xt + 0.03, 0, zb - 0.505), s2.ST)
+    m.box((0.03, 0.03, 0.06), (xt + 0.06, 0, zb - 0.475), s2.ST)
+
+
 def k_pipe_join(m):
     """Not a piece, and not a layout to copy: only the two cases of a pipe meeting another part, kept apart
     so that neither crowds the other. In front, a long pipe between two plenums; behind, a short one
@@ -380,6 +474,11 @@ KIT = [
     ("k_house_s", k_house_s, "집 1  작은 것", 3.2, 0.55),
     ("k_house_m", k_house_m, "집 2  중간", 3.2, 0.55),
     ("k_house_l", k_house_l, "집 3  긴 것", 3.2, 0.55),
+    ("k_hopper", k_hopper, "깔때기", 2.0, 0.32),
+    ("k_blower", k_blower, "송풍기", 2.0, 0.42),
+    ("k_gears", k_gears, "톱니바퀴", 2.4, 0.42),
+    ("k_walk", k_walk, "발판과 사다리", 2.5, 0.62),
+    ("k_hoist", k_hoist, "들보와 갈고리", 2.0, 0.22),
     ("k_mouth_low", k_mouth_low, "입구  낮은 급", 2.9, 0.45),
     ("k_mouth3", k_mouth3, "입구  3급", 2.9, 0.45),
 ]
