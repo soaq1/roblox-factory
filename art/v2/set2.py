@@ -4384,3 +4384,4 @@ for _name, _fn, _frame in (("smelter2", smelter2, F31), ("washer2", washer2, F31
 
 from . import kitset  # noqa: E402,F401  (the kit registers its pieces as heroes; it reads this module's helpers at call time)
 from . import trees  # noqa: E402,F401  (trees to judge, registered as heroes)
+from . import blocks_look  # noqa: E402,F401  (square blocks beside blocks with cut edges)
