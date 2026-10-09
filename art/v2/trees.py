@@ -19,7 +19,7 @@ from mathutils import Vector
 import factorykit as fk
 from . import hero as _hero
 
-fk.PAL.update({"t_bark": "#5d3b30", "t_leaf": "#1f5a23", "t_leaf_d": "#1a4d1f", "t_leaf_l": "#27672a"})
+fk.PAL.update({"t_bark": "#5d3b30", "t_leaf": "#1f5a23", "t_leaf_d": "#184a1d", "t_leaf_l": "#2c7030", "t_leaf_h": "#37803a"})
 BARK = "t_bark"
 
 
@@ -45,13 +45,16 @@ def limb(m, pts, r0, r1, sides=6):
 
 
 def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
-    """A mass of leaves: the hull of a handful of points scattered over a squashed ball, so that it is
-    made of a few big flat faces. Its underside is cut off flat-ish (at `flat` of its half-height
-    below the middle); `peak` draws its top up to a blunt point."""
+    """A mass of leaves: the hull of points scattered over a squashed ball, so that it is made of flat
+    three-sided faces. Its underside is cut off flat-ish (at `flat` of its half-height below the
+    middle); `peak` draws its top up to a blunt point.
+    The faces are not all one green: each takes one of four tones, lighter the more it faces the sky
+    and darker underneath, with some chance either way. Without that a mass showed as a few big
+    blank faces (the developer: the leaves looked empty)."""
     rnd = random.Random(seed)
     bm = bmesh.new()
     sx, sy, sz = size[0] / 2, size[1] / 2, size[2] / 2
-    for k in range(30):
+    for k in range(46):
         u, v = rnd.uniform(-1, 1), rnd.uniform(0, 2 * math.pi)
         w = math.sqrt(1 - u * u)
         rr = rnd.uniform(0.9, 1.0)
@@ -64,7 +67,18 @@ def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
     junk = list({g for g in got.get("geom_interior", []) + got.get("geom_unused", []) if isinstance(g, bmesh.types.BMVert)})
     if junk:
         bmesh.ops.delete(bm, geom=junk, context="VERTS")
+    before = len(m.bm.faces)
     m._add(bm, mk)
+    tones = ["t_leaf_d", "t_leaf", "t_leaf_l", "t_leaf_h"]
+    for t in tones:
+        if t not in m.mats:
+            m.mats.append(t)
+    lean = {"t_leaf_d": -0.5, "t_leaf": 0.0, "t_leaf_l": 0.5}.get(mk, 0.0)
+    m.bm.faces.ensure_lookup_table()
+    for f in m.bm.faces[before:]:
+        f.normal_update()
+        k = 1.2 + f.normal.z * 1.1 + lean + rnd.uniform(-0.9, 0.9)       # 0 dark .. 3 light
+        f.material_index = m.mats.index(tones[max(0, min(3, round(k)))])
 
 
 def oak_a(m, seed=11):
