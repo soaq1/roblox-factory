@@ -51,10 +51,10 @@ def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
     rnd = random.Random(seed)
     bm = bmesh.new()
     sx, sy, sz = size[0] / 2, size[1] / 2, size[2] / 2
-    for k in range(22):
+    for k in range(30):
         u, v = rnd.uniform(-1, 1), rnd.uniform(0, 2 * math.pi)
         w = math.sqrt(1 - u * u)
-        rr = rnd.uniform(0.86, 1.0)
+        rr = rnd.uniform(0.9, 1.0)
         x, y, z = w * math.cos(v) * rr, w * math.sin(v) * rr, u * rr
         z = max(z, -flat)
         if peak and z > 0.25:
@@ -75,10 +75,11 @@ def oak_a(m, seed=11):
     limb(m, [(0.02, 0.05, 1.75), (0.30, 0.08, 2.15), (0.62, 0.10, 2.55)], 0.07, 0.04, 5)
     limb(m, [(0.0, 0.01, 0.85), (-0.30, 0.0, 1.10), (-0.62, -0.02, 1.38)], 0.05, 0.03, 5)
     limb(m, [(0.0, 0.03, 1.20), (0.28, 0.02, 1.38), (0.55, 0.0, 1.55)], 0.045, 0.028, 5)
-    crown(m, (-0.55, 0.0, 3.45), (1.75, 1.55, 1.95), seed)
-    crown(m, (0.95, 0.10, 3.05), (1.95, 1.60, 1.65), seed + 1, "t_leaf_d")
-    crown(m, (-0.85, -0.02, 1.58), (0.95, 0.85, 0.60), seed + 2, "t_leaf_l")
-    crown(m, (0.72, 0.0, 1.62), (0.85, 0.75, 0.80), seed + 3)
+    crown(m, (-0.50, 0.0, 3.30), (2.35, 2.05, 2.30), seed)         # the crowns are big and run into one another: the top of the
+    crown(m, (0.78, 0.10, 3.00), (2.45, 2.05, 2.00), seed + 1, "t_leaf_d")   # tree is full (the developer: the leaves looked empty)
+    crown(m, (0.10, 0.35, 3.75), (1.90, 1.75, 1.55), seed + 4, "t_leaf_l")
+    crown(m, (-0.85, -0.02, 1.60), (1.25, 1.10, 0.85), seed + 2, "t_leaf_l")
+    crown(m, (0.72, 0.0, 1.66), (1.15, 1.00, 1.00), seed + 3)
 
 
 def oak_b(m, seed=21):
@@ -86,11 +87,12 @@ def oak_b(m, seed=21):
     one at the very top."""
     limb(m, [(0, 0, 0), (0.05, 0.0, 0.9), (0.10, 0.02, 1.9), (0.06, 0.0, 2.9), (0.02, 0.0, 4.2), (0.04, 0.0, 5.5)], 0.14, 0.03)
     limb(m, [(0.08, 0.0, 2.6), (0.32, 0.02, 2.85), (0.52, 0.0, 3.05)], 0.045, 0.028, 5)
-    crown(m, (0.12, 0.0, 2.85), (1.55, 1.45, 1.05), seed)
-    crown(m, (0.62, 0.0, 3.30), (0.80, 0.75, 0.55), seed + 1, "t_leaf_l")
-    crown(m, (-0.38, 0.0, 3.95), (1.25, 1.20, 1.30), seed + 2, "t_leaf_d")
-    crown(m, (0.48, 0.08, 4.05), (1.35, 1.25, 1.35), seed + 3)
-    crown(m, (0.05, 0.0, 5.35), (1.40, 1.35, 1.15), seed + 4, "t_leaf", peak=0.55)
+    crown(m, (0.12, 0.0, 2.90), (2.05, 1.90, 1.35), seed)
+    crown(m, (0.66, 0.0, 3.30), (1.15, 1.05, 0.85), seed + 1, "t_leaf_l")
+    crown(m, (-0.38, 0.0, 3.90), (1.75, 1.65, 1.65), seed + 2, "t_leaf_d")
+    crown(m, (0.48, 0.08, 4.05), (1.85, 1.65, 1.65), seed + 3)
+    crown(m, (0.00, 0.25, 4.75), (1.65, 1.55, 1.25), seed + 5, "t_leaf_l")
+    crown(m, (0.05, 0.0, 5.40), (1.75, 1.65, 1.35), seed + 4, "t_leaf", peak=0.55)
 
 
 def oak_c(m, seed=31):
@@ -99,10 +101,11 @@ def oak_c(m, seed=31):
     limb(m, [(-0.16, 0.03, 1.45), (-0.30, 0.02, 2.0), (-0.38, 0.0, 2.6)], 0.075, 0.04, 5)
     limb(m, [(-0.16, 0.03, 1.45), (0.12, 0.05, 1.95), (0.45, 0.08, 2.45), (0.60, 0.05, 2.95)], 0.07, 0.035, 5)
     limb(m, [(-0.06, 0.01, 1.05), (0.22, -0.05, 1.35), (0.45, -0.12, 1.55)], 0.045, 0.028, 5)
-    crown(m, (0.25, 0.0, 3.35), (2.45, 2.05, 1.15), seed, "t_leaf", flat=0.35)
-    crown(m, (-0.95, 0.0, 2.55), (1.55, 1.35, 0.85), seed + 1, "t_leaf_l", flat=0.35)
-    crown(m, (1.05, 0.15, 2.40), (1.95, 1.65, 1.00), seed + 2, "t_leaf_d", flat=0.35)
-    crown(m, (0.55, -0.15, 1.72), (0.85, 0.75, 0.42), seed + 3)
+    crown(m, (0.25, 0.0, 3.35), (3.05, 2.55, 1.45), seed, "t_leaf", flat=0.35)
+    crown(m, (-0.95, 0.0, 2.60), (2.05, 1.75, 1.15), seed + 1, "t_leaf_l", flat=0.35)
+    crown(m, (1.05, 0.15, 2.45), (2.45, 2.05, 1.30), seed + 2, "t_leaf_d", flat=0.35)
+    crown(m, (0.00, 0.40, 2.90), (2.05, 1.85, 1.15), seed + 4, "t_leaf", flat=0.35)
+    crown(m, (0.55, -0.15, 1.75), (1.15, 1.00, 0.60), seed + 3)
 
 
 def figure(m):
@@ -124,6 +127,6 @@ def oaks(m):
 
 
 for _name, _fn, _frame in (("oak_a", oak_a, {"iso": (6.4, 2.3)}), ("oak_b", oak_b, {"iso": (8.4, 3.0)}), ("oak_c", oak_c, {"iso": (6.4, 2.1)}),
-                           ("oaks", oaks, {"iso": (10.2, 3.0)})):
+                           ("oaks", oaks, {"iso": (10.8, 3.1)})):
     _fn.frame, _fn.shadow, _fn.res = dict(_frame, side=_frame["iso"], top=_frame["iso"], end=_frame["iso"]), True, 1800
     _hero.HEROES[_name] = _fn
