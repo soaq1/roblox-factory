@@ -3878,6 +3878,23 @@ mill12.frame, mill12.shadow, mill12.res = {"iso": (5.4, 1.4), "side": (5.0, 1.5)
 _hero.HEROES["mill12"] = mill12
 
 
+def cmp_former_mill(m):
+    """Not a machine: the confirmed former and the latest steel mill side by side at one scale, with a
+    figure as tall as a character between them, to compare the two."""
+    with m.at((-2.3, 0.5, 0)):
+        former5(m)
+    with m.at((2.1, 0.0, 0)):
+        mill12(m)
+    with m.at((-0.35, -1.2, 0)):
+        tower(m, [(0.11, 0.07, 0.02, 0.0), (0.11, 0.07, 0.02, 0.66)], TD)
+        tower(m, [(0.165, 0.085, 0.025, 0.66), (0.165, 0.085, 0.025, 1.30)], "h_white")
+        tower(m, [(0.10, 0.10, 0.03, 1.31), (0.10, 0.10, 0.03, 1.67)], LT)
+
+
+cmp_former_mill.frame, cmp_former_mill.shadow, cmp_former_mill.res = {"iso": (9.6, 1.4), "side": (9.0, 1.5), "top": (9.0, 0.6), "end": (6.0, 1.5)}, True, 2800
+_hero.HEROES["cmp_former_mill"] = cmp_former_mill
+
+
 def former5_paints(m):
     """Not a machine: former5 four times, each in a different trial paint, to choose a colour of our own."""
     for (x, y), key in zip(((-2.3, 1.9), (2.3, 1.9), (-2.3, -1.9), (2.3, -1.9)), PAINTS):
