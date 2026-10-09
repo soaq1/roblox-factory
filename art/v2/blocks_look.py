@@ -34,6 +34,61 @@ def patch(m, bevel):
         trees.oak_a(m)
 
 
+def joined(m, bevel=0.045):
+    """The same patch, built as the developer meant it: an edge is cut only where both faces that meet
+    at it are open to the air. Where a block has a neighbour, the edges round that face stay square, so
+    blocks side by side run on as one surface, and only the outside of the whole is cut."""
+    import bmesh
+    from mathutils import Vector
+    cells = {}
+    for i in range(-3, 3):
+        for j in range(-2, 2):
+            cells[(i, j, -1)] = "g"
+            if i <= -2 and j >= 0:
+                cells[(i, j, 0)] = "g"
+    for i in (1, 2):
+        cells[(i, 1, 0)] = "s"
+    for (i, j, k), kind in cells.items():
+        bm = bmesh.new()
+        bmesh.ops.create_cube(bm, size=1.0)
+        open_ = lambda n: (i + round(n.x), j + round(n.y), k + round(n.z)) not in cells
+        cut = [e for e in bm.edges if all(open_(f.normal) for f in e.link_faces)]
+        if cut:
+            bmesh.ops.bevel(bm, geom=cut, offset=bevel, segments=1, affect="EDGES", profile=0.5)
+        before = len(m.bm.faces)
+        body, top = ("b_stone", "b_stone") if kind == "s" else ("b_dirt", "b_grass")
+        m._add(bm, body, (i + 0.5, j + 0.5, k + 0.5))
+        if top not in m.mats:
+            m.mats.append(top)
+        m.bm.faces.ensure_lookup_table()
+        grass_on_top = (i, j, k + 1) not in cells
+        for f in m.bm.faces[before:]:
+            f.normal_update()
+            if grass_on_top and f.normal.z > 0.3:
+                f.material_index = m.mats.index(top)
+    with m.at((0.0, -1.5, 0)):
+        for k in (-2, -1, 0, 1, 2):
+            with m.at((k + 0.5, 0, 0)):
+                belts.straight(m)
+    with m.at((-0.5, 0.6, 0)):
+        trees.figure(m)
+    with m.at((-2.3, 1.2, 1.0)):
+        trees.oak_a(m)
+
+
+def blocks_joined(m):
+    """Square blocks, and blocks cut only on the outside, side by side."""
+    with m.at((-4.2, 0, 0)):
+        patch(m, 0.0)
+    with m.at((4.2, 0, 0)):
+        joined(m)
+
+
+blocks_joined.frame = {k: (15.5, 1.6) for k in ("iso", "side", "top", "end")}
+blocks_joined.shadow, blocks_joined.res = True, 2400
+_hero.HEROES["blocks_joined"] = blocks_joined
+
+
 def blocks_edges(m):
     with m.at((-4.2, 0, 0)):
         patch(m, 0.0)
