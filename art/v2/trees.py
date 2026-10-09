@@ -19,8 +19,12 @@ from mathutils import Vector
 import factorykit as fk
 from . import hero as _hero
 
-fk.PAL.update({"t_bark": "#5d3b30", "t_leaf": "#1f5a23", "t_leaf_d": "#1a4d1f", "t_leaf_l": "#27672a"})
+# Colours and girth retuned 2026-10-10 beside a screenshot of the reference game: its trunks are stout
+# and its crowns big and lighter. THICK and FULL scale every limb and every crown.
+fk.PAL.update({"t_bark": "#5c4a44", "t_leaf": "#2f5a27", "t_leaf_d": "#274d21", "t_leaf_l": "#3a6a2f"})
 BARK = "t_bark"
+THICK = 1.75     # how much stouter the limbs are than first drawn
+FULL = 1.22      # how much bigger the crowns are than first drawn
 
 
 def limb(m, pts, r0, r1, sides=6, radii=None):
@@ -39,7 +43,7 @@ def limb(m, pts, r0, r1, sides=6, radii=None):
         ref = Vector((1, 0, 0)) if abs(d.x) < 0.9 else Vector((0, 1, 0))
         a = (ref - d * ref.dot(d)).normalized()
         b = d.cross(a)
-        r = radii[k] if radii else r0 + (r1 - r0) * k / (n - 1)
+        r = (radii[k] if radii else r0 + (r1 - r0) * k / (n - 1)) * THICK
         rings.append([bm.verts.new(p + (a * math.cos(t) + b * math.sin(t)) * r) for t in (2 * math.pi * j / sides + 0.3 for j in range(sides))])
     for a_, b_ in zip(rings, rings[1:]):
         for j in range(sides):
@@ -55,7 +59,7 @@ def crown(m, at, size, seed, mk="t_leaf", flat=0.42, peak=0.0):
     below the middle); `peak` draws its top up to a blunt point."""
     rnd = random.Random(seed)
     bm = bmesh.new()
-    sx, sy, sz = size[0] / 2, size[1] / 2, size[2] / 2
+    sx, sy, sz = size[0] / 2 * FULL, size[1] / 2 * FULL, size[2] / 2 * FULL
     for k in range(30):
         u, v = rnd.uniform(-1, 1), rnd.uniform(0, 2 * math.pi)
         w = math.sqrt(1 - u * u)
