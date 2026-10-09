@@ -4174,3 +4174,5 @@ for _name, _fn, _frame in (("smelter2", smelter2, F31), ("washer2", washer2, F31
                            ("assembler3", assembler3, F33)):
     _fn.frame, _fn.shadow = _frame, True
     _hero.HEROES[_name] = _fn
+
+from . import kitset  # noqa: E402,F401  (the kit registers its pieces as heroes; it reads this module's helpers at call time)
