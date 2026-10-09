@@ -4051,6 +4051,15 @@ def grate(m, w, h, bars_along="y"):
     ring(m, w / 2, h / 2, [(0.0, -0.004), (0.014, 0.056), (0.05, 0.056), (0.066, -0.004)], G, c=0.045)
 
 
+def courses(m, hx, hy, z0, z1, n, c, mk, bevel=0.028):
+    """A block laid up in n level courses, each with its edges cut, so that a groove runs round the block
+    between one course and the next. The developer's way of taking the plainness off a big box
+    (2026-10-09, drawn by him in Blender)."""
+    h = (z1 - z0) / n
+    for k in range(n):
+        slab(m, hx, hy, z0 + k * h, z0 + (k + 1) * h, c, mk, bevel=bevel)
+
+
 def mill14(m, paint="h_p1", trim=False):
     """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the near row: the first machine
     put together from the kit (kitset.py), at the developer's word. mill13's lopsided layout, which he
@@ -4065,6 +4074,8 @@ def mill14(m, paint="h_p1", trim=False):
       plate under it taken away).
     In the furnace's roof one big grate of red neon behind heavy bars (for a steel mill the grate should
     be big), the frame above it left open: one beam only, between the grate and the stack.
+    The furnace's walls are laid up in level courses with a groove between each (the developer's own
+    drawing), which is what keeps so big a box from being plain.
     Nothing is stuck on the walls: the developer had every "3D decal" taken off (2026-10-09), the ribs,
     the let-in panels and doors, the louvres, handwheels, panels, badge, dials and corner bolts. They
     are still here, behind trim=True, should any come back."""
@@ -4108,8 +4119,8 @@ def mill14(m, paint="h_p1", trim=False):
     xs_, ys_ = -0.47, 0.30                                    # the big stack, in the back corner
     with m.at((0, yc, 0)):
         slab(m, fx + 0.20, fy + 0.20, 0.0, 0.14, 0.04, T, bevel=0.014)
-        slab(m, fx, fy, 0.10, Z1 + 0.01, 0.035, G, bevel=0.02)
-        slab(m, fx - 0.03, fy - 0.03, Z1, Z2, 0.035, G, bevel=0.02)
+        courses(m, fx, fy, 0.10, Z1 + 0.01, 4, 0.035, G)       # the furnace's walls: level courses, a groove between each
+        courses(m, fx - 0.03, fy - 0.03, Z1, Z2, 3, 0.035, G)
         slab(m, fx - 0.01, fy - 0.01, Z2 - 0.02, Z3, 0.04, "h_dark", bevel=0.016)
         for sx in SIDES:
             for sy in SIDES:
