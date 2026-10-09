@@ -4219,6 +4219,23 @@ cmp_former_mill.frame, cmp_former_mill.shadow, cmp_former_mill.res = {"iso": (9.
 _hero.HEROES["cmp_former_mill"] = cmp_former_mill
 
 
+def cmp_grade3(m):
+    """Not a machine: the confirmed steel mill and the old assembler (assembler4) side by side at one
+    scale with a figure, to see how far the assembler stands from the confirmed look."""
+    with m.at((-2.2, 0.0, 0)):
+        mill14(m)
+    with m.at((2.2, 0.0, 0)):
+        assembler4(m)
+    with m.at((0.0, -1.7, 0)):
+        tower(m, [(0.11, 0.07, 0.02, 0.0), (0.11, 0.07, 0.02, 0.66)], TD)
+        tower(m, [(0.165, 0.085, 0.025, 0.66), (0.165, 0.085, 0.025, 1.30)], "h_white")
+        tower(m, [(0.10, 0.10, 0.03, 1.31), (0.10, 0.10, 0.03, 1.67)], LT)
+
+
+cmp_grade3.frame, cmp_grade3.shadow, cmp_grade3.res = {"iso": (9.6, 1.4), "side": (9.0, 1.5), "top": (9.0, 0.6), "end": (6.0, 1.5)}, True, 2800
+_hero.HEROES["cmp_grade3"] = cmp_grade3
+
+
 def former5_paints(m):
     """Not a machine: former5 four times, each in a different trial paint, to choose a colour of our own."""
     for (x, y), key in zip(((-2.3, 1.9), (2.3, 1.9), (-2.3, -1.9), (2.3, -1.9)), PAINTS):
