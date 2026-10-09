@@ -314,6 +314,11 @@ def set_style(style):
     global STYLE
     STYLE = style
     fk.PAL["h_taupe"], fk.PAL["h_taupe_d"] = DARKS[style]
+    fk.FLUSH_JOINTS = FLUSH
+
+
+FLUSH = True              # edges where two pieces meet are left square; edges in the open stay chamfered
+#                           (the developer, 2026-10-09: the grooves between blocks made them look apart)
 
 
 def arrows(m, x0, x1, step=0.30):
@@ -498,9 +503,7 @@ def bprism(m, pts, lo, hi, axis, mk, bevel=0.015):
     face = bm.faces.new(verts)
     ext = bmesh.ops.extrude_face_region(bm, geom=[face])
     bmesh.ops.translate(bm, verts=[e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)], vec=vec)
-    if bevel and not fk.SQUARE_EDGES:
-        bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
-    m._add(bm, mk)
+    m._add(bm, mk, bevel=0.0 if fk.SQUARE_EDGES else bevel)
 
 
 def offset_closed(poly, u):

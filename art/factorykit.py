@@ -68,6 +68,28 @@ AXIS = {"Z": Matrix.Identity(4),
 
 
 SQUARE_EDGES = False      # a trial: True leaves every edge square (no chamfers), for a blockier look
+FLUSH_JOINTS = False      # True: an edge lying wholly against another piece is left square, so that two
+#                           pieces that meet (a small block standing on a big one) meet without a groove;
+#                           edges in the open are chamfered as ever. The chamfering then waits for done().
+EPS = 0.004
+_DIRS = [Vector(d).normalized() for d in ((0.5377, 0.2713, 0.7981), (-0.6131, 0.7411, 0.2739), (0.2113, -0.5519, -0.8067))]
+
+
+def _inside(tree, p):
+    """Whether p lies inside the closed piece the tree was made from: rays cast from it leave the piece
+    an odd number of times. Two rays, and a third if they disagree."""
+    votes = 0
+    for k, d in enumerate(_DIRS):
+        o, n = p, 0
+        while n < 64:
+            hit = tree.ray_cast(o, d)[0]
+            if hit is None:
+                break
+            n, o = n + 1, hit + d * 1e-5
+        votes += n & 1
+        if k == 1 and votes != 1:
+            break
+    return votes >= 2
 
 
 class Model:
@@ -76,6 +98,7 @@ class Model:
     def __init__(self, name):
         self.name, self.bm, self.mats = name, bmesh.new(), []
         self.stack = [Matrix.Identity(4)]
+        self.solids, self.late = [], []         # with FLUSH_JOINTS: every piece so far, and those still to chamfer
 
     @contextmanager
     def at(self, loc=(0, 0, 0), rz=0.0):
@@ -84,12 +107,29 @@ class Model:
         yield
         self.stack.pop()
 
-    def _add(self, tbm, mk, loc=(0, 0, 0), rot=0.0):
+    def _add(self, tbm, mk, loc=(0, 0, 0), rot=0.0, bevel=0.0):
+        """Take a piece in. `bevel` chamfers its edges: all of them at once, or, with FLUSH_JOINTS, only
+        those found to lie in the open once the whole model is known (see done)."""
+        if bevel and not FLUSH_JOINTS:
+            bmesh.ops.bevel(tbm, geom=tbm.edges[:], offset=bevel, segments=1, affect="EDGES", profile=0.5)
         bmesh.ops.recalc_face_normals(tbm, faces=tbm.faces[:])
         r = (Matrix.Rotation(rot, 4, "Z") if isinstance(rot, (int, float))
              else Euler(rot, "XYZ").to_matrix().to_4x4())
         mx = self.stack[-1] @ Matrix.Translation(Vector(loc)) @ r
         bmesh.ops.transform(tbm, matrix=mx, verts=tbm.verts[:])
+        if FLUSH_JOINTS:
+            from mathutils.bvhtree import BVHTree
+            cs = [v.co for v in tbm.verts]
+            lo = Vector([min(c[k] for c in cs) for k in range(3)])
+            hi = Vector([max(c[k] for c in cs) for k in range(3)])
+            closed = bool(tbm.faces) and all(e.is_manifold for e in tbm.edges)
+            self.solids.append((lo, hi, BVHTree.FromBMesh(tbm) if closed else None))
+            if bevel:
+                self.late.append((tbm, mk, bevel, len(self.solids) - 1))
+                return
+        self._merge(tbm, mk)
+
+    def _merge(self, tbm, mk):
         me = bpy.data.meshes.new("tmp")
         tbm.to_mesh(me)
         tbm.free()
@@ -102,16 +142,40 @@ class Model:
         for f in list(self.bm.faces)[n:]:
             f.material_index = idx
 
+    def _chamfer_late(self):
+        """Chamfer the pieces that were kept waiting: every edge but those lying wholly against another
+        piece. An edge is tested just outside itself (out along both its faces) at three points; it is
+        left square only if all three are inside some other piece."""
+        for tbm, mk, bevel, own in self.late:
+            lo, hi, _ = self.solids[own]
+            near = [s for k, s in enumerate(self.solids) if k != own and s[2] is not None
+                    and all(s[0][a] <= hi[a] + EPS and s[1][a] >= lo[a] - EPS for a in range(3))]
+            tbm.normal_update()
+            open_edges = []
+            for e in tbm.edges:
+                buried = False
+                if near and len(e.link_faces) == 2:
+                    n = e.link_faces[0].normal + e.link_faces[1].normal
+                    if n.length > 1e-6:
+                        n.normalize()
+                        a, b = e.verts[0].co, e.verts[1].co
+                        buried = all(any(all(s[0][k] <= p[k] <= s[1][k] for k in range(3)) and _inside(s[2], p) for s in near)
+                                     for p in (a.lerp(b, f) + n * EPS for f in (0.15, 0.5, 0.85)))
+                if not buried:
+                    open_edges.append(e)
+            if open_edges:
+                bmesh.ops.bevel(tbm, geom=open_edges, offset=bevel, segments=1, affect="EDGES", profile=0.5)
+                bmesh.ops.recalc_face_normals(tbm, faces=tbm.faces[:])
+            self._merge(tbm, mk)
+        self.late = []
+
     def box(self, size, loc, mk, bevel=0.0, taper=1.0, rot=0.0):
         bm = bmesh.new()
         bmesh.ops.create_cube(bm, size=1)
         for v in bm.verts:
             k = taper if v.co.z > 0 else 1.0
             v.co = Vector((v.co.x * size[0] * k, v.co.y * size[1] * k, v.co.z * size[2]))
-        if bevel and not SQUARE_EDGES:
-            bmesh.ops.bevel(bm, geom=bm.edges[:], offset=bevel, segments=1,
-                            affect="EDGES", profile=0.5)
-        self._add(bm, mk, loc, rot)
+        self._add(bm, mk, loc, rot, bevel=0.0 if SQUARE_EDGES else bevel)
 
     def cyl(self, r, depth, loc, mk, seg=8, axis="Z", r2=None, rot=0.0):
         bm = bmesh.new()
@@ -184,6 +248,7 @@ class Model:
         self.pipe(pts, tube, mk, seg=6)
 
     def done(self):
+        self._chamfer_late()
         me = bpy.data.meshes.new(self.name)
         self.bm.to_mesh(me)
         self.bm.free()
