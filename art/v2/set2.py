@@ -4051,6 +4051,16 @@ def grate(m, w, h, bars_along="y"):
     ring(m, w / 2, h / 2, [(0.0, -0.004), (0.014, 0.056), (0.05, 0.056), (0.066, -0.004)], G, c=0.045)
 
 
+def bolted_plate(m, w, h, mk=G, inset=0.065):
+    """A plate bolted on a wall, to be built in a wall's frame with its middle at the origin: a thick plate
+    with its corners cut and its edges softened, a pale six-sided bolt in each corner. What the
+    developer drew on the steel mill's cabinet to take the plainness off it (2026-10-09)."""
+    slab(m, w / 2, h / 2, -0.006, 0.03, 0.03, mk, bevel=0.014)
+    for sx in SIDES:
+        for sy in SIDES:
+            m.cyl(0.026, 0.02, (sx * (w / 2 - inset), sy * (h / 2 - inset), 0.036), LT, seg=6)
+
+
 def courses(m, hx, hy, z0, z1, n, c, mk, bevel=0.028):
     """A block laid up in n level courses, each with its edges cut, so that a groove runs round the block
     between one course and the next. The developer's way of taking the plainness off a big box
@@ -4078,7 +4088,8 @@ def mill14(m, paint="h_p1", trim=False):
     The furnace's walls are laid up in level courses with a groove between each (the developer's own
     drawing), which is what keeps so big a box from being plain; only the course the pipes come into
     has no groove across it.
-    Nothing is stuck on the walls: the developer had every "3D decal" taken off (2026-10-09), the ribs,
+    On the cabinet's face two bolted plates, which the developer drew there himself.
+    Nothing else is stuck on the walls: he had every "3D decal" taken off (2026-10-09), the ribs,
     the let-in panels and doors, the louvres, handwheels, panels, badge, dials and corner bolts. They
     are still here, behind trim=True, should any come back."""
     kit = kitset
@@ -4093,6 +4104,9 @@ def mill14(m, paint="h_p1", trim=False):
         slab(m, X - 0.01, hy - 0.01, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, X, hy, 0.12, Zc, 0.035, G, bevel=0.02)
         slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
+    for x in (-0.42, 0.42):                                   # the cabinet's face: two bolted plates (the developer's drawing)
+        with on_side(m, -1, yb - hy, 0.52, xc=x):
+            bolted_plate(m, 0.74, 0.50)
     if trim:
         yf, yp = yb - hy, yb - body[1]
         zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
