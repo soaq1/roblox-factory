@@ -181,9 +181,10 @@ def _port(m, r, side, z0):
     return r + 0.04                                           # how far out the pad's face stands
 
 
-def k_drum_band(m, z0=0.0, ports=("E",)):
-    """Drum, banded: a fat upright eight-sided drum with two hoops high on it, a drawn-in top and a capped
-    vent; a pad low on its side wherever a duct comes in."""
+def k_drum_band(m, z0=0.0, ports=()):
+    """Drum, banded: a fat upright eight-sided drum with two hoops, a drawn-in top and a capped vent. It
+    stands by itself: the developer does not want ducts run into it ("띠 두른 통에 왜 자꾸 배관을
+    연결하는데"), so it has no port unless one is asked for."""
     r = 0.28
     s2.octa(m, r + 0.03, r + 0.01, z0, z0 + 0.05, s2.T)
     s2.octa(m, r, r, z0 + 0.04, z0 + 1.10, s2.G)
@@ -197,9 +198,9 @@ def k_drum_band(m, z0=0.0, ports=("E",)):
     return r + 0.04
 
 
-def k_drum_cone(m, z0=0.0, ports=("E",)):
-    """Drum, coned: a fat banded drum under a cone, a small stack out of the cone's top; a pad low on its
-    side wherever a duct comes in."""
+def k_drum_cone(m, z0=0.0, ports=()):
+    """Drum, coned: a fat banded drum under a cone, a small stack out of the cone's top. No port unless one
+    is asked for."""
     r = 0.28
     s2.octa(m, r + 0.03, r + 0.01, z0 - 0.01, z0 + 0.05, s2.G)
     s2.octa(m, r, r, z0 + 0.04, z0 + 0.74, s2.LT)
@@ -305,19 +306,19 @@ def k_mouth3(m, paint=None):
 
 
 def k_pipe_join(m):
-    """Not a piece: a drum and a stack group joined by a long pipe, and a second drum joined by a short one,
-    to show how a pipe meets another part. Each end goes a little way into the part."""
-    with m.at((-1.05, 0, 0)):
-        face = k_drum_band(m, ports=("E",))
-    with m.at((0.55, 0, 0)):
-        k_stack_row2(m, 0.0)
-    _run_x(m, -1.05 + face - 0.012, 0.55 - 0.34 + 0.012, 0, DUCT_AT)
-    with m.at((0.55, 0.82, 0)):
-        face = k_drum_cone(m, ports=("S",))
-    _run_y(m, 0.20 - 0.012, 0.82 - face + 0.012, 0.55, DUCT_AT)
+    """Not a piece: three stack groups joined plenum to plenum, by a long pipe and by a short one, to show
+    how a pipe meets another part. Each end goes a little way into the part. (Drums are not piped up.)"""
+    with m.at((-0.62, 0, 0)):
+        k_stack_row2(m)
+    with m.at((0.78, 0, 0)):
+        k_stack_pair(m)
+    _run_x(m, -0.62 + 0.34 - 0.012, 0.78 - 0.36 + 0.012, 0, DUCT_AT)
+    with m.at((-0.62, 0.74, 0)):
+        k_stack_rise3(m)
+    _run_y(m, 0.20 - 0.012, 0.74 - 0.20 + 0.012, -0.62, DUCT_AT)
 
 
-k_pipe_join.frame, k_pipe_join.shadow, k_pipe_join.res = {"iso": (4.0, 0.72), "side": (4.0, 0.72), "top": (4.0, 0.6), "end": (4.0, 0.72)}, True, 1100
+k_pipe_join.frame, k_pipe_join.shadow, k_pipe_join.res = {"iso": (3.8, 0.72), "side": (3.8, 0.72), "top": (3.8, 0.6), "end": (3.8, 0.72)}, True, 1100
 _hero.HEROES["k_pipe_join"] = k_pipe_join
 
 
