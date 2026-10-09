@@ -3612,23 +3612,34 @@ mill10.frame, mill10.shadow, mill10.res = {"iso": (5.6, 1.45), "side": (5.0, 1.5
 _hero.HEROES["mill10"] = mill10
 
 
-def mouth3(m, xa, d, paint):
+def mouth3(m, xa, d, paint, depth=0.182):
     """The grade 3 mouth, to be built with the belt's middle at y = 0: two painted arches with a dark
     seam between them standing proud of the wall at xa (opening toward d), the tunnel's dark, and each
     rail rising in its own colour into the arch's leg. The developer's rule: every conveyor mouth of
     one grade looks the same (grade 1 machines such as the smelter share the ribbed folding cover,
-    d.cover; grade 2 and grade 3 each have their own), so every grade 3 machine calls this."""
+    d.cover; grade 2 and grade 3 each have their own), so every grade 3 machine calls this.
+    With depth above 0.182 the painted arches stand that far out from the wall on a plain grey sleeve,
+    the throat behind them is lined dark, and the tunnel's dark end stays back at the wall: the
+    developer found the shallow mouth looked as if things passed through a wall, where the low grades'
+    cover swallows them (0.318 deep). 0.32 matches it. Returns how far out the mouth's face stands."""
     g = 2 * (BH - 0.305)
-    px = xa
+    sleeve = max(0.0, depth - 0.182)
+    if sleeve:
+        a_, b_ = sorted((xa, xa + d * sleeve))
+        m.prism(arch_pts(0.80 + g, 0.80, hole_top=0.702, hw=BH + 0.012, c=0.085, ci=0.035), a_, b_, "X", G)
+        a_, b_ = sorted((xa + d * 0.02, xa + d * (depth - 0.03)))                                         # the throat's dark lining
+        m.prism(arch_pts(2 * (BH + 0.03), 0.72, hole_top=0.694, hw=BH + 0.004, c=0.05, ci=0.035), a_, b_, "X", TD)
+    px = xa + d * sleeve
     for th, w, tp, mk in ((0.08, 0.84 + g, 0.82, paint), (0.022, 0.79 + g, 0.795, SLIT), (0.08, 0.84 + g, 0.82, paint)):
         a_, b_ = sorted((px, px + d * th))
         m.prism(arch_pts(w, tp, hole_top=0.70, hw=BH + 0.01, c=0.085, ci=0.035), a_, b_, "X", mk)
         px += d * th
     m.box((0.02, 2 * BH + 0.01, 0.694 - BZ), (xa + d * 0.012, 0, (0.706 + BZ) / 2), SLIT)
-    xo = xa + d * 0.182
+    xo = xa + d * depth
     for sy_ in SIDES:
         pts = [(xo - d * 0.006, 0.03), (xo + d * 0.13, 0.03), (xo + d * 0.13, 0.24), (xo + d * 0.10, 0.262), (xo - d * 0.006, 0.44)]
         bprism(m, pts if d > 0 else pts[::-1], *sorted((sy_ * 0.358, sy_ * 0.494)), "Y", R, bevel=0.008)
+    return depth
 
 
 def mill11(m, paint="h_p1"):

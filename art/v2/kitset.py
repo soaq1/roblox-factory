@@ -10,8 +10,8 @@
 #   houses   k_house_s, k_house_m, k_house_l
 #   mouths   k_mouth_low (the ribbed folding cover of the low grades), k_mouth3 (grade 3)
 #
-# Joints: a fat duct is 0.105 in radius everywhere; a plenum is 0.36 high and takes a duct in a plain wall
-# 0.18 above its foot; a box elbow is 0.28 on a side.
+# Joints: a fat duct is 0.105 in radius everywhere and carries a ring every 0.26 along it, never plain;
+# a plenum is 0.36 high and takes a duct in a plain wall 0.18 above its foot; a box elbow is 0.28 on a side.
 import math
 from . import hero as _hero
 from . import set2 as s2
@@ -55,10 +55,32 @@ def k_stack_row2(m, z0=0.0):
         s2.fat_stack(m, x, 0, pz, z0 + 1.25, 0.105, foot=0.035)
 
 
-def _run_x(m, x0, x1, y, z, collars=()):
+PITCH = 0.26             # every fat pipe carries a ring at this pitch (the developer: no pipe is ever plain;
+RING = 0.06              # the rings repeat along it, as they do on the former's duct)
+
+
+def _ring_at(lo, hi, clear=0.07):
+    """Where the rings stand on a pipe from lo to hi: at the pitch, centred on the pipe, clear of its ends."""
+    n = max(1, int((hi - lo - 2 * clear) / PITCH) + 1)
+    mid = (lo + hi) / 2
+    return [mid + (k - (n - 1) / 2) * PITCH for k in range(n)]
+
+
+def _run_x(m, x0, x1, y, z, skip=()):
+    """A fat duct along x, ringed at the pitch. `skip` lists (lo, hi) stretches where something else sits
+    on the pipe (a valve), and no ring is put there."""
     m.cyl(RD * s2.K, x1 - x0, ((x0 + x1) / 2, y, z), s2.LT, seg=8, axis="X", rot=(s2.rad(22.5), 0, 0))
-    for x in collars:
-        m.cyl((RD + 0.022) * s2.K, 0.06, (x, y, z), s2.G, seg=8, axis="X", rot=(s2.rad(22.5), 0, 0))
+    for x in _ring_at(x0, x1):
+        if not any(lo - RING <= x <= hi + RING for lo, hi in skip):
+            m.cyl((RD + 0.022) * s2.K, RING, (x, y, z), s2.G, seg=8, axis="X", rot=(s2.rad(22.5), 0, 0))
+
+
+def _run_y(m, y0, y1, x, z, skip=()):
+    """The same along y."""
+    m.cyl(RD * s2.K, y1 - y0, (x, (y0 + y1) / 2, z), s2.LT, seg=8, axis="Y", rot=(0, s2.rad(22.5), 0))
+    for y in _ring_at(y0, y1):
+        if not any(lo - RING <= y <= hi + RING for lo, hi in skip):
+            m.cyl((RD + 0.022) * s2.K, RING, (x, y, z), s2.G, seg=8, axis="Y", rot=(0, s2.rad(22.5), 0))
 
 
 def _pier(m, x, y, top):
@@ -73,28 +95,31 @@ def _elbow(m, x, y, z):
 
 
 def _riser(m, x, y, z0, z1):
+    """A fat duct standing up out of a flared foot, ringed at the pitch."""
     with m.at((x, y, 0)):
         s2.octa(m, RD + 0.05, RD + 0.02, z0 - 0.01, z0 + 0.08, s2.G)
         s2.octa(m, RD, RD, z0 + 0.07, z1, s2.LT)
+        for z in _ring_at(z0 + 0.08, z1):
+            s2.octa(m, RD + 0.022, RD + 0.022, z - RING / 2, z + RING / 2, s2.G)
 
 
 def k_pipe_straight(m, L=1.1, z=0.45):
-    """Pipe, straight: a fat duct on two piers, a collar at each end and one in the middle."""
-    _run_x(m, -L / 2, L / 2, 0, z, collars=(-L / 2 + 0.05, 0.0, L / 2 - 0.05))
-    for x in (-L / 4, L / 4):
+    """Pipe, straight: a fat ringed duct on two piers."""
+    _run_x(m, -L / 2, L / 2, 0, z)
+    for x in (-PITCH, PITCH):
         _pier(m, x, 0, z - RD + 0.01)
 
 
-def k_pipe_elbow(m, H=0.95, L=0.75, z0=0.0):
-    """Pipe, one turn: up out of a foot, through a box elbow, and away level."""
+def k_pipe_elbow(m, H=0.95, L=0.80, z0=0.0):
+    """Pipe, one turn: up out of a foot, through a box elbow, and away level, ringed all the way."""
     _riser(m, 0, 0, z0, z0 + H - 0.13)
     _elbow(m, 0, 0, z0 + H)
-    _run_x(m, 0.14 - 0.01, L, 0, z0 + H, collars=((0.14 + L) / 2,))
+    _run_x(m, 0.14 - 0.01, L, 0, z0 + H)
 
 
-def k_pipe_valve(m, L=1.2, z=0.45):
-    """Pipe, with a valve: a fat duct through a valve box with a five-sided handwheel, the box on a pier."""
-    _run_x(m, -L / 2, L / 2, 0, z, collars=(-L / 2 + 0.05, -L / 4 - 0.02, L / 4 + 0.02, L / 2 - 0.05))
+def k_pipe_valve(m, L=1.3, z=0.45):
+    """Pipe, with a valve: a fat ringed duct through a valve box with a five-sided handwheel, the box on a pier."""
+    _run_x(m, -L / 2, L / 2, 0, z, skip=((-0.13, 0.13),))
     with m.at((0, 0, 0)):
         s2.slab(m, 0.13, 0.13, z - 0.14, z + 0.14, 0.03, s2.G, bevel=0.02)
     _pier(m, 0, 0, z - 0.13)
@@ -102,12 +127,12 @@ def k_pipe_valve(m, L=1.2, z=0.45):
         s2.handwheel(m, 0.14)
 
 
-def k_pipe_bridge(m, H=1.15, L=0.95, z0=0.0):
-    """Pipe, over: up, across through two box elbows, and down again (the former's duct)."""
+def k_pipe_bridge(m, H=1.15, L=1.06, z0=0.0):
+    """Pipe, over: up, across through two box elbows, and down again (the former's duct), ringed all the way."""
     for x in (-L / 2, L / 2):
         _riser(m, x, 0, z0, z0 + H - 0.13)
         _elbow(m, x, 0, z0 + H)
-    _run_x(m, -L / 2 + 0.13, L / 2 - 0.13, 0, z0 + H, collars=(-L / 6, L / 6))
+    _run_x(m, -L / 2 + 0.13, L / 2 - 0.13, 0, z0 + H)
 
 
 def k_drum_band(m, z0=0.0):
@@ -214,9 +239,10 @@ def k_mouth_low(m):
 
 
 def k_mouth3(m, paint=None):
-    """Mouth of grade 3: two painted arches with a dark seam, each rail rising into the arch's leg."""
-    s2.belt_stub(m, -0.9, 0.02, -0.55, -0.80)
-    s2.mouth3(m, 0.0, -1, paint or s2.PY)
+    """Mouth of grade 3: two painted arches with a dark seam on a sleeve, a dark throat behind them, each
+    rail rising into the arch's leg."""
+    s2.belt_stub(m, -0.9, 0.02, -0.62, -0.80)
+    s2.mouth3(m, 0.0, -1, paint or s2.PY, depth=0.32)       # as deep as the low grades' cover, so that things go in, not through
     with m.at((0.19, 0, 0)):
         _stub_wall(m, 0.60, 1.0)
 
