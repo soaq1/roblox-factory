@@ -337,7 +337,7 @@ def k_mouth_low(m):
 
 def k_mouth3(m, paint=None):
     """Mouth of grade 3: three thick painted ribs on a grey sleeve over a dark throat."""
-    s2.belt_stub(m, -1.2, 0.02, -0.85, -1.05)
+    s2.run(m, -1.2, 0.02, braces=(-1.05,))               # the same belt as any other, arrows at the same pitch
     mouth(m, 0.0, -1, 3, paint)
     with m.at((0.19, 0, 0)):
         _stub_wall(m, 0.60, 1.0)
