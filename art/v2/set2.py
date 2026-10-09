@@ -4088,7 +4088,8 @@ def mill14(m, paint="h_p1", trim=False):
     The furnace's walls are laid up in level courses with a groove between each (the developer's own
     drawing), which is what keeps so big a box from being plain; only the course the pipes come into
     has no groove across it.
-    On the cabinet's face two bolted plates, which the developer drew there himself.
+    On the cabinet's face a bolted plate, which the developer drew there himself, and a louvre of the
+    same size beside it.
     Nothing else is stuck on the walls: he had every "3D decal" taken off (2026-10-09), the ribs,
     the let-in panels and doors, the louvres, handwheels, panels, badge, dials and corner bolts. They
     are still here, behind trim=True, should any come back."""
@@ -4104,9 +4105,10 @@ def mill14(m, paint="h_p1", trim=False):
         slab(m, X - 0.01, hy - 0.01, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, X, hy, 0.12, Zc, 0.035, G, bevel=0.02)
         slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
-    for x in (-0.42, 0.42):                                   # the cabinet's face: two bolted plates (the developer's drawing)
-        with on_side(m, -1, yb - hy, 0.52, xc=x):
-            bolted_plate(m, 0.74, 0.50)
+    with on_side(m, -1, yb - hy, 0.52, xc=-0.42):             # the cabinet's face: a bolted plate (the developer's drawing)
+        bolted_plate(m, 0.74, 0.50)
+    with on_side(m, -1, yb - hy, 0.52, xc=0.42):              # and beside it a louvre of the same size (he had the second plate changed)
+        vent(m, 0.37, 0.25)
     if trim:
         yf, yp = yb - hy, yb - body[1]
         zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
@@ -4148,8 +4150,8 @@ def mill14(m, paint="h_p1", trim=False):
                     m.box((0.044, 0.044, fb[0] + 0.02 - 0.16), (sx * (RX + dx), sy * (RY + dy), (fb[0] + 0.02 + 0.16) / 2), LT, bevel=0.008)
         frame_ring(m, fx + 0.18, fy + 0.18, fa[0], fa[1], 0.17, paint)
         frame_ring(m, fx + 0.173, fy + 0.173, fa[0] - 0.03, fa[0] + 0.004, 0.15, TD)
-        frame_ring(m, fx + 0.26, fy + 0.26, fb[0], fb[1], 0.26, paint)
-        frame_ring(m, fx + 0.253, fy + 0.253, fb[0] - 0.03, fb[0] + 0.004, 0.24, TD)
+        frame_ring(m, fx + 0.18, fy + 0.18, fb[0], fb[1], 0.17, paint)       # the same size and width as the frame below (the developer)
+        frame_ring(m, fx + 0.173, fy + 0.173, fb[0] - 0.03, fb[0] + 0.004, 0.15, TD)
         xy = xs_ + 0.40                                       # the one beam across the top frame, between the stack and the grate
         m.box((0.15, 2 * fy + 0.04, fb[1] - fb[0] - 0.04), (xy, 0, (fb[0] + fb[1]) / 2), paint, bevel=0.014)
         with m.at((0.38, 0.0, Z3)):                           # the big grate, under the open bay
