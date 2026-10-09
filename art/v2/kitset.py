@@ -26,15 +26,16 @@ PLEN = 0.42              # a plenum's height: tall enough that a duct's socket s
 DUCT_AT = 0.20           # how high above its foot a plenum, or a drum's port, takes a duct
 
 
-def _plenum(m, hx, hy, z0):
-    s2.slab(m, hx, hy, z0 - 0.01, z0 + PLEN, 0.04, s2.G, bevel=0.02)
-    s2.slab(m, hx + 0.012, hy + 0.012, z0 + PLEN - 0.05, z0 + PLEN + 0.012, s2.cut_to(hx + 0.012, hy + 0.012, (hx, hy, 0.04), 0.012), s2.LT, bevel=0.012)
-    return z0 + PLEN
+def _plenum(m, hx, hy, z0, h=PLEN):
+    s2.slab(m, hx, hy, z0 - 0.01, z0 + h, 0.04, s2.G, bevel=0.02)
+    s2.slab(m, hx + 0.012, hy + 0.012, z0 + h - 0.05, z0 + h + 0.012, s2.cut_to(hx + 0.012, hy + 0.012, (hx, hy, 0.04), 0.012), s2.LT, bevel=0.012)
+    return z0 + h
 
 
-def k_stack_rise3(m, z0=0.0):
-    """Stacks, rising three: a plenum and three fat stacks in a row, each taller than the last (former5's)."""
-    pz = _plenum(m, 0.46, 0.20, z0)
+def k_stack_rise3(m, z0=0.0, plen=PLEN):
+    """Stacks, rising three: a plenum and three fat stacks in a row, each taller than the last (former5's).
+    `plen` makes the plenum taller, for a machine whose ducts must come into it higher up."""
+    pz = _plenum(m, 0.46, 0.20, z0, plen)
     for x, top in ((-0.285, 0.90), (0.0, 1.20), (0.285, 1.50)):
         s2.fat_stack(m, x, 0, pz, z0 + top, 0.095, foot=0.035)
 

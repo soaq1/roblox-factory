@@ -4054,10 +4054,11 @@ def grate(m, w, h, bars_along="y"):
 def courses(m, hx, hy, z0, z1, n, c, mk, bevel=0.028):
     """A block laid up in n level courses, each with its edges cut, so that a groove runs round the block
     between one course and the next. The developer's way of taking the plainness off a big box
-    (2026-10-09, drawn by him in Blender)."""
-    h = (z1 - z0) / n
-    for k in range(n):
-        slab(m, hx, hy, z0 + k * h, z0 + (k + 1) * h, c, mk, bevel=bevel)
+    (2026-10-09, drawn by him in Blender). n is how many equal courses, or a list of the heights at which
+    one course ends and the next begins."""
+    zs = [z0 + k * (z1 - z0) / n for k in range(n + 1)] if isinstance(n, int) else [z0, *n, z1]
+    for a, b in zip(zs, zs[1:]):
+        slab(m, hx, hy, a, b, c, mk, bevel=bevel)
 
 
 def mill14(m, paint="h_p1", trim=False):
@@ -4075,7 +4076,8 @@ def mill14(m, paint="h_p1", trim=False):
     In the furnace's roof one big grate of red neon behind heavy bars (for a steel mill the grate should
     be big), the frame above it left open: one beam only, between the grate and the stack.
     The furnace's walls are laid up in level courses with a groove between each (the developer's own
-    drawing), which is what keeps so big a box from being plain.
+    drawing), which is what keeps so big a box from being plain; only the course the pipes come into
+    has no groove across it.
     Nothing is stuck on the walls: the developer had every "3D decal" taken off (2026-10-09), the ribs,
     the let-in panels and doors, the louvres, handwheels, panels, badge, dials and corner bolts. They
     are still here, behind trim=True, should any come back."""
@@ -4114,18 +4116,16 @@ def mill14(m, paint="h_p1", trim=False):
     # ---- the furnace
     yc, fx, fy = 0.36, 0.90, 0.70
     Z1, Z2, Z3 = 0.98, 1.70, 1.76
-    HD = 0.24                                                 # how deep the plain block is that the pipes come into
     fa, fb = (Z1 - 0.01, Z1 + 0.14), (2.26, 2.41)
     RX, RY = fx + 0.10, fy + 0.10
     xs_, ys_ = -0.47, 0.30                                    # the big stack, in the back corner
     with m.at((0, yc, 0)):
         slab(m, fx + 0.20, fy + 0.20, 0.0, 0.14, 0.04, T, bevel=0.014)
         courses(m, fx, fy, 0.10, Z1 + 0.01, 4, 0.035, G)       # the furnace's walls: level courses, a groove between each
-        courses(m, fx - 0.03, fy - 0.03, Z1, Z2, 3, 0.035, G)
-        # where the pipes come in the wall is plain: a pipe let into a grooved wall is not believable (the
-        # developer). The front of the upper part is one plain block, a little proud of the courses behind.
-        with m.at((0, -(fy - 0.03) + HD / 2 - 0.012, 0)):
-            slab(m, fx - 0.018, HD / 2, Z1 + 0.005, Z2 - 0.005, 0.03, G, bevel=0.02)
+        # The upper part would be three courses, but pipes let into a grooved wall are not believable (the
+        # developer): the groove of the course they come into is left out, so the top two courses are
+        # one, and the pipes are set high enough to touch that one only.
+        courses(m, fx - 0.03, fy - 0.03, Z1, Z2, (Z1 + (Z2 - Z1) / 3,), 0.035, G)
         slab(m, fx - 0.01, fy - 0.01, Z2 - 0.02, Z3, 0.04, "h_dark", bevel=0.016)
         for sx in SIDES:
             for sy in SIDES:
@@ -4166,17 +4166,16 @@ def mill14(m, paint="h_p1", trim=False):
             with on_side(m, 1, yc + fy - 0.03, zu, xc=x):
                 m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
     # ---- on the low block's roof: the kit's three rising stacks, and the pipes from the furnace
-    xp, zq = 0.26, Zr + kit.DUCT_AT
+    xp, zq = 0.26, Zr + 0.26                                  # the pipes come in higher than the kit's usual, to clear the groove
     with m.at((xp, yb, 0)):
-        kit.k_stack_rise3(m, Zr)
+        kit.k_stack_rise3(m, Zr, plen=0.48)                   # and the plenum is taller to take them under its rim
     ys2 = yc - fy + 0.03                                      # the furnace's upper wall, facing the low block
-    ye = ys2 - 0.012                                          # the plain block's face, where the pipes come in
     for x in (0.05, 0.47):
-        kit._run_y(m, yb + 0.20 - 0.012, ye + 0.012, x, zq)
+        kit._run_y(m, yb + 0.20 - 0.012, ys2 + 0.012, x, zq)
     xw, zq2 = -0.55, 1.53                                     # the third: up, round a bend, across higher
     kit._riser(m, xw, yb, Zr, zq2 - kit.BEND, top=False)
     kit._bend(m, (xw, yb, zq2), (0, 0, 1), (0, 1, 0))
-    kit._run_y(m, yb + kit.BEND, ye + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
+    kit._run_y(m, yb + kit.BEND, ys2 + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
     if trim:
         for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
             with on_side(m, -1, ys2, zu, xc=x):
