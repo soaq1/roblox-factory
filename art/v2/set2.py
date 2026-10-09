@@ -3878,13 +3878,147 @@ mill12.frame, mill12.shadow, mill12.res = {"iso": (5.4, 1.4), "side": (5.0, 1.5)
 _hero.HEROES["mill12"] = mill12
 
 
+def mill13(m, paint="h_p1"):
+    """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the near row. Set beside former5
+    at one scale, mill12 had half the former's detail for half as much surface again, and a grade 3
+    machine that turns two things into a third should look more complicated than a press, not less.
+    Measured across every draft, what was rejected was never the amount but the kind: small things
+    stuck on flat walls (mill6), pipes wound round a box (mill11). The former's kind is structure. The
+    developer's word for this one: moderately more pipes and stacks.
+    So mill12's lopsided layout, a little smaller, with one more joint in its structure:
+    - the low block is the former's house (cabinet under a painted body, no dark lid), the belt through
+      it, a mouth3 at each end;
+    - on its roof a plenum with three fat stacks, each taller than the last, as on the former; two
+      straight ducts cross from the furnace's upper course into the plenum's side, and at the roof's
+      other end a third rises through a box elbow and crosses higher up;
+    - the furnace behind, in two courses under a plain roof, its fat stack in the back corner under the
+      frame's window, red grates under the other bays."""
+    yb = -1.0
+    X, hy = 1.05, 0.44
+    Zc, Zr = 0.86, 1.12
+    body = (X - 0.08, hy - 0.08, 0.045)
+    with m.at((0, yb, 0)):
+        belt_stub(m, -1.5, -X + 0.02, -1.39, -1.455)
+        belt_stub(m, X - 0.02, 1.5, 1.39, 1.455)
+        mouth3(m, -X, -1, paint)
+        mouth3(m, X, 1, paint)
+        slab(m, X - 0.01, hy + 0.015, 0.0, 0.16, 0.03, T, bevel=0.012)
+        slab(m, X, hy, 0.12, Zc, 0.035, G, bevel=0.02)
+        slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
+    yf, yp = yb - hy, yb - body[1]
+    zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
+    with on_side(m, -1, yf, zc_, xc=0.05):                    # the cabinet's face: a louvre and two handwheels to one side, corner bolts
+        vent(m, 0.25, 0.19)
+    for x, z in ((0.52, 0.39), (0.78, 0.57)):
+        with on_side(m, -1, yf, z, xc=x):
+            handwheel(m, 0.14)
+    for x in (-X + 0.068, X - 0.068):
+        for z in (0.21, Zc - 0.09):
+            with on_side(m, -1, yf, z, xc=x):
+                m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+    for x, w in ((-0.62, 0.40), (-0.22, 0.24)):               # the body's face: two panels, a badge, the dial panel
+        with on_side(m, -1, yp, zb_, xc=x):
+            framed(m, w, 0.18)
+    with on_side(m, -1, yp, zb_, xc=0.12):
+        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
+    with on_side(m, -1, yp, zb_, xc=0.58):
+        gauges(m, 0.22, 0.10)
+    # ---- the furnace
+    yc, fx, fy = 0.36, 0.90, 0.70
+    Z1, Z2, Z3 = 1.00, 1.70, 1.78
+    fa, fb = (Z1 - 0.01, Z1 + 0.14), (2.26, 2.41)
+    RX, RY = fx + 0.10, fy + 0.10
+    xs_, ys_ = -0.45, 0.30                                    # the stack, in the back corner
+    with m.at((0, yc, 0)):
+        slab(m, fx + 0.20, fy + 0.20, 0.0, 0.14, 0.04, T, bevel=0.014)
+        slab(m, fx, fy, 0.10, Z1 + 0.01, 0.035, G, bevel=0.02)
+        slab(m, fx - 0.03, fy - 0.03, Z1, Z2, 0.035, G, bevel=0.02)
+        slab(m, fx - 0.01, fy - 0.01, Z2 - 0.02, Z3, 0.04, "h_dark", bevel=0.016)                       # a plain roof, not a dark lid
+        for sx in SIDES:
+            for sy in SIDES:
+                m.box((0.15, 0.14, 0.03), (sx * (RX - 0.0375), sy * (RY - 0.034), 0.15), G, bevel=0.008)
+                for dx, dy in ((0.0, 0.0), (-0.075, 0.0), (0.0, -0.068)):
+                    m.box((0.044, 0.044, fb[0] + 0.02 - 0.16), (sx * (RX + dx), sy * (RY + dy), (fb[0] + 0.02 + 0.16) / 2), LT, bevel=0.008)
+        frame_ring(m, fx + 0.18, fy + 0.18, fa[0], fa[1], 0.17, paint)
+        frame_ring(m, fx + 0.173, fy + 0.173, fa[0] - 0.03, fa[0] + 0.004, 0.15, TD)
+        frame_ring(m, fx + 0.26, fy + 0.26, fb[0], fb[1], 0.26, paint)
+        frame_ring(m, fx + 0.253, fy + 0.253, fb[0] - 0.03, fb[0] + 0.004, 0.24, TD)
+        bz, bh = (fb[0] + fb[1]) / 2, fb[1] - fb[0] - 0.04
+        yx, xy = ys_ - 0.39, xs_ + 0.40
+        m.box((2 * fx + 0.04, 0.15, bh), (0, yx, bz), paint, bevel=0.014)
+        m.box((0.15, fy - yx - 0.075 + 0.04, bh), (xy, (yx + 0.075 + fy + 0.02) / 2 - 0.01, bz), paint, bevel=0.014)
+        with m.at((xs_, ys_, 0)):
+            slab(m, 0.28, 0.28, Z3 - 0.01, Z3 + 0.14, 0.05, G, bevel=0.02)
+            slab(m, 0.292, 0.292, Z3 + 0.09, Z3 + 0.152, cut_to(0.292, 0.292, (0.28, 0.28, 0.05), 0.012), LT, bevel=0.012)
+        for gx, gy, w, h in ((0.30, 0.33, 0.22, 0.42), (0.62, 0.33, 0.22, 0.42), (-0.30, -0.42, 0.44, 0.20)):
+            with m.at((gx, gy, Z3)):
+                m.box((w - 0.08, h - 0.08, 0.014), (0, 0, 0.004), "h_neon")
+                n = max(3, round(max(w, h) / 0.085) - 1)
+                for k_ in range(n):
+                    t_ = -(n - 1) * 0.0425 + k_ * 0.085
+                    if h > w:
+                        m.prism([(t_ - 0.015, 0.009), (t_ + 0.015, 0.009), (t_ + 0.008, 0.03), (t_ - 0.008, 0.03)], -(w / 2 - 0.03), w / 2 - 0.03, "X", LT)
+                    else:
+                        m.prism([(t_ - 0.015, 0.009), (t_ + 0.015, 0.009), (t_ + 0.008, 0.03), (t_ - 0.008, 0.03)], -(h / 2 - 0.03), h / 2 - 0.03, "Y", LT)
+                ring(m, w / 2, h / 2, [(0.0, -0.004), (0.01, 0.034), (0.034, 0.034), (0.046, -0.004)], TD, c=0.03)
+    fat_stack(m, xs_, yc + ys_, Z3 + 0.14, 2.92, 0.19, foot=0.07)
+    zl, zu = (0.10 + fa[0] - 0.03) / 2, (fa[1] + Z2 - 0.02) / 2
+    for sx in SIDES:                                          # the end walls: one big let-in panel with a door in it, corner bolts; a bolted plate above
+        with on_end(m, sx, sx * fx, yc, zl):
+            framed(m, 1.00, 0.56)
+            with m.at((0.25, -0.03, 0.006)):
+                framed(m, 0.30, 0.42, LT)
+                m.box((0.022, 0.11, 0.022), (-0.09, 0, 0.02), TD)
+        for y in (yc - fy + 0.068, yc + fy - 0.068):
+            for z in (0.21, fa[0] - 0.13):
+                with on_end(m, sx, sx * fx, y, z):
+                    m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+        with on_end(m, sx, sx * (fx - 0.03), yc, zu):
+            bolted(m, 0.70, 0.30, G, r=0.02)
+    with on_side(m, 1, yc + fy, zl, xc=-0.32):
+        framed(m, 0.80, 0.56)
+    with on_side(m, 1, yc + fy, zl, xc=0.46):
+        vent(m, 0.31, 0.21)
+    with on_side(m, 1, yc + fy - 0.03, zu, xc=0.0):
+        bolted(m, 1.10, 0.30, G, r=0.02)
+    # ---- on the low block's roof: the plenum and its three stacks, fed by two straight ducts from the furnace
+    rd = 0.105
+    xa0, xa1, pa = -0.02, 0.90, 0.20
+    pz = Zr + 0.36
+    with m.at(((xa0 + xa1) / 2, yb, 0)):
+        slab(m, (xa1 - xa0) / 2, pa, Zr - 0.01, pz, 0.04, G, bevel=0.02)
+        slab(m, (xa1 - xa0) / 2 + 0.012, pa + 0.012, pz - 0.05, pz + 0.012, cut_to((xa1 - xa0) / 2 + 0.012, pa + 0.012, ((xa1 - xa0) / 2, pa, 0.04), 0.012), LT, bevel=0.012)
+    for x, top in ((0.165, 2.00), (0.44, 2.30), (0.715, 2.60)):
+        fat_stack(m, x, yb, pz, top, 0.095, foot=0.035)
+    ys2, zq = yc - fy + 0.03, Zr + 0.18
+    for x in (0.24, 0.66):
+        y0 = yb + pa
+        m.cyl(rd * K, ys2 - y0 + 0.05, (x, (y0 + ys2) / 2, zq), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+        m.cyl((rd + 0.022) * K, 0.07, (x, (y0 + ys2) / 2, zq), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    # and at the roof's other end a third duct, up through a box elbow and across higher
+    xw, zq2 = -0.55, 1.54
+    with m.at((xw, yb, 0)):
+        octa(m, rd + 0.05, rd + 0.02, Zr - 0.01, Zr + 0.08, G)
+        octa(m, rd, rd, Zr + 0.07, zq2 - 0.13, LT)
+        slab(m, 0.14, 0.14, zq2 - 0.14, zq2 + 0.14, 0.03, G, bevel=0.02)
+    y0 = yb + 0.14
+    m.cyl(rd * K, ys2 - y0 + 0.04, (xw, (y0 + ys2) / 2, zq2), LT, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+    for y in (y0 + 0.14, ys2 - 0.12):
+        m.cyl((rd + 0.022) * K, 0.07, (xw, y, zq2), G, seg=8, axis="Y", rot=(0, rad(22.5), 0))
+
+
+mill13.frame, mill13.shadow, mill13.res = {"iso": (5.4, 1.4), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
+_hero.HEROES["mill13"] = mill13
+
+
 def cmp_former_mill(m):
     """Not a machine: the confirmed former and the latest steel mill side by side at one scale, with a
     figure as tall as a character between them, to compare the two."""
     with m.at((-2.3, 0.5, 0)):
         former5(m)
     with m.at((2.1, 0.0, 0)):
-        mill12(m)
+        mill13(m)
     with m.at((-0.35, -1.2, 0)):
         tower(m, [(0.11, 0.07, 0.02, 0.0), (0.11, 0.07, 0.02, 0.66)], TD)
         tower(m, [(0.165, 0.085, 0.025, 0.66), (0.165, 0.085, 0.025, 1.30)], "h_white")
