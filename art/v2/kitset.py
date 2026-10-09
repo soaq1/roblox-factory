@@ -38,8 +38,12 @@ def k_stack_rise3(m, z0=0.0):
         s2.fat_stack(m, x, 0, pz, z0 + top, 0.095, foot=0.035)
 
 
-def k_stack_one(m, z0=0.0, h=1.28):
-    """Stacks, the big one: one fat stack on a broad base, h high in all."""
+def k_stack_one(m, z0=0.0, h=1.28, base=True):
+    """Stacks, the big one: one fat stack, h high in all, on a broad base, or (base=False) straight on
+    the roof on its own flared foot."""
+    if not base:
+        s2.fat_stack(m, 0, 0, z0, z0 + h, 0.19, foot=0.07)
+        return
     s2.slab(m, 0.28, 0.28, z0 - 0.01, z0 + 0.14, 0.05, s2.G, bevel=0.02)
     s2.slab(m, 0.292, 0.292, z0 + 0.09, z0 + 0.152, s2.cut_to(0.292, 0.292, (0.28, 0.28, 0.05), 0.012), s2.LT, bevel=0.012)
     s2.fat_stack(m, 0, 0, z0 + 0.14, z0 + h, 0.19, foot=0.07)
@@ -129,9 +133,14 @@ def _pier(m, x, y, top):
         s2.slab(m, 0.05, 0.075, 0.05, top, 0.015, s2.ST, bevel=0.01)
 
 
+ELBOW = 0.18              # half the corner box of a pipe: clearly bigger than the flanges that meet it (0.135),
+#                           so that the joints do not look too small on it (the developer, 2026-10-09)
+INTO = ELBOW - 0.012      # how far from the box's middle a pipe meeting it stops
+
+
 def _elbow(m, x, y, z):
     with m.at((x, y, 0)):
-        s2.slab(m, 0.14, 0.14, z - 0.14, z + 0.14, 0.03, s2.G, bevel=0.02)
+        s2.slab(m, ELBOW, ELBOW, z - ELBOW, z + ELBOW, 0.04, s2.G, bevel=0.024)
 
 
 def _riser(m, x, y, z0, z1):
@@ -150,9 +159,9 @@ def k_pipe_straight(m, L=1.1, z=0.45):
 
 def k_pipe_elbow(m, H=0.95, L=0.80, z0=0.0):
     """Pipe, one turn: up out of a foot, through a box elbow, and away level, ringed all the way."""
-    _riser(m, 0, 0, z0, z0 + H - 0.13)
+    _riser(m, 0, 0, z0, z0 + H - INTO)
     _elbow(m, 0, 0, z0 + H)
-    _run_x(m, 0.14 - 0.01, L, 0, z0 + H)
+    _run_x(m, INTO, L, 0, z0 + H)
 
 
 def k_pipe_valve(m, L=1.3, z=0.45):
@@ -168,9 +177,9 @@ def k_pipe_valve(m, L=1.3, z=0.45):
 def k_pipe_bridge(m, H=1.15, L=1.06, z0=0.0):
     """Pipe, over: up, across through two box elbows, and down again (the former's duct), ringed all the way."""
     for x in (-L / 2, L / 2):
-        _riser(m, x, 0, z0, z0 + H - 0.13)
+        _riser(m, x, 0, z0, z0 + H - INTO)
         _elbow(m, x, 0, z0 + H)
-    _run_x(m, -L / 2 + 0.13, L / 2 - 0.13, 0, z0 + H)
+    _run_x(m, -L / 2 + INTO, L / 2 - INTO, 0, z0 + H)
 
 
 def _port(m, r, side, z0):

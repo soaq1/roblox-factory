@@ -4051,7 +4051,7 @@ def grate(m, w, h, bars_along="y"):
     ring(m, w / 2, h / 2, [(0.0, -0.004), (0.014, 0.056), (0.05, 0.056), (0.066, -0.004)], G, c=0.045)
 
 
-def mill14(m, paint="h_p1"):
+def mill14(m, paint="h_p1", trim=False):
     """Steel mill, 3x3 (hitbox 3x3x3), a through machine, the belt along the near row: the first machine
     put together from the kit (kitset.py), at the developer's word. mill13's lopsided layout, which he
     found better than what came before, with the kit's pieces in place of parts drawn for it:
@@ -4060,10 +4060,13 @@ def mill14(m, paint="h_p1"):
     - on the low block's roof the kit's rising three stacks on their plenum, two straight kit pipes from
       the furnace into the plenum's side, and a third through the kit's elbow, crossing higher; every
       pipe ringed at the pitch and swelling into a flange where it meets a wall;
-    - in the furnace's back corner the kit's big stack on its base.
-    Added as the developer left to judgment: ribs on the furnace's upper course, one louvre a side, and
-    in the furnace's roof one big grate of red neon behind heavy bars (for a steel mill the grate
-    should be big), the frame above it left open: one beam only, between the grate and the stack."""
+    - in the furnace's back corner the kit's big stack, straight on the roof (the developer had the
+      plate under it taken away).
+    In the furnace's roof one big grate of red neon behind heavy bars (for a steel mill the grate should
+    be big), the frame above it left open: one beam only, between the grate and the stack.
+    Nothing is stuck on the walls: the developer had every "3D decal" taken off (2026-10-09), the ribs,
+    the let-in panels and doors, the louvres, handwheels, panels, badge, dials and corner bolts. They
+    are still here, behind trim=True, should any come back."""
     kit = kitset
     yb = -1.0
     X, hy = 0.90, 0.46                                        # the walls stand back: the mouths are 0.46 deep
@@ -4076,25 +4079,26 @@ def mill14(m, paint="h_p1"):
         slab(m, X - 0.01, hy - 0.01, 0.0, 0.16, 0.03, T, bevel=0.012)
         slab(m, X, hy, 0.12, Zc, 0.035, G, bevel=0.02)
         slab(m, body[0], body[1], Zc - 0.01, Zr, body[2], paint, bevel=0.022)
-    yf, yp = yb - hy, yb - body[1]
-    zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
-    with on_side(m, -1, yf, zc_, xc=-0.12):                   # the cabinet's face: a louvre, two handwheels, corner bolts
-        vent(m, 0.25, 0.19)
-    for x, z in ((0.36, 0.40), (0.62, 0.58)):
-        with on_side(m, -1, yf, z, xc=x):
-            handwheel(m, 0.14)
-    for x in (-X + 0.068, X - 0.068):
-        for z in (0.21, Zc - 0.09):
+    if trim:
+        yf, yp = yb - hy, yb - body[1]
+        zc_, zb_ = (0.12 + Zc) / 2, (Zc + Zr) / 2
+        with on_side(m, -1, yf, zc_, xc=-0.12):                   # the cabinet's face: a louvre, two handwheels, corner bolts
+            vent(m, 0.25, 0.19)
+        for x, z in ((0.36, 0.40), (0.62, 0.58)):
             with on_side(m, -1, yf, z, xc=x):
-                m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
-    for x, w in ((-0.52, 0.40), (-0.14, 0.24)):               # the body's face: two panels, a badge, the dial panel
-        with on_side(m, -1, yp, zb_, xc=x):
-            framed(m, w, 0.18)
-    with on_side(m, -1, yp, zb_, xc=0.14):
-        m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
-        m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
-    with on_side(m, -1, yp, zb_, xc=0.52):
-        gauges(m, 0.20, 0.10)
+                handwheel(m, 0.14)
+        for x in (-X + 0.068, X - 0.068):
+            for z in (0.21, Zc - 0.09):
+                with on_side(m, -1, yf, z, xc=x):
+                    m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+        for x, w in ((-0.52, 0.40), (-0.14, 0.24)):               # the body's face: two panels, a badge, the dial panel
+            with on_side(m, -1, yp, zb_, xc=x):
+                framed(m, w, 0.18)
+        with on_side(m, -1, yp, zb_, xc=0.14):
+            m.cyl(0.075, 0.022, (0, 0, 0.008), "h_red", seg=6)
+            m.cyl(0.04, 0.012, (0, 0, 0.024), "h_white", seg=6)
+        with on_side(m, -1, yp, zb_, xc=0.52):
+            gauges(m, 0.20, 0.10)
     # ---- the furnace
     yc, fx, fy = 0.36, 0.90, 0.70
     Z1, Z2, Z3 = 0.98, 1.70, 1.76
@@ -4120,29 +4124,30 @@ def mill14(m, paint="h_p1"):
         with m.at((0.38, 0.0, Z3)):                           # the big grate, under the open bay
             grate(m, 0.86, 1.04)
         with m.at((xs_, ys_, 0)):
-            kit.k_stack_one(m, Z3, h=1.16)
-    zl, zu = (0.10 + fa[0] - 0.03) / 2, (fa[1] + Z2 - 0.02) / 2
-    rib = (0.075, Z2 - 0.02 - fa[1], 0.045)
-    for sx in SIDES:                                          # the end walls: a big let-in panel with a door, corner bolts; ribs above
-        with on_end(m, sx, sx * fx, yc, zl):
-            framed(m, 1.00, 0.56)
-            with m.at((0.25, -0.03, 0.006)):
-                framed(m, 0.30, 0.42, LT)
-                m.box((0.022, 0.11, 0.022), (-0.09, 0, 0.02), TD)
-        for y in (yc - fy + 0.068, yc + fy - 0.068):
-            for z in (0.21, fa[0] - 0.13):
-                with on_end(m, sx, sx * fx, y, z):
-                    m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
-        for y in (yc - 0.42, yc, yc + 0.42):
-            with on_end(m, sx, sx * (fx - 0.03), y, zu):
+            kit.k_stack_one(m, Z3, h=1.16, base=False)       # no plate under it (the developer, 2026-10-09)
+    if trim:
+        zl, zu = (0.10 + fa[0] - 0.03) / 2, (fa[1] + Z2 - 0.02) / 2
+        rib = (0.075, Z2 - 0.02 - fa[1], 0.045)
+        for sx in SIDES:                                          # the end walls: a big let-in panel with a door, corner bolts; ribs above
+            with on_end(m, sx, sx * fx, yc, zl):
+                framed(m, 1.00, 0.56)
+                with m.at((0.25, -0.03, 0.006)):
+                    framed(m, 0.30, 0.42, LT)
+                    m.box((0.022, 0.11, 0.022), (-0.09, 0, 0.02), TD)
+            for y in (yc - fy + 0.068, yc + fy - 0.068):
+                for z in (0.21, fa[0] - 0.13):
+                    with on_end(m, sx, sx * fx, y, z):
+                        m.cyl(0.028, 0.02, (0, 0, 0.008), LT, seg=6)
+            for y in (yc - 0.42, yc, yc + 0.42):
+                with on_end(m, sx, sx * (fx - 0.03), y, zu):
+                    m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
+        with on_side(m, 1, yc + fy, zl, xc=-0.32):                # the back wall: a panel and a louvre; ribs above
+            framed(m, 0.80, 0.56)
+        with on_side(m, 1, yc + fy, zl, xc=0.46):
+            vent(m, 0.31, 0.21)
+        for x in (-0.60, -0.20, 0.20, 0.60):
+            with on_side(m, 1, yc + fy - 0.03, zu, xc=x):
                 m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
-    with on_side(m, 1, yc + fy, zl, xc=-0.32):                # the back wall: a panel and a louvre; ribs above
-        framed(m, 0.80, 0.56)
-    with on_side(m, 1, yc + fy, zl, xc=0.46):
-        vent(m, 0.31, 0.21)
-    for x in (-0.60, -0.20, 0.20, 0.60):
-        with on_side(m, 1, yc + fy - 0.03, zu, xc=x):
-            m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
     # ---- on the low block's roof: the kit's three rising stacks, and the pipes from the furnace
     xp, zq = 0.26, Zr + kit.DUCT_AT
     with m.at((xp, yb, 0)):
@@ -4151,12 +4156,13 @@ def mill14(m, paint="h_p1"):
     for x in (0.05, 0.47):
         kit._run_y(m, yb + 0.20 - 0.012, ys2 + 0.012, x, zq)
     xw, zq2 = -0.55, 1.53                                     # the third: up through an elbow, across higher
-    kit._riser(m, xw, yb, Zr, zq2 - 0.13)
+    kit._riser(m, xw, yb, Zr, zq2 - kit.INTO)
     kit._elbow(m, xw, yb, zq2)
-    kit._run_y(m, yb + 0.13, ys2 + 0.012, xw, zq2)
-    for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
-        with on_side(m, -1, ys2, zu, xc=x):
-            m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
+    kit._run_y(m, yb + kit.INTO, ys2 + 0.012, xw, zq2)
+    if trim:
+        for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
+            with on_side(m, -1, ys2, zu, xc=x):
+                m.box(rib, (0, 0, 0.02), LT, bevel=0.01)
 
 
 mill14.frame, mill14.shadow, mill14.res = {"iso": (5.4, 1.4), "side": (5.0, 1.5), "top": (4.4, 0.6), "end": (4.4, 1.5)}, True, 1800
