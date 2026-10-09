@@ -139,6 +139,20 @@ def _pier(m, x, y, top):
         s2.slab(m, 0.05, 0.075, 0.05, top, 0.015, s2.ST, bevel=0.01)
 
 
+SEAT = (0.04, 0.03)       # a pipe's seat on a wall: how much bigger than the flange all round, and how proud
+
+
+def _seat_y(m, x, y, z, d):
+    """Where a pipe meets a wall that is not plain (one laid in courses, say): an eight-sided plate a
+    little bigger than the pipe's flange, on the wall at y facing d, its middle at (x, z). The flange
+    sits whole on the plate, and the wall's grooves run in under the plate, not under the flange.
+    Returns where the plate's face is, which is where the pipe should stop."""
+    a_ = RD + SOCK[0] + SEAT[0]
+    with s2.on_side(m, d, y, z, xc=x):
+        s2.octa(m, a_, a_ - 0.014, -0.006, SEAT[1], s2.G)
+    return y + d * SEAT[1]
+
+
 BEND = 0.20               # the radius a pipe turns at, measured to its middle
 
 

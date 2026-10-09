@@ -4165,12 +4165,14 @@ def mill14(m, paint="h_p1", trim=False):
     with m.at((xp, yb, 0)):
         kit.k_stack_rise3(m, Zr)
     ys2 = yc - fy + 0.03                                      # the furnace's upper wall, facing the low block
-    for x in (0.05, 0.47):
-        kit._run_y(m, yb + 0.20 - 0.012, ys2 + 0.012, x, zq)
-    xw, zq2 = -0.55, 1.53                                     # the third: up, round a bend, across higher
+    for x in (0.05, 0.47):                                    # each pipe lands on a seat: the wall is in courses, and a
+        ye = kit._seat_y(m, x, ys2, zq, -1)                   # flange straight on it would sit across the grooves
+        kit._run_y(m, yb + 0.20 - 0.012, ye + 0.012, x, zq)
+    xw, zq2 = -0.55, 1.50                                     # the third: up, round a bend, across higher
     kit._riser(m, xw, yb, Zr, zq2 - kit.BEND, top=False)
     kit._bend(m, (xw, yb, zq2), (0, 0, 1), (0, 1, 0))
-    kit._run_y(m, yb + kit.BEND, ys2 + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
+    ye = kit._seat_y(m, xw, ys2, zq2, -1)
+    kit._run_y(m, yb + kit.BEND, ye + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
     if trim:
         for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
             with on_side(m, -1, ys2, zu, xc=x):
