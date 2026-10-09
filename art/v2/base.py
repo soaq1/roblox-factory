@@ -317,8 +317,9 @@ def set_style(style):
     fk.FLUSH_JOINTS = FLUSH
 
 
-FLUSH = True              # edges where two pieces meet are left square; edges in the open stay chamfered
-#                           (the developer, 2026-10-09: the grooves between blocks made them look apart)
+FLUSH = False             # True leaves edges where two pieces meet square (edges in the open stay chamfered).
+#                           Tried at the developer's word and rejected by him on sight (2026-10-09): every
+#                           edge chamfered, grooves and all, looks better.
 
 
 def arrows(m, x0, x1, step=0.30):
