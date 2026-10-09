@@ -396,7 +396,7 @@ def k_walk(m, L=1.4, z=0.85):
     and a ladder down to the ground at one end. The way up to look after a machine, and a measure of
     how big the machine is."""
     m.box((L, 0.32, 0.04), (0, 0, z), s2.TD, bevel=0.008)
-    m.box((L, 0.03, 0.07), (0, -0.138, z + 0.03), s2.LT, bevel=0.006)                                    # the kerb
+    m.box((L - 0.02, 0.03, 0.07), (0, -0.138, z + 0.03), s2.LT, bevel=0.006)                             # the kerb
     for x in (-L / 2 + 0.05, 0.0, L / 2 - 0.05):
         m.box((0.045, 0.045, 0.40), (x, -0.138, z + 0.22), s2.LT, bevel=0.008)
     m.box((L, 0.05, 0.05), (0, -0.138, z + 0.43), s2.LT, bevel=0.01)
@@ -420,7 +420,7 @@ def k_hoist(m, paint=None, L=1.3, z0=0.0):
     zb = z0 + 0.32
     for x in (-L / 2 + 0.10, L / 2 - 0.10):
         with m.at((x, 0, 0)):
-            s2.slab(m, 0.07, 0.10, z0, zb - 0.07, 0.02, s2.G, bevel=0.012)
+            s2.slab(m, 0.07, 0.10, z0, zb - 0.092, 0.02, s2.G, bevel=0.012)
     m.box((L, 0.10, 0.15), (0, 0, zb), paint, bevel=0.012)
     for dz in (-0.085, 0.085):
         m.box((L, 0.17, 0.03), (0, 0, zb + dz), s2.TD, bevel=0.008)
