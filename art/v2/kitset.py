@@ -19,6 +19,7 @@ import math
 from . import hero as _hero
 from . import set2 as s2
 from .base import loft_x, offset_closed
+from .belts import loft
 
 RD = 0.105               # the fat duct's radius
 PLEN = 0.42              # a plenum's height: tall enough that a duct's socket sits wholly in plain wall under the rim
@@ -95,10 +96,12 @@ def _socket(m, axis, end, d, at, swell=True):
     m.cyl(big, thick, loc(end - d * thick / 2), s2.G, seg=8, axis=axis, rot=rot)
 
 
-def _run(m, axis, c0, c1, at, skip=(), ends=(True, True)):
+def _run(m, axis, c0, c1, at, skip=(), ends=(True, True), pitch_from=None):
     """A fat duct from c0 to c1 along `axis`, of any length: ringed at the pitch, and swelling into a socket
     at each end that meets another part. `skip` lists (lo, hi) stretches where something else sits on the
-    pipe (a valve), and no ring is put there."""
+    pipe (a valve), and no ring is put there. An end that runs on into a bend takes no socket
+    (ends=False there); `pitch_from` is then where the bend's own ring stands, and this pipe's rings are
+    counted off from it, so that the pitch carries on round the bend."""
     rot = {"X": (s2.rad(22.5), 0, 0), "Y": (0, s2.rad(22.5), 0), "Z": s2.rad(22.5)}[axis]
 
     def loc(c):
@@ -109,22 +112,25 @@ def _run(m, axis, c0, c1, at, skip=(), ends=(True, True)):
     short = c1 - c0 < SHORT                                    # too short to swell at both ends and still be a pipe between
     keep = (SOCK[2] if short else SOCK[1] + SOCK[2]) + 0.05
     lo, hi = c0 + (keep if ends[0] else 0.0), c1 - (keep if ends[1] else 0.0)
-    if hi - lo >= RING:
-        for c in _ring_at(lo, hi, clear=0.03):
-            if not any(a - RING <= c <= b + RING for a, b in skip):
-                m.cyl((RD + 0.022) * s2.K, RING, loc(c), s2.G, seg=8, axis=axis, rot=rot)
+    if pitch_from is not None:
+        rings = [c for c in (pitch_from + k * PITCH for k in range(-40, 41)) if abs(c - pitch_from) > 1e-6 and lo + RING / 2 <= c <= hi - RING / 2]
+    else:
+        rings = _ring_at(lo, hi, clear=0.03) if hi - lo >= RING else []
+    for c in rings:
+        if not any(a - RING <= c <= b + RING for a, b in skip):
+            m.cyl((RD + 0.022) * s2.K, RING, loc(c), s2.G, seg=8, axis=axis, rot=rot)
     if ends[0]:
         _socket(m, axis, c0, -1, at, swell=not short)
     if ends[1]:
         _socket(m, axis, c1, 1, at, swell=not short)
 
 
-def _run_x(m, x0, x1, y, z, skip=(), ends=(True, True)):
-    _run(m, "X", x0, x1, (y, z), skip, ends)
+def _run_x(m, x0, x1, y, z, skip=(), ends=(True, True), pitch_from=None):
+    _run(m, "X", x0, x1, (y, z), skip, ends, pitch_from)
 
 
-def _run_y(m, y0, y1, x, z, skip=(), ends=(True, True)):
-    _run(m, "Y", y0, y1, (x, z), skip, ends)
+def _run_y(m, y0, y1, x, z, skip=(), ends=(True, True), pitch_from=None):
+    _run(m, "Y", y0, y1, (x, z), skip, ends, pitch_from)
 
 
 def _pier(m, x, y, top):
@@ -133,21 +139,37 @@ def _pier(m, x, y, top):
         s2.slab(m, 0.05, 0.075, 0.05, top, 0.015, s2.ST, bevel=0.01)
 
 
-ELBOW = 0.18              # half the corner box of a pipe: clearly bigger than the flanges that meet it (0.135),
-#                           so that the joints do not look too small on it (the developer, 2026-10-09)
-INTO = ELBOW - 0.012      # how far from the box's middle a pipe meeting it stops
+BEND = 0.20               # the radius a pipe turns at, measured to its middle
 
 
-def _elbow(m, x, y, z):
-    with m.at((x, y, 0)):
-        s2.slab(m, ELBOW, ELBOW, z - ELBOW, z + ELBOW, 0.04, s2.G, bevel=0.024)
+def _bend(m, corner, d_in, d_out):
+    """A pipe's turn: the pipe itself carried round a quarter circle, in four short lengths, from heading
+    d_in to heading d_out (two of the six axis directions, square to one another), with a ring where it
+    starts and where it ends. `corner` is where the two straight pipes' middles would meet; they stop
+    BEND short of it. No box: the developer wanted the pipe to run on round the corner (2026-10-09)."""
+    from mathutils import Vector as V
+    c, a, b = V(corner), V(d_in), V(d_out)
+    mid, side = c - a * BEND + b * BEND, a.cross(b)
+    r, rings = RD * s2.K, []
+    for k in range(5):
+        th = math.pi / 2 * k / 4
+        at = mid - b * BEND * math.cos(th) + a * BEND * math.sin(th)
+        out = (a * math.cos(th) + b * math.sin(th)).cross(side)
+        rings.append([tuple(at + (out * math.cos(f) + side * math.sin(f)) * r)
+                      for f in (math.pi / 8 + j * math.pi / 4 for j in range(8))])
+    loft(m, rings, s2.LT)
+    for at, d in ((c - a * BEND, a), (c + b * BEND, b)):      # the rings at its two ends
+        axis = "XYZ"[max(range(3), key=lambda k: abs(d[k]))]
+        rot = {"X": (s2.rad(22.5), 0, 0), "Y": (0, s2.rad(22.5), 0), "Z": s2.rad(22.5)}[axis]
+        m.cyl((RD + 0.022) * s2.K, RING, tuple(at), s2.G, seg=8, axis=axis, rot=rot)
 
 
-def _riser(m, x, y, z0, z1):
-    """A fat duct standing up out of a flared foot to z1, ringed at the pitch, a socket at its top."""
+def _riser(m, x, y, z0, z1, top=True):
+    """A fat duct standing up out of a flared foot to z1, ringed at the pitch: a socket at its top, or
+    (top=False) none, to run on into a bend."""
     with m.at((x, y, 0)):
         s2.octa(m, RD + 0.05, RD + 0.02, z0 - 0.01, z0 + 0.08, s2.G)
-    _run(m, "Z", z0 + 0.07, z1, (x, y), ends=(False, True))
+    _run(m, "Z", z0 + 0.07, z1, (x, y), ends=(False, top), pitch_from=None if top else z1)
 
 
 def k_pipe_straight(m, L=1.1, z=0.45):
@@ -158,10 +180,10 @@ def k_pipe_straight(m, L=1.1, z=0.45):
 
 
 def k_pipe_elbow(m, H=0.95, L=0.80, z0=0.0):
-    """Pipe, one turn: up out of a foot, through a box elbow, and away level, ringed all the way."""
-    _riser(m, 0, 0, z0, z0 + H - INTO)
-    _elbow(m, 0, 0, z0 + H)
-    _run_x(m, INTO, L, 0, z0 + H)
+    """Pipe, one turn: up out of a foot, round a bend, and away level, ringed all the way."""
+    _riser(m, 0, 0, z0, z0 + H - BEND, top=False)
+    _bend(m, (0, 0, z0 + H), (0, 0, 1), (1, 0, 0))
+    _run_x(m, BEND, L, 0, z0 + H, ends=(False, True), pitch_from=BEND)
 
 
 def k_pipe_valve(m, L=1.3, z=0.45):
@@ -174,12 +196,14 @@ def k_pipe_valve(m, L=1.3, z=0.45):
         s2.handwheel(m, 0.14)
 
 
-def k_pipe_bridge(m, H=1.15, L=1.06, z0=0.0):
-    """Pipe, over: up, across through two box elbows, and down again (the former's duct), ringed all the way."""
+def k_pipe_bridge(m, H=1.15, L=2 * BEND + 3 * PITCH, z0=0.0):
+    """Pipe, over: up, round a bend, across, round another and down again, ringed all the way (the
+    crossing is a whole number of pitches long, so the rings keep step from bend to bend)."""
     for x in (-L / 2, L / 2):
-        _riser(m, x, 0, z0, z0 + H - INTO)
-        _elbow(m, x, 0, z0 + H)
-    _run_x(m, -L / 2 + INTO, L / 2 - INTO, 0, z0 + H)
+        _riser(m, x, 0, z0, z0 + H - BEND, top=False)
+    _bend(m, (-L / 2, 0, z0 + H), (0, 0, 1), (1, 0, 0))
+    _bend(m, (L / 2, 0, z0 + H), (1, 0, 0), (0, 0, -1))
+    _run_x(m, -L / 2 + BEND, L / 2 - BEND, 0, z0 + H, ends=(False, False), pitch_from=-L / 2 + BEND)
 
 
 def _port(m, r, side, z0):

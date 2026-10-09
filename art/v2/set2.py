@@ -4058,7 +4058,8 @@ def mill14(m, paint="h_p1", trim=False):
     - the mouths are the kit's grade 3 mouth (three thick painted ribs, deep), so the low block's walls
       stand further back from the cell's edge;
     - on the low block's roof the kit's rising three stacks on their plenum, two straight kit pipes from
-      the furnace into the plenum's side, and a third through the kit's elbow, crossing higher; every
+      the furnace into the plenum's side, and a third that turns through the kit's bend (the pipe
+      itself carried round, no box), crossing higher; every
       pipe ringed at the pitch and swelling into a flange where it meets a wall;
     - in the furnace's back corner the kit's big stack, straight on the roof (the developer had the
       plate under it taken away).
@@ -4155,10 +4156,10 @@ def mill14(m, paint="h_p1", trim=False):
     ys2 = yc - fy + 0.03                                      # the furnace's upper wall, facing the low block
     for x in (0.05, 0.47):
         kit._run_y(m, yb + 0.20 - 0.012, ys2 + 0.012, x, zq)
-    xw, zq2 = -0.55, 1.53                                     # the third: up through an elbow, across higher
-    kit._riser(m, xw, yb, Zr, zq2 - kit.INTO)
-    kit._elbow(m, xw, yb, zq2)
-    kit._run_y(m, yb + kit.INTO, ys2 + 0.012, xw, zq2)
+    xw, zq2 = -0.55, 1.53                                     # the third: up, round a bend, across higher
+    kit._riser(m, xw, yb, Zr, zq2 - kit.BEND, top=False)
+    kit._bend(m, (xw, yb, zq2), (0, 0, 1), (0, 1, 0))
+    kit._run_y(m, yb + kit.BEND, ys2 + 0.012, xw, zq2, ends=(False, True), pitch_from=yb + kit.BEND)
     if trim:
         for x in (-0.25, 0.80):                                   # two ribs on the furnace's wall over the low block, clear of the pipes
             with on_side(m, -1, ys2, zu, xc=x):
